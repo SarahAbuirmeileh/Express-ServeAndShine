@@ -4,7 +4,7 @@ export namespace NSOrganizationProfile {
         id?: string;
         name: string;
         email: string;
-        description:string;
+        description: string;
         createdAt?: Date;
     }
 }

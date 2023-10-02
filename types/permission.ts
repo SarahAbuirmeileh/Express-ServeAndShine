@@ -1,9 +1,9 @@
 export namespace NSPermission {
 
-    export interface Item{
+    export interface Item {
         id?: string,
-        name:string,
-        rolesIds?:string[],
-        createdAt?:Date
+        name: string,
+        rolesIds?: string[],
+        createdAt?: Date
     }
 }

@@ -1,7 +1,7 @@
 export namespace NSVolunteer {
 
     export enum TypeVolunteer {
-        normal = "normal",
+        volunteer = "volunteer",
         premium = "premium"
     }
 
@@ -27,9 +27,9 @@ export namespace NSVolunteer {
         password: string;
         createdAt?: Date;
         type: TypeVolunteer;
-        availableTime: [AvailableTime];
+        availableTime: AvailableTime[];
         availableLocation: string;
-        PreferredActivities: [string];
-        availableDays: [AvailableDays];
+        PreferredActivities: string[];
+        availableDays: AvailableDays[];
     }
 }

@@ -1,3 +1,5 @@
+import { NSVolunteer } from "./volunteer.js";
+
 export namespace NSVoluntaryWork {
 
     export enum StatusType {
@@ -12,11 +14,14 @@ export namespace NSVoluntaryWork {
         name: string;
         description: string;
         location: string;
-        time: string;
+        time: NSVolunteer.AvailableTime[];
         images: string;
         rating: number;
         feedback: string;
         status: StatusType;
         createdAt?: Date;
+        days: NSVolunteer.AvailableDays[];
+        startedDate: Date;
+        finishedDate: Date;
     }
 }
