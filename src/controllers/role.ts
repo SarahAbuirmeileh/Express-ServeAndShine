@@ -34,32 +34,38 @@ const editRole = async (payload: { name: NSRole.Type, id: number }) => {
     }
 }
 
-const getRole = (payload: { id: number }) => {
-    return Role.findOne({ where: { id: payload.id } })
-}
-
 const getRoles = async (payload: {
     page: string,
-    pageSize: string
-}) => {
-
+    pageSize: string,
+    id: number,
+    name: NSRole.Type
+  }) => {
+  
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
-
+  
+    if (payload.id){
+      return Role.findOne({ where: { id: payload.id } })
+    }
+  
+    if (payload.name){
+      return Role.findOne({ where: { name: payload.name } })
+    }
+  
     const [roles, total] = await Role.findAndCount({
-        skip: pageSize * (page - 1),
-        take: pageSize,
-        order: {
-            createdAt: 'ASC'
-        }
+      skip: pageSize * (page - 1),
+      take: pageSize,
+      order: {
+        createdAt: 'ASC'
+      }
     })
-
+  
     return {
-        page,
-        pageSize: roles.length,
-        total,
-        roles
+      page,
+      pageSize: roles.length,
+      total,
+      roles
     };
-}
+  }
 
-export { createRole, editRole, getRole, getRoles, deleteRole }
+export { createRole, editRole, getRoles, deleteRole }

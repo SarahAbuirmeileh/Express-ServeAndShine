@@ -31,11 +31,11 @@ export class VoluntaryWork extends BaseEntity {
     @Column({ nullable: false })
     location: string;
 
-    @CreateDateColumn({ type: 'timestamp', nullable: false })
-    startedDate: Date;
+    @Column({nullable: false })
+    startedDate: string;
 
-    @CreateDateColumn({ type: 'timestamp', nullable: false })
-    finishedDate: Date;
+    @Column({nullable: false })
+    finishedDate: string;
 
     @Column({
         type: 'enum',
