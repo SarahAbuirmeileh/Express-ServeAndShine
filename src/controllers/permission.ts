@@ -71,10 +71,6 @@ const editPermission = async (payload: { name: string, id: number }) => {
   }
 }
 
-// const getPermissionById = (payload: { id: number }) => {
-//   return Permission.findOne({ where: { id: payload.id } })
-// }
-
 const getPermissions = async (payload: {
   page: string,
   pageSize: string,

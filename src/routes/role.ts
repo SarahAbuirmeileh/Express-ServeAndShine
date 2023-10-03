@@ -1,5 +1,6 @@
 import express from 'express';
-import { createRole, deleteRole, editRole, getRole, getRoles } from '../controllers/role.js';
+import { createRole, deleteRole, editRole, getRoles } from '../controllers/role.js';
+import { NSRole } from '../../types/role.js';
 
 var router = express.Router();
 
@@ -34,21 +35,12 @@ router.put("/", async (req, res, next) => {
     });
 });
 
-router.get("/:id", async (req, res) => {
-    const id = Number(req.params.id)
-
-    const role = await getRole({ id });
-    if (role) {
-        res.status(201).send(role);
-    } else {
-        res.status(404).send("Role not found :(");
-    }
-})
-
 router.get('/', async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
-        pageSize: req.query.pageSize?.toString() || '10'
+        pageSize: req.query.pageSize?.toString() || '10',
+        id: Number(req.query.id ) || 0,
+        name: req.query.name?.toString() as NSRole.Type
     };
 
     getRoles(payload)

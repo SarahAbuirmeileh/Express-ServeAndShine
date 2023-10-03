@@ -1,6 +1,5 @@
 import express from 'express';
 import { createPermission, deletePermission, editPermission, getPermissions } from '../controllers/permission.js';
-import { getSender } from '../controllers/index.js';
 
 var router = express.Router();
 
@@ -34,17 +33,6 @@ router.put("/", async (req, res, next) => {
         res.status(500).send(err);
     });
 });
-
-// router.get("/:id", async (req, res) => {
-//     const id = Number(req.params.id)
-
-//     const permission = await getPermissionById({ id });
-//     if (permission) {
-//         res.status(201).send(permission);
-//     } else {
-//         res.status(404).send("Permission not found :(");
-//     }
-// })
 
 router.get('/', async (req, res, next) => {
     const payload = {
