@@ -6,6 +6,8 @@ import dataSource from './src/db/dataSource.js'
 import logger from 'morgan'
 
 import indexRouter from "./src/routes/index.js"
+import permissionRouter from "./src/routes/permission.js"
+import { Role } from "./src/db/entities/Role.js"
 
 const app = express();
 dotenv.config();
@@ -15,6 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/', indexRouter);
+app.use('/permission',permissionRouter);
 // app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
