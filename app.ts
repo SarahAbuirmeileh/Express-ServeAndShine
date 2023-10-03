@@ -8,6 +8,7 @@ import logger from 'morgan'
 import indexRouter from "./src/routes/index.js"
 import permissionRouter from "./src/routes/permission.js"
 import roleRouter from "./src/routes/role.js"
+import voluntaryWorkRouter from "./src/routes/voluntaryWork.js"
 
 const app = express();
 dotenv.config();
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/', indexRouter);
 app.use('/permission',permissionRouter);
 app.use('/role',roleRouter);
+app.use('/voluntaryWork',voluntaryWorkRouter)
 // app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
