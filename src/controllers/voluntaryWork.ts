@@ -110,8 +110,8 @@ const getVoluntaryWorks = async (payload: {
     rating: number,
     status: NSVoluntaryWork.StatusType,
     skills: string[],
-    // startedDate: Date; // Add the startedDate property
-    // finishedDate: Date; // Add the finishedDate property
+    startedDate: string; 
+    finishedDate: string; 
     capacity: number; 
 }) => {
     const page = parseInt(payload.page);
@@ -142,12 +142,12 @@ const getVoluntaryWorks = async (payload: {
     if (payload.skills.length > 0) {
         conditions.push({ skillTags: { name: In(payload.skills) } });
     }
-    // if (payload.startedDate) {
-    //     conditions.push({ startedDate: payload.startedDate }); // Add startedDate condition
-    // }
-    // if (payload.finishedDate) {
-    //     conditions.push({ finishedDate: payload.finishedDate }); // Add finishedDate condition
-    // }
+    if (payload.startedDate) {
+        conditions.push({ startedDate: payload.startedDate }); // Add startedDate condition
+    }
+    if (payload.finishedDate) {
+        conditions.push({ finishedDate: payload.finishedDate }); // Add finishedDate condition
+    }
     if (payload.capacity) {
         conditions.push({ capacity: payload.capacity }); // Add capacity condition
     }
