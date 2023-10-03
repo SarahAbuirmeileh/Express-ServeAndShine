@@ -49,6 +49,9 @@ router.get('/', async (req, res, next) => {
         rating: Number(req.query.rating) || 0,
         status: req.query.status as NSVoluntaryWork.StatusType,
         skills: (Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean) as string[],
+        // startedDate: req.query.startedDate || new Date(2023, 1, 30) , 
+        // finishedDate: req.query.finishedDate  || new Date(2023, 1, 30), 
+        capacity: Number(req.query.capacity) || 0
     };
     
     getVoluntaryWorks(payload)
