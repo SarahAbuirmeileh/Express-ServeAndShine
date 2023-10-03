@@ -1,5 +1,5 @@
 import { In } from "typeorm";
-import { NSVoluntaryWork } from "../../types/volunteryWork.js";
+import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
 
