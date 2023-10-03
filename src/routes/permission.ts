@@ -15,9 +15,8 @@ router.post('/', (req, res, next) => {
 
 router.delete('/:id', async (req, res) => {
     const id = Number(req.params.id?.toString());
-    const sender = await getSender(res);
 
-    deletePermission(id, sender)
+    deletePermission(id)
         .then(data => {
             res.send(data);
         })
@@ -28,9 +27,7 @@ router.delete('/:id', async (req, res) => {
 })
 
 router.put("/", async (req, res, next) => {
-    const sender = await getSender(res);
-
-    editPermission(req.body, sender).then(() => {
+    editPermission(req.body).then(() => {
         res.status(201).send("Permission edited successfully!!")
     }).catch(err => {
         console.error(err);

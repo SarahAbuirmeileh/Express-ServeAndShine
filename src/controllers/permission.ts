@@ -13,7 +13,7 @@ const createPermission = async (payload: NSPermission.Item) => {
     }
 }
 
-const deletePermission = async (permissionId: number, sender: OrganizationAdmin | Volunteer) => {
+const deletePermission = async (permissionId: number) => {
     // const roles = sender?.roles;
     // let hasDeletePermission: boolean = false;
     // let typeName: string = "";
@@ -39,7 +39,7 @@ const deletePermission = async (permissionId: number, sender: OrganizationAdmin 
 
 }
 
-const editPermission = async (payload: { name: string, id: number }, sender: Volunteer | OrganizationAdmin) => {
+const editPermission = async (payload: { name: string, id: number }) => {
     // const roles = sender.roles;
     // let hasEditPermission: boolean = false;
     // let typeName: string = "";
