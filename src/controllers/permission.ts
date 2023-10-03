@@ -14,61 +14,89 @@ const createPermission = async (payload: NSPermission.Item) => {
 }
 
 const deletePermission = async (permissionId: number, sender: OrganizationAdmin | Volunteer) => {
-    const roles = sender?.roles;
-    let hasDeletePermission: boolean = false;
-    let typeName: string = "";
+    // const roles = sender?.roles;
+    // let hasDeletePermission: boolean = false;
+    // let typeName: string = "";
 
-    if (sender instanceof OrganizationAdmin) {
-        if (!Array.isArray(roles)) {
-            typeName = "organizationAdmin";
-            hasDeletePermission = roles.permissions.some(permission => permission.name === `DELETE_${typeName}`);
-        }
-    } else {
-        if (Array.isArray(roles)) {
-            typeName = sender?.type;
-            hasDeletePermission = roles?.some(role =>
-                role.permissions.some(permission => permission.name === `DELETE_${typeName}`))
-        }
-    }
+    // if (sender instanceof OrganizationAdmin) {
+    //     if (!Array.isArray(roles)) {
+    //         typeName = "organizationAdmin";
+    //         hasDeletePermission = roles.permissions.some(permission => permission.name === `DELETE_${typeName}`);
+    //     }
+    // } else {
+    //     if (Array.isArray(roles)) {
+    //         typeName = sender?.type;
+    //         hasDeletePermission = roles?.some(role =>
+    //             role.permissions.some(permission => permission.name === `DELETE_${typeName}`))
+    //     }
+    // }
 
-    if (!hasDeletePermission) {
-        return `You don't have a permission to delete ${typeName}`
-    }
+    // if (!hasDeletePermission) {
+    //     return `You don't have a permission to delete ${typeName}`
+    // }
 
     return Permission.delete(permissionId);
 
 }
 
-const editPermission = async (payload: {name:string, id:number}, sender:Volunteer|OrganizationAdmin ) => {
-    const roles = sender.roles;
-    let hasEditPermission: boolean = false;
-    let typeName: string = "";
+const editPermission = async (payload: { name: string, id: number }, sender: Volunteer | OrganizationAdmin) => {
+    // const roles = sender.roles;
+    // let hasEditPermission: boolean = false;
+    // let typeName: string = "";
 
-    if (sender instanceof OrganizationAdmin) {
-        if (!Array.isArray(roles)) {
-            typeName = "organizationAdmin";
-            hasEditPermission = roles.permissions.some(permission => permission.name === `EDIT_${typeName}`);
-        }
-    } else {
-        if (Array.isArray(roles)) {
-            typeName = sender?.type;
-            hasEditPermission = roles?.some(role =>
-                role.permissions.some(permission => permission.name === `DELETE_${typeName}`))
-        }
-    }
+    // if (sender instanceof OrganizationAdmin) {
+    //     if (!Array.isArray(roles)) {
+    //         typeName = "organizationAdmin";
+    //         hasEditPermission = roles.permissions.some(permission => permission.name === `EDIT_${typeName}`);
+    //     }
+    // } else {
+    //     if (Array.isArray(roles)) {
+    //         typeName = sender?.type;
+    //         hasEditPermission = roles?.some(role =>
+    //             role.permissions.some(permission => permission.name === `DELETE_${typeName}`))
+    //     }
+    // }
 
-    if (!hasEditPermission) {
-        return `You don't have a permission to delete ${typeName}`
-    }
+    // if (!hasEditPermission) {
+    //     return `You don't have a permission to delete ${typeName}`
+    // }
 
-    const permission = await Permission.findOne({where:{id: payload.id}});
+    const permission = await Permission.findOne({ where: { id: payload.id } });
 
     if (permission) {
-        permission.name =payload.name;
+        permission.name = payload.name;
         return permission.save();
     } else {
-      throw "Permission not found :(";
+        throw "Permission not found :(";
     }
+}
+
+const getPermission = (payload: { id: number }) => {
+    return Permission.findOne({ where: { id: payload.id } })
+}
+
+const getPermissions = async (payload: {
+    page: string,
+    pageSize: string
+  }) => {  
+  
+    const page = parseInt(payload.page);
+    const pageSize = parseInt(payload.pageSize);
+  
+    const [permissions, total] = await Permission.findAndCount({
+      skip: pageSize * (page - 1),
+      take: pageSize,
+      order: {
+        createdAt: 'ASC'
+      }
+    })
+  
+    return {
+      page,
+      pageSize: permissions.length,
+      total,
+      permissions
+    };
   }
 
-export { createPermission, deletePermission, editPermission }
+export { createPermission, deletePermission, editPermission, getPermission, getPermissions }
