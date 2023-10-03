@@ -23,5 +23,6 @@ export namespace NSVoluntaryWork {
         days: NSVolunteer.AvailableDays[];
         startedDate: Date;
         finishedDate: Date;
+        capacity:number;
     }
 }
