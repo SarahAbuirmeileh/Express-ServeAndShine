@@ -44,7 +44,7 @@ export class VoluntaryWork extends BaseEntity {
     })
     status: 'Pending' | 'In Progress' | 'Finished' | 'Canceled';
 
-    @Column()
+    @Column({ type: 'text', nullable: false, transformer: { to: (value) => JSON.stringify(value), from: (value) => JSON.parse(value) } })
     images: string[];
 
     @Column()
