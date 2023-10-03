@@ -1,7 +1,6 @@
 import express from 'express';
 import { createPermission, deletePermission } from '../controllers/permission.js';
-import { OrganizationAdmin } from '../db/entities/OrganizationAdmin.js';
-import { Volunteer } from '../db/entities/Volunteer.js';
+import { getSender } from '../controllers/index.js';
 
 var router = express.Router();
 
@@ -16,20 +15,7 @@ router.post('/', (req, res, next) => {
 
 router.delete('/:id', async (req, res) => {
     const id = Number(req.params.id?.toString()) ;
-    let sender: OrganizationAdmin | Volunteer = new Volunteer();
-    if (res.locals.organizationAdmin) {
-        sender = await OrganizationAdmin.findOne({
-            where: {
-                name: res.locals.organizationAdmin.name, email: res.locals?.organizationAdmin.email
-            }, relations: ["roles", "roles.permissions"]
-        }) || new OrganizationAdmin();
-    }else if(res.locals.volunteer){
-        sender = await Volunteer.findOne({
-            where: {
-                name: res.locals.volunteer.name, email: res.locals?.volunteer.email
-            }, relations: ["roles", "roles.permissions"]
-        }) || new Volunteer();
-    }
+    const  sender = await getSender(res);
 
     deletePermission(id, sender)
         .then(data => {
