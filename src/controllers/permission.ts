@@ -57,17 +57,17 @@ const editPermission = async (payload: {name:string, id:number}, sender:Voluntee
         }
     }
 
-    // if (!hasEditPermission) {
-    //     return `You don't have a permission to delete ${typeName}`
-    // }
+    if (!hasEditPermission) {
+        return `You don't have a permission to delete ${typeName}`
+    }
 
     const permission = await Permission.findOne({where:{id: payload.id}});
-  
+
     if (permission) {
         permission.name =payload.name;
         return permission.save();
     } else {
-      return "Permission not found :(";
+      throw "Permission not found :(";
     }
   }
 

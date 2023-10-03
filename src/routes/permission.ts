@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPermission, deletePermission } from '../controllers/permission.js';
+import { createPermission, deletePermission, editPermission } from '../controllers/permission.js';
 import { getSender } from '../controllers/index.js';
 
 var router = express.Router();
@@ -26,6 +26,17 @@ router.delete('/:id', async (req, res) => {
             res.status(500).send('Something went wrong');
         });
 })
+
+router.put("/", async (req, res, next) => {
+    const sender = await getSender(res);
+  
+    editPermission(req.body,sender).then(() => {        
+      res.status(201).send("Permission edited successfully!!")
+    }).catch(err => {
+      console.error(err);
+      res.status(500).send(err);
+    });
+  });
 
 export default router;
 
