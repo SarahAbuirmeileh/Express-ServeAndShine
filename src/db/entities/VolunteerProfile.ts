@@ -1,6 +1,6 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import { SkillTag } from "./SkillTag.js";
-import { VoluntartyWork } from "./VoluntaryWork.js";
+import { VoluntaryWork } from "./VoluntaryWork.js";
 
 @Entity()
 export class VolunteerProfile extends BaseEntity {
@@ -31,9 +31,9 @@ export class VolunteerProfile extends BaseEntity {
     @JoinTable()
     skillTags: SkillTag[];
 
-    @ManyToMany(() => VoluntartyWork)
+    @ManyToMany(() => VoluntaryWork)
     @JoinTable()
-    roles: VoluntartyWork[];
+    roles: VoluntaryWork[];
 
     @CreateDateColumn({
         type: 'timestamp',

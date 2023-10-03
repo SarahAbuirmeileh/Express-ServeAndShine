@@ -4,7 +4,7 @@ import { VolunteerProfile } from "./VolunteerProfile.js";
 import { OrganizationProfile } from "./OrganizationProfile.js";
 
 @Entity()
-export class VoluntartyWork extends BaseEntity {
+export class VoluntaryWork extends BaseEntity {
     @PrimaryGeneratedColumn('increment')
     id: number;
 
@@ -58,7 +58,7 @@ export class VoluntartyWork extends BaseEntity {
 
     @ManyToMany(() => SkillTag)
     @JoinTable()
-    skilltags: SkillTag[];
+    skillTags: SkillTag[];
 
     @ManyToMany(() => VolunteerProfile)
     @JoinTable()

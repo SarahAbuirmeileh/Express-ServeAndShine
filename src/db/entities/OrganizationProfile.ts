@@ -1,5 +1,5 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { VoluntartyWork } from "./VoluntaryWork.js";
+import { VoluntaryWork } from "./VoluntaryWork.js";
 
 @Entity()
 export class OrganizationProfile extends BaseEntity {
@@ -12,8 +12,8 @@ export class OrganizationProfile extends BaseEntity {
     @Column({nullable: false})
     description: string;
 
-    @OneToMany(() => VoluntartyWork, voluntartyWork => voluntartyWork.orgProfiles)
-    voluntaryWork: VoluntartyWork[];
+    @OneToMany(() => VoluntaryWork, voluntaryWork => voluntaryWork.orgProfiles)
+    voluntaryWork: VoluntaryWork[];
 
     @CreateDateColumn({
         type: 'timestamp',
