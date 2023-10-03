@@ -10,12 +10,12 @@ export namespace NSVoluntaryWork {
     }
 
     export interface Item {
-        id?: string;
+        id?: number;
         name: string;
         description: string;
         location: string;
         time: NSVolunteer.AvailableTime[];
-        images: string;
+        images: string[];
         rating: number;
         feedback: string;
         status: StatusType;

@@ -2,15 +2,15 @@ export namespace NSRole {
     export enum Type {
         root = 'root',
         admin = 'admin',
-        normal = 'normal',
+        volunteer = 'volunteer',
         premium = 'premium'
     }
 
     export interface Item {
-        id?: string,
+        id?: number,
         name: Type,
         createdAt?: Date,
-        permissionsId: string[],
+        permissionsId: number[],
         volunteerId?: string[],
         organizationAdmin?: string[]
     }
