@@ -31,10 +31,10 @@ export class VoluntaryWork extends BaseEntity {
     @Column({ nullable: false })
     location: string;
 
-    @CreateDateColumn({nullable: false })
+    @Column({nullable: false })
     startedDate: string;
 
-    @CreateDateColumn({nullable: false })
+    @Column({nullable: false })
     finishedDate: string;
 
     @Column({
