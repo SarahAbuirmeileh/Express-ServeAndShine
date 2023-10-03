@@ -7,6 +7,7 @@ import logger from 'morgan'
 
 import indexRouter from "./src/routes/index.js"
 import permissionRouter from "./src/routes/permission.js"
+import { Role } from "./src/db/entities/Role.js"
 
 const app = express();
 dotenv.config();
