@@ -42,9 +42,6 @@ router.get('/', async (req, res, next) => {
         name: req.query.name?.toString() || "" 
     };
 
-    console.log(req.query);
-    
-
     getPermissions(payload)
         .then(data => {
             res.send(data);
