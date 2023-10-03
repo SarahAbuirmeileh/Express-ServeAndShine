@@ -19,14 +19,14 @@ export class VoluntaryWork extends BaseEntity {
         enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
         nullable: false
     })
-    day: 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+    days: ('Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday')[];
 
     @Column({
         type: 'enum',
         enum: ['Morning', 'Afternoon'],
         nullable: false
     })
-    time: 'Morning' | 'Afternoon';
+    time: ('Morning' | 'Afternoon')[];
 
     @Column({ nullable: false })
     location: string;
@@ -45,7 +45,7 @@ export class VoluntaryWork extends BaseEntity {
     status: 'Pending' | 'In Progress' | 'Finished' | 'Canceled';
 
     @Column()
-    images: string;
+    images: string[];
 
     @Column()
     rating: number;
