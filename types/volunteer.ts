@@ -1,15 +1,5 @@
 export namespace NSVolunteer {
 
-    export enum TypeVolunteer {
-        volunteer = "volunteer",
-        premium = "premium"
-    }
-
-    export enum AvailableTime {
-        Morning = 'Morning',
-        Afternoon = 'Afternoon'
-    }
-
     export enum AvailableDays {
         Sunday = 'Sunday',
         Monday = 'Monday',
@@ -18,6 +8,16 @@ export namespace NSVolunteer {
         Thursday = 'Thursday',
         Friday = 'Friday',
         Saturday = 'Saturday',
+    }
+
+    export enum AvailableTime {
+        Morning = 'Morning',
+        Afternoon = 'Afternoon'
+    }
+
+    export enum TypeVolunteer {
+        volunteer = "volunteer",
+        premium = "premium"
     }
 
     export interface Item {
