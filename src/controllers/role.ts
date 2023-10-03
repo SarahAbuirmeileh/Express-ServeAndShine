@@ -1,9 +1,16 @@
+import { In } from "typeorm";
 import { NSRole } from "../../types/role.js";
+import { Permission } from "../db/entities/Permission.js";
 import { Role } from "../db/entities/Role.js";
 
 const createRole = async (payload: NSRole.Item) => {
     try {
-        const newRole = Role.create(payload)
+        const newRole = Role.create(payload);
+        const permissions = await Permission.find({
+            where: { id: In(payload.permissionsId) },
+          });
+    
+        newRole.permissions =permissions
         return newRole.save();
     }
     catch (error) {

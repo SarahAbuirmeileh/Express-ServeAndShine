@@ -11,7 +11,8 @@ export class Role extends BaseEntity {
     @Column({
         type: 'enum',
         enum: ['root', 'admin', 'volunteer', 'premium'],
-        default: 'volunteer'
+        default: 'volunteer',
+        unique:true
     })
     name: 'root' | 'admin' | 'volunteer' | 'premium';
 
