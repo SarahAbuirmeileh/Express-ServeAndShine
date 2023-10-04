@@ -34,9 +34,9 @@ export namespace NSVoluntaryWork {
         description: string;
         location: string;
         time: NSVolunteer.AvailableTime[];
-        images: string[];
-        rating: number;
-        feedback: string;
+        images?: string[];
+        rating?: number;
+        feedback?: string;
         status: StatusType;
         createdAt?: Date;
         days: NSVolunteer.AvailableDays[];
@@ -46,3 +46,4 @@ export namespace NSVoluntaryWork {
         skillTagIds: number[];
     }
 }
+//edit

@@ -44,13 +44,13 @@ export class VoluntaryWork extends BaseEntity {
     })
     status: 'Pending' | 'In Progress' | 'Finished' | 'Canceled';
 
-    @Column({ type: 'text', nullable: false, transformer: { to: (value) => JSON.stringify(value), from: (value) => JSON.parse(value) } })
+    @Column({ type: 'text', nullable: true, transformer: { to: (value) => JSON.stringify(value), from: (value) => JSON.parse(value) } })
     images: string[];
 
-    @Column()
+    @Column({nullable:true})
     rating: number;
 
-    @Column()
+    @Column({nullable:true})
     feedback: string;
 
     @Column()
