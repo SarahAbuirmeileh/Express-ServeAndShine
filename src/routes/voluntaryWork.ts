@@ -51,7 +51,11 @@ router.get('/', async (req, res, next) => {
         skills: (Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean) as string[],
         startedDate: req.query.startedDate?.toString() || "", 
         finishedDate: req.query.finishedDate ?.toString() ||"", 
-        capacity: Number(req.query.capacity) || 0
+        capacity: Number(req.query.capacity) || 0,
+        finishedAfter: req.query.finishedDate ?.toString() ||"", 
+        finishedBefore:req.query.finishedBefore?.toString() || "",
+        startedAfter:req.query.startedAfter?.toString() || "",
+        startedBefore: req.query.startedBefore?.toString() || ""
     };
     
     getVoluntaryWorks(payload)

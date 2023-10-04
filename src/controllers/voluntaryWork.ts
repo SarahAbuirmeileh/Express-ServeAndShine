@@ -51,6 +51,10 @@ const getVoluntaryWorks = async (payload: {
     startedDate: string; 
     finishedDate: string; 
     capacity: number; 
+    finishedAfter:string;
+    finishedBefore:string;
+    startedAfter:string;
+    startedBefore:string;
 }) => {
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
@@ -81,13 +85,19 @@ const getVoluntaryWorks = async (payload: {
         conditions.push({ skillTags: { name: In(payload.skills) } });
     }
     if (payload.startedDate) {
-        conditions.push({ startedDate: payload.startedDate }); // Add startedDate condition
+        conditions.push({ startedDate: payload.startedDate }); 
     }
     if (payload.finishedDate) {
-        conditions.push({ finishedDate: payload.finishedDate }); // Add finishedDate condition
+        conditions.push({ finishedDate: payload.finishedDate }); 
     }
     if (payload.capacity) {
-        conditions.push({ capacity: payload.capacity }); // Add capacity condition
+        conditions.push({ capacity: payload.capacity }); 
+    }
+    if(payload.finishedDate){
+        conditions.push({ finishedDate: payload.finishedDate });
+    }
+    if(payload.startedDate){
+        conditions.push({ startedDate: payload.startedDate });
     }
 
     const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
