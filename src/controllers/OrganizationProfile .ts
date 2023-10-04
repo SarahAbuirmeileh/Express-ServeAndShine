@@ -43,20 +43,19 @@ const getOrganizationProfile = async (payload: {
         return OrganizationProfile.findOne({ where: { name: payload.name } })
     }
 
-    if (payload.adminName) {
-        const admin = await OrganizationAdmin.findOne({ where: { name: payload.name } });
+    // //get OrganizationProfile by organizationAdmin  
 
-        // if (admin) {
+    // if (payload.adminName) {
+    //     const admin = await OrganizationAdmin.findOne({ where: { name: payload.name } });
 
-        //     return await OrganizationProfile.findOne({ where: { orgProfile: { id: admin.id } } });
-        // } else {
-        //     throw "Admin name not found :(";
-        // }
+    //     if (admin) {
 
-        //get OrganizationProfile by organizationAdmin  
+    //         return await OrganizationProfile.findOne({ where: { orgProfile: { id: admin.id } } });
+    //     } else {
+    //         throw "Admin name not found :(";
+    //     }
 
-
-    }
+    // }
 
     const [orgs, total] = await OrganizationProfile.findAndCount({
         skip: pageSize * (page - 1),

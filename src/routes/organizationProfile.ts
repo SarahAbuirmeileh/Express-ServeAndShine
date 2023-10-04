@@ -1,11 +1,11 @@
 import express from "express";
-import { creatOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins } from "../controllers/organizationAdmin.js";
+import { creatOrganizationProfile, deleteOrganizationProfile, editOrganizationProfile, getOrganizationProfile } from "../controllers/OrganizationProfile .js";
 
 const router = express.Router();
 
 router.post('/', (req, res, next) => {
-    creatOrganizationAdmin(req.body).then(() => {
-        res.status(201).send("Organization Admin created successfully!!")
+    creatOrganizationProfile(req.body).then(() => {
+        res.status(201).send("Organization Profile created successfully!!")
     }).catch(err => {
         console.error(err);
         res.status(500).send(err);
@@ -15,7 +15,7 @@ router.post('/', (req, res, next) => {
 router.delete('/:id', async (req, res) => {
     const id = Number(req.params.id?.toString());
 
-    deleteOrganizationAdmin(id)
+    deleteOrganizationProfile(id)
         .then(data => {
             res.send(data);
         })
@@ -26,8 +26,8 @@ router.delete('/:id', async (req, res) => {
 });
 
 router.put("/", async (req, res, next) => {
-    editOrganizationAdmin(req.body).then(() => {
-        res.status(201).send("Organization Admin edited successfully!!")
+    editOrganizationProfile(req.body).then(() => {
+        res.status(201).send("Organization Profile edited successfully!!")
     }).catch(err => {
         console.error(err);
         res.status(500).send(err);
@@ -40,11 +40,10 @@ router.get('/', async (req, res, next) => {
         pageSize: req.query.pageSize?.toString() || '10',
         id: req.query.id?.toString() || '',
         name: req.query.name?.toString() || '',
-        email: req.query.eamil?.toString() || '',
-        organizationName: req.query.organizationName?.toString() || ''
+        adminName: req.query.adminName?.toString() || ''
     };
 
-    getOrganizationAdmins(payload)
+    getOrganizationProfile(payload)
         .then(data => {
             res.send(data);
         })
