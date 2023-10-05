@@ -1,4 +1,4 @@
-import { DeepPartial, FindOperator, FindOptionsWhere, In, LessThan, MoreThan } from "typeorm";
+import { DeepPartial, FindOperator, FindOptionsWhere, In, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual } from "typeorm";
 import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
@@ -58,25 +58,7 @@ const getVoluntaryWork = (payload: { id: number }) => {
     return VoluntaryWork.findOne({ where: { id: payload.id } })
 }
 
-const getVoluntaryWorks = async (payload: {
-    page: string,
-    pageSize: string,
-    id: number,
-    name: string,
-    time: NSVolunteer.AvailableTime[],
-    location: string,
-    days: NSVolunteer.AvailableDays[],
-    rating: number,
-    status: NSVoluntaryWork.StatusType,
-    skills: string[],
-    startedDate: string;
-    finishedDate: string;
-    capacity: number;
-    finishedAfter: string;
-    finishedBefore: string;
-    startedAfter: string;
-    startedBefore: string;
-}) => {
+const getVoluntaryWorks = async (payload:NSVoluntaryWork.GetVoluntaryWorks ) => {
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
     const conditions = [];
@@ -135,6 +117,14 @@ const getVoluntaryWorks = async (payload: {
     if (payload.finishedBefore) {
         const finishedBeforeDate = getDate(payload.finishedBefore);
         conditions.push({ finishedDate: LessThan(finishedBeforeDate) });
+    }
+
+    if (payload.ratingMore) {
+        conditions.push({ rating: MoreThanOrEqual(payload.ratingMore) });
+    }
+
+    if (payload.ratingLess ) {
+        conditions.push({ rating: LessThanOrEqual(payload.ratingLess) });
     }
 
     const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({

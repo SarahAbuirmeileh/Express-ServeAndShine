@@ -28,6 +28,28 @@ export namespace NSVoluntaryWork {
 
     }
 
+    export interface GetVoluntaryWorks {
+        page: string,
+        pageSize: string,
+        id: number,
+        name: string,
+        time: NSVolunteer.AvailableTime[],
+        location: string,
+        days: NSVolunteer.AvailableDays[],
+        rating: number,
+        status: NSVoluntaryWork.StatusType,
+        skills: string[],
+        startedDate: string;
+        finishedDate: string;
+        capacity: number;
+        finishedAfter: string;
+        finishedBefore: string;
+        startedAfter: string;
+        startedBefore: string;
+        ratingMore:number;
+        ratingLess:number;
+    }
+
     export interface Date {
         year: number;
         month: number;

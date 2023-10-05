@@ -54,9 +54,12 @@ router.get('/', async (req, res, next) => {
         finishedAfter: req.query.finishedDate?.toString() || "",
         finishedBefore: req.query.finishedBefore?.toString() || "",
         startedAfter: req.query.startedAfter?.toString() || "",
-        startedBefore: req.query.startedBefore?.toString() || ""
+        startedBefore: req.query.startedBefore?.toString() || "",
+        ratingMore:Number(req.query.ratingMore) || 0,
+        ratingLess:Number(req.query.ratingLess) || 0,
+
     };
-        
+
     getVoluntaryWorks(payload)
         .then(data => {
             res.send(data);
