@@ -26,8 +26,8 @@ router.delete('/:id', async (req, res) => {
         });
 })
 
-router.put("/", async (req, res, next) => {        
-    editVoluntaryWork({...req.body, id: req.query.id?.toString() }).then(() => {
+router.put("/", async (req, res, next) => {
+    editVoluntaryWork({ ...req.body, id: req.query.id?.toString() }).then(() => {
         res.status(201).send("Voluntary Work edited successfully!!")
     }).catch(err => {
         console.error(err);
@@ -43,28 +43,28 @@ router.get('/', async (req, res, next) => {
         id: Number(req.query.id) || 0,
         name: req.query.name?.toString() || '',
         time: ((Array.isArray(req.query.time) ? req.query.time : [req.query.time]).filter(Boolean)) as NSVolunteer.AvailableTime[],
-        location: (typeof req.query.location === 'string' ? req.query.location : ''), 
+        location: (typeof req.query.location === 'string' ? req.query.location : ''),
         days: (Array.isArray(req.query.days) ? req.query.days : [req.query.days]).filter(Boolean) as NSVolunteer.AvailableDays[],
         rating: Number(req.query.rating) || 0,
         status: req.query.status as NSVoluntaryWork.StatusType,
         skills: (Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean) as string[],
-       startedDate: req.query.startedDate?.toString ||"", 
-        finishedDate: req.query.finishedDate?.toString ||"" , 
+        startedDate: req.query.startedDate?.toString() || "",
+        finishedDate: req.query.finishedDate?.toString() || "",
         capacity: Number(req.query.capacity) || 0,
-        finishedAfter: req.query.finishedDate ?.toString() ||"", 
-        finishedBefore:req.query.finishedBefore?.toString() || "",
-        startedAfter:req.query.startedAfter?.toString() || "",
+        finishedAfter: req.query.finishedDate?.toString() || "",
+        finishedBefore: req.query.finishedBefore?.toString() || "",
+        startedAfter: req.query.startedAfter?.toString() || "",
         startedBefore: req.query.startedBefore?.toString() || ""
     };
-    
-    // getVoluntaryWorks(payload)
-    //     .then(data => {
-    //         res.send(data);
-    //     })
-    //     .catch(error => {
-    //         console.error(error);
-    //         res.status(500).send('Something went wrong');
-    //     });
+        
+    getVoluntaryWorks(payload)
+        .then(data => {
+            res.send(data);
+        })
+        .catch(error => {
+            console.error(error);
+            res.status(500).send('Something went wrong');
+        });
 });
 
 export default router;

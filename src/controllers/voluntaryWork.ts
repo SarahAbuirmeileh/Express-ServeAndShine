@@ -1,4 +1,4 @@
-import { DeepPartial, FindOperator, In } from "typeorm";
+import { DeepPartial, FindOperator, FindOptionsWhere, In } from "typeorm";
 import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
@@ -21,7 +21,7 @@ const deleteVoluntaryWork = async (voluntaryWorkId: number) => {
     return VoluntaryWork.delete(voluntaryWorkId);
 }
 
-const editVoluntaryWork = async (payload: NSVoluntaryWork.Edit) => {    
+const editVoluntaryWork = async (payload: NSVoluntaryWork.Edit) => {
     const id = Number(payload.id) || 0;
     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
 
@@ -41,7 +41,7 @@ const editVoluntaryWork = async (payload: NSVoluntaryWork.Edit) => {
             });
             voluntaryWork.skillTags = skillTags;
         }
-        if (payload.startedDate) {            
+        if (payload.startedDate) {
             voluntaryWork.startedDate = getDate(payload.startedDate);
         }
         if (payload.finishedDate) {
@@ -105,30 +105,26 @@ const getVoluntaryWorks = async (payload: {
     if (payload.skills.length > 0) {
         conditions.push({ skillTags: { name: In(payload.skills) } });
     }
-    // if (payload.startedDate) {
-    //     conditions.push({ startedDate: payload.startedDate }); 
-    // }
-    // if (payload.finishedDate) {
-    //     conditions.push({ finishedDate: payload.finishedDate }); 
-    // }
+    if (payload.startedDate) {
+        let startedDate = getDate(payload.startedDate);
+        conditions.push({ startedDate: startedDate });
+    }
+    if (payload.finishedDate) {
+        let finishedDate = getDate(payload.finishedDate);
+        conditions.push({ finishedDate: finishedDate });
+    }
     if (payload.capacity) {
         conditions.push({ capacity: payload.capacity });
     }
-    if (payload.finishedDate) {
-        conditions.push({ finishedDate: payload.finishedDate });
-    }
-    if (payload.startedDate) {
-        conditions.push({ startedDate: payload.startedDate });
-    }
 
     const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
-        //where: conditions.length > 0 ? conditions : {},
+        where: conditions.length > 0 ? conditions : {},
         skip: pageSize * (page - 1),
         take: pageSize,
         order: {
             createdAt: 'ASC'
         },
-        relations: ['skillTags'] // Include the skillTags relationship
+        relations: ['skillTags'] 
     });
 
     return {
