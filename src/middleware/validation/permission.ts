@@ -5,8 +5,8 @@ const validatePermission = (req: express.Request,
   next: express.NextFunction
 ) => {
   const values = ["name"];
-  const user = req.body;
-  const errorList = values.map(key => !user[key] && `${key} is Required!`).filter(Boolean);
+  const permission = req.body;
+  const errorList = values.map(key => !permission[key] && `${key} is Required!`).filter(Boolean);
 
   if (errorList.length) {
     res.status(400).send(errorList);
