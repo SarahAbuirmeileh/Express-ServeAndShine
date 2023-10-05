@@ -1,6 +1,7 @@
 import express from 'express'
 import { OrganizationAdmin } from '../db/entities/OrganizationAdmin.js';
 import { Volunteer } from '../db/entities/Volunteer.js';
+import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 
 const getSender =async (res:express.Response)=>{
     let sender: OrganizationAdmin | Volunteer = new Volunteer();
@@ -20,4 +21,9 @@ const getSender =async (res:express.Response)=>{
     return sender;
 }
 
-export {getSender};
+const getDate = (date:string): Date | Date=>{
+    let [year, month, day] =date.split('-').map( (str) =>{return parseInt(str, 10);});
+    return new Date(year,month,day,0,0,0,0);
+}
+
+export {getSender, getDate};

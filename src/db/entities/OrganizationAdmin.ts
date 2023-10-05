@@ -23,7 +23,7 @@ export class OrganizationAdmin extends BaseEntity {
     @Column({ nullable: false })
     password: string;
 
-    @OneToOne(() => OrganizationProfile, {cascade: true, onDelete:"CASCADE"})
+    @OneToOne(() => OrganizationProfile, {cascade: true, onDelete:"SET NULL", onUpdate:"CASCADE"})
     @JoinColumn()
     orgProfile: OrganizationProfile;
 

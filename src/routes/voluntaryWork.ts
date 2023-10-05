@@ -49,8 +49,8 @@ router.get('/', async (req, res, next) => {
         rating: Number(req.query.rating) || 0,
         status: req.query.status as NSVoluntaryWork.StatusType,
         skills: (Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean) as string[],
-        startedDate: req.query.startedDate?.toString() || "", 
-        finishedDate: req.query.finishedDate ?.toString() ||"", 
+       startedDate: req.query.startedDate?.toString ||"", 
+        finishedDate: req.query.finishedDate?.toString ||"" , 
         capacity: Number(req.query.capacity) || 0,
         finishedAfter: req.query.finishedDate ?.toString() ||"", 
         finishedBefore:req.query.finishedBefore?.toString() || "",
@@ -58,14 +58,14 @@ router.get('/', async (req, res, next) => {
         startedBefore: req.query.startedBefore?.toString() || ""
     };
     
-    getVoluntaryWorks(payload)
-        .then(data => {
-            res.send(data);
-        })
-        .catch(error => {
-            console.error(error);
-            res.status(500).send('Something went wrong');
-        });
+    // getVoluntaryWorks(payload)
+    //     .then(data => {
+    //         res.send(data);
+    //     })
+    //     .catch(error => {
+    //         console.error(error);
+    //         res.status(500).send('Something went wrong');
+    //     });
 });
 
 export default router;

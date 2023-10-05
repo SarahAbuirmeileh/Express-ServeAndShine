@@ -1,22 +1,21 @@
-import { FindOperator, In } from "typeorm";
+import { DeepPartial, FindOperator, In } from "typeorm";
 import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
 import { NSVolunteer } from "../../types/volunteer.js";
+import { getDate } from "./index.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
-    try {
-        const newVoluntaryWork = VoluntaryWork.create(payload);
-        const skillTags = await SkillTag.find({
-            where: { id: In(payload.skillTagIds) },
-        });
-        newVoluntaryWork.skillTags = skillTags;
-        return newVoluntaryWork.save();
-    }
-    catch (error) {
-        console.log(error);
-    }
+    let payload2 = { ...payload, startedDate: getDate(payload.startedDate), finishedDate: getDate(payload.finishedDate) };
+
+    let newVoluntaryWork = VoluntaryWork.create(payload2 as DeepPartial<VoluntaryWork>); 
+    const skillTags = await SkillTag.find({
+        where: { id: In(payload.skillTagIds) },
+    });
+    newVoluntaryWork.skillTags = skillTags;
+    return newVoluntaryWork.save();
 }
+
 
 const deleteVoluntaryWork = async (voluntaryWorkId: number) => {
     return VoluntaryWork.delete(voluntaryWorkId);
@@ -48,13 +47,13 @@ const getVoluntaryWorks = async (payload: {
     rating: number,
     status: NSVoluntaryWork.StatusType,
     skills: string[],
-    startedDate: string; 
-    finishedDate: string; 
-    capacity: number; 
-    finishedAfter:string;
-    finishedBefore:string;
-    startedAfter:string;
-    startedBefore:string;
+    startedDate: string;
+    finishedDate: string;
+    capacity: number;
+    finishedAfter: string;
+    finishedBefore: string;
+    startedAfter: string;
+    startedBefore: string;
 }) => {
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
@@ -84,24 +83,24 @@ const getVoluntaryWorks = async (payload: {
     if (payload.skills.length > 0) {
         conditions.push({ skillTags: { name: In(payload.skills) } });
     }
-    if (payload.startedDate) {
-        conditions.push({ startedDate: payload.startedDate }); 
+    // if (payload.startedDate) {
+    //     conditions.push({ startedDate: payload.startedDate }); 
+    // }
+    // if (payload.finishedDate) {
+    //     conditions.push({ finishedDate: payload.finishedDate }); 
+    // }
+    if (payload.capacity) {
+        conditions.push({ capacity: payload.capacity });
     }
     if (payload.finishedDate) {
-        conditions.push({ finishedDate: payload.finishedDate }); 
-    }
-    if (payload.capacity) {
-        conditions.push({ capacity: payload.capacity }); 
-    }
-    if(payload.finishedDate){
         conditions.push({ finishedDate: payload.finishedDate });
     }
-    if(payload.startedDate){
+    if (payload.startedDate) {
         conditions.push({ startedDate: payload.startedDate });
     }
 
     const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
-        where: conditions.length > 0 ? conditions : {},
+        //where: conditions.length > 0 ? conditions : {},
         skip: pageSize * (page - 1),
         take: pageSize,
         order: {

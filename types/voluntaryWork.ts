@@ -20,13 +20,19 @@ export namespace NSVoluntaryWork {
         feedback?: string;
         status?: StatusType;
         days?: NSVolunteer.AvailableDays[];
-        startedDate?: string;
+        startedDate?:string;
         finishedDate?: string;
         capacity?: number;
         skillTagIds?: number[];
         createdAt?: Date;
 
     }
+
+    export interface Date {
+        year: number;
+        month: number;
+        day: number;
+    };
 
     export interface Item {
         id?: number;
@@ -46,4 +52,3 @@ export namespace NSVoluntaryWork {
         skillTagIds: number[];
     }
 }
-//edit

@@ -2,6 +2,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, Ma
 import { SkillTag } from "./SkillTag.js";
 import { VolunteerProfile } from "./VolunteerProfile.js";
 import { OrganizationProfile } from "./OrganizationProfile.js";
+import { NSVoluntaryWork } from "../../../types/voluntaryWork.js";
 
 @Entity()
 export class VoluntaryWork extends BaseEntity {
@@ -31,11 +32,11 @@ export class VoluntaryWork extends BaseEntity {
     @Column({ nullable: false })
     location: string;
 
-    @Column({nullable: false })
-    startedDate: string;
+    @Column({ nullable: false, type: "timestamp" })
+    startedDate: Date;
 
-    @Column({nullable: false })
-    finishedDate: string;
+    @Column({ nullable: false, type: "timestamp" })
+    finishedDate: Date;
 
     @Column({
         type: 'enum',
@@ -47,10 +48,10 @@ export class VoluntaryWork extends BaseEntity {
     @Column({ type: 'text', nullable: true, transformer: { to: (value) => JSON.stringify(value), from: (value) => JSON.parse(value) } })
     images: string[];
 
-    @Column({nullable:true})
+    @Column({ nullable: true })
     rating: number;
 
-    @Column({nullable:true})
+    @Column({ nullable: true })
     feedback: string;
 
     @Column()

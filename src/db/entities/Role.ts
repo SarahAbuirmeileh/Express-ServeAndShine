@@ -20,7 +20,7 @@ export class Role extends BaseEntity {
     @JoinTable()
     volunteers: Volunteer[];
 
-    @ManyToMany(() => Permission)
+    @ManyToMany(() => Permission, {cascade:true, onUpdate:"CASCADE"})
     @JoinTable()
     permissions: Permission[];
 
