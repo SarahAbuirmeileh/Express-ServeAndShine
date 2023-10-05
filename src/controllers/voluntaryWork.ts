@@ -13,6 +13,8 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
         where: { id: In(payload.skillTagIds) },
     });
     newVoluntaryWork.skillTags = skillTags;
+    newVoluntaryWork.feedback=[];
+    newVoluntaryWork.images=[];
     return newVoluntaryWork.save();
 }
 
@@ -145,17 +147,25 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
     };
 }
 
-const putRating = async(id: number, rating:number) => {
+const putRating = async (id: number, rating: number) => {
     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
-    console.log("!!!!!!!!!!!11");
-    
-    if(voluntaryWork){
-        voluntaryWork.rating+=rating;
-        voluntaryWork.rating/=2;
+    if (voluntaryWork) {
+        voluntaryWork.rating += rating;
+        voluntaryWork.rating /= 2;
         return voluntaryWork.save();
+    } else {
+        throw "VoluntaryWork not found :(";
+    }
+}
+
+const putFeedback = async (id: number, feedback: string) => {
+    let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+    if (voluntaryWork){
+        voluntaryWork.feedback.push(feedback);
+        await voluntaryWork.save();
     }else{
         throw "VoluntaryWork not found :(";
     }
 }
 
-export { createVoluntaryWork, editVoluntaryWork, putRating,getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }
+export { createVoluntaryWork, putFeedback,editVoluntaryWork, putRating, getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }

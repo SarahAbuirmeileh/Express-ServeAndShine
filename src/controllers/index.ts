@@ -22,9 +22,7 @@ const getSender =async (res:express.Response)=>{
 
 const getDate = (date:string): Date =>{
     let [year, month, day] =date.split('-').map( (str) =>{return parseInt(str, 10);});
-    console.log(`y:${year}, m:${month}, d:${day}`);
-    
-    return new Date(year,month-1,day,0,0,0,0);
+        return new Date(year,month-1,day,0,0,0,0);
 }
 
 export {getSender, getDate};

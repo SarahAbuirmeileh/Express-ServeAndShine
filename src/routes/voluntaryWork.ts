@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putRating } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putRating } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 
@@ -73,6 +73,15 @@ router.get('/', async (req, res, next) => {
 router.put("/rating/:id", async (req, res, next) => {
     putRating( Number(req.params.id),Number(req.body.rating) ).then(() => {
         res.status(201).send("Rating added successfully!!")
+    }).catch(err => {
+        console.error(err);
+        res.status(500).send(err);
+    });
+});
+
+router.put("/feedback/:id", async (req, res, next) => {
+    putFeedback( Number(req.params.id),req.body.feedback).then(() => {
+        res.status(201).send("Feedback added successfully!!")
     }).catch(err => {
         console.error(err);
         res.status(500).send(err);
