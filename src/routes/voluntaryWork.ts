@@ -22,14 +22,13 @@ router.delete('/:id', async (req, res) => {
             res.send(data);
         })
         .catch(error => {
-            console.error(error);
             res.status(500).send('Something went wrong');
         });
 })
 
-router.put("/", async (req, res, next) => {
-    editVoluntaryWork(req.body).then(() => {
-        res.status(201).send("VoluntaryWork edited successfully!!")
+router.put("/", async (req, res, next) => {        
+    editVoluntaryWork({...req.body, id: req.query.id?.toString() }).then(() => {
+        res.status(201).send("Voluntary Work edited successfully!!")
     }).catch(err => {
         console.error(err);
         res.status(500).send(err);

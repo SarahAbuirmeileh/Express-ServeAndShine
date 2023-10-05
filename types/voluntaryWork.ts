@@ -10,14 +10,14 @@ export namespace NSVoluntaryWork {
     }
 
     export interface Edit {
-        id: number;
+        id: string;
         name?: string;
         description?: string;
         location?: string;
         time?: NSVolunteer.AvailableTime[];
         images?: string[];
-        rating?: number;
-        feedback?: string;
+        rating?: number[];
+        feedback?: string[];
         status?: StatusType;
         days?: NSVolunteer.AvailableDays[];
         startedDate?:string;
@@ -35,14 +35,14 @@ export namespace NSVoluntaryWork {
     };
 
     export interface Item {
-        id?: number;
+        id?: string;
         name: string;
         description: string;
         location: string;
         time: NSVolunteer.AvailableTime[];
         images?: string[];
-        rating?: number;
-        feedback?: string;
+        rating?: number[];
+        feedback?: string[];
         status: StatusType;
         createdAt?: Date;
         days: NSVolunteer.AvailableDays[];

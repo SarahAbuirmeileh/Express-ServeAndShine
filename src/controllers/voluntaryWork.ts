@@ -6,9 +6,9 @@ import { NSVolunteer } from "../../types/volunteer.js";
 import { getDate } from "./index.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
-    let payload2 = { ...payload, startedDate: getDate(payload.startedDate), finishedDate: getDate(payload.finishedDate) };
+    let payloadDate = { ...payload, startedDate: getDate(payload.startedDate), finishedDate: getDate(payload.finishedDate) };
 
-    let newVoluntaryWork = VoluntaryWork.create(payload2 as DeepPartial<VoluntaryWork>); 
+    let newVoluntaryWork = VoluntaryWork.create(payloadDate as DeepPartial<VoluntaryWork>);
     const skillTags = await SkillTag.find({
         where: { id: In(payload.skillTagIds) },
     });
@@ -21,12 +21,34 @@ const deleteVoluntaryWork = async (voluntaryWorkId: number) => {
     return VoluntaryWork.delete(voluntaryWorkId);
 }
 
-const editVoluntaryWork = async (payload: NSVoluntaryWork.Edit) => {
-    let voluntaryWork = await VoluntaryWork.findOne({ where: { id: payload.id } });
-    if (voluntaryWork) {
-        voluntaryWork = Object.assign(voluntaryWork, payload);
-        return voluntaryWork?.save();
+const editVoluntaryWork = async (payload: NSVoluntaryWork.Edit) => {    
+    const id = Number(payload.id) || 0;
+    let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
 
+    if (voluntaryWork) {
+        voluntaryWork.name = payload.name || voluntaryWork.name;
+        voluntaryWork.description = payload.description || voluntaryWork.description;
+        voluntaryWork.location = payload.location || voluntaryWork.location;
+        voluntaryWork.capacity = payload.capacity || voluntaryWork.capacity;
+        voluntaryWork.days = payload.days || voluntaryWork.days;
+        voluntaryWork.images = payload.images || voluntaryWork.images;
+        voluntaryWork.time = payload.time || voluntaryWork.time;
+        voluntaryWork.status = payload.status || voluntaryWork.status;
+
+        if (payload.skillTagIds) {
+            const skillTags = await SkillTag.find({
+                where: { id: In(payload.skillTagIds) },
+            });
+            voluntaryWork.skillTags = skillTags;
+        }
+        if (payload.startedDate) {            
+            voluntaryWork.startedDate = getDate(payload.startedDate);
+        }
+        if (payload.finishedDate) {
+            voluntaryWork.finishedDate = getDate(payload.finishedDate);
+        }
+
+        return voluntaryWork.save();
     } else {
         throw "VoluntaryWork not found :(";
     }

@@ -2,7 +2,6 @@ import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, Ma
 import { SkillTag } from "./SkillTag.js";
 import { VolunteerProfile } from "./VolunteerProfile.js";
 import { OrganizationProfile } from "./OrganizationProfile.js";
-import { NSVoluntaryWork } from "../../../types/voluntaryWork.js";
 
 @Entity()
 export class VoluntaryWork extends BaseEntity {
@@ -45,14 +44,14 @@ export class VoluntaryWork extends BaseEntity {
     })
     status: 'Pending' | 'In Progress' | 'Finished' | 'Canceled';
 
-    @Column({ type: 'text', nullable: true, transformer: { to: (value) => JSON.stringify(value), from: (value) => JSON.parse(value) } })
+    @Column({ type: 'json', nullable: true })
     images: string[];
 
-    @Column({ nullable: true })
-    rating: number;
+    @Column({ type: 'json', nullable: true })
+    rating: (1|2|3|4|5)[];
 
-    @Column({ nullable: true })
-    feedback: string;
+    @Column({ type: 'json', nullable: true })
+    feedback: string[];
 
     @Column()
     capacity: number;
