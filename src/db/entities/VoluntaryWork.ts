@@ -31,11 +31,11 @@ export class VoluntaryWork extends BaseEntity {
     @Column({ nullable: false })
     location: string;
 
-    @Column({nullable: false })
-    startedDate: string;
+    @Column({ nullable: false, type: "timestamp" })
+    startedDate: Date;
 
-    @Column({nullable: false })
-    finishedDate: string;
+    @Column({ nullable: false, type: "timestamp" })
+    finishedDate: Date;
 
     @Column({
         type: 'enum',
@@ -44,14 +44,14 @@ export class VoluntaryWork extends BaseEntity {
     })
     status: 'Pending' | 'In Progress' | 'Finished' | 'Canceled';
 
-    @Column({ type: 'text', nullable: false, transformer: { to: (value) => JSON.stringify(value), from: (value) => JSON.parse(value) } })
+    @Column({ type: 'json', nullable: true })
     images: string[];
 
-    @Column()
+    @Column({ nullable: true })
     rating: number;
 
-    @Column()
-    feedback: string;
+    @Column({ type: 'json', nullable: true })
+    feedback: string[];
 
     @Column()
     capacity: number;

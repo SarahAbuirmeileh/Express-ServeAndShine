@@ -10,17 +10,17 @@ export namespace NSVoluntaryWork {
     }
 
     export interface Edit {
-        id: number;
+        id: string;
         name?: string;
         description?: string;
         location?: string;
         time?: NSVolunteer.AvailableTime[];
         images?: string[];
-        rating?: number;
-        feedback?: string;
+        rating?: number[];
+        feedback?: string[];
         status?: StatusType;
         days?: NSVolunteer.AvailableDays[];
-        startedDate?: string;
+        startedDate?:string;
         finishedDate?: string;
         capacity?: number;
         skillTagIds?: number[];
@@ -28,15 +28,43 @@ export namespace NSVoluntaryWork {
 
     }
 
+    export interface GetVoluntaryWorks {
+        page: string,
+        pageSize: string,
+        id: number,
+        name: string,
+        time: NSVolunteer.AvailableTime[],
+        location: string,
+        days: NSVolunteer.AvailableDays[],
+        rating: number,
+        status: NSVoluntaryWork.StatusType,
+        skills: string[],
+        startedDate: string;
+        finishedDate: string;
+        capacity: number;
+        finishedAfter: string;
+        finishedBefore: string;
+        startedAfter: string;
+        startedBefore: string;
+        ratingMore:number;
+        ratingLess:number;
+    }
+
+    export interface Date {
+        year: number;
+        month: number;
+        day: number;
+    };
+
     export interface Item {
-        id?: number;
+        id?: string;
         name: string;
         description: string;
         location: string;
         time: NSVolunteer.AvailableTime[];
-        images: string[];
-        rating: number;
-        feedback: string;
+        images?: string[];
+        rating?: number[];
+        feedback?: string[];
         status: StatusType;
         createdAt?: Date;
         days: NSVolunteer.AvailableDays[];

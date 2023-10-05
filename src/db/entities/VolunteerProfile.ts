@@ -12,20 +12,20 @@ export class VolunteerProfile extends BaseEntity {
         enum: ['Morning', 'Afternoon'],
         nullable: false
     })
-    availableTime: 'Morning' | 'Afternoon';
+    availableTime: ('Morning' | 'Afternoon')[];
 
     @Column({
         type: 'enum',
         enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
         nullable: false
     })
-    availableDays: 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+    availableDays: ('Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday')[];
 
     @Column({ nullable: false })
     availableLocation: string;
 
-    @Column({ nullable: false })
-    preferredActivities: string;
+    @Column({ nullable: false, type:"json" })
+    preferredActivities: string[];
 
     @ManyToMany(() => SkillTag)
     @JoinTable()
