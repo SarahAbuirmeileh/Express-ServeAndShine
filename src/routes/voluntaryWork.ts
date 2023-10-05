@@ -71,8 +71,8 @@ router.get('/', async (req, res, next) => {
 });
 
 router.put("/rating/:id", async (req, res, next) => {
-    putRating( Number(req.params.id?.toString()),Number(req.body.rating?.tostring()) ).then(() => {
-        res.status(201).send("Voluntary Work edited successfully!!")
+    putRating( Number(req.params.id),Number(req.body.rating) ).then(() => {
+        res.status(201).send("Rating added successfully!!")
     }).catch(err => {
         console.error(err);
         res.status(500).send(err);

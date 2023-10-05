@@ -147,6 +147,8 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
 
 const putRating = async(id: number, rating:number) => {
     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+    console.log("!!!!!!!!!!!11");
+    
     if(voluntaryWork){
         voluntaryWork.rating+=rating;
         voluntaryWork.rating/=2;
