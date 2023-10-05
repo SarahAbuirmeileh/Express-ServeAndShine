@@ -25,8 +25,8 @@ router.delete('/:id', async (req, res) => {
         });
 })
 
-router.put("/", async (req, res, next) => {
-    editPermission(req.body).then(() => {
+router.put("/:id", async (req, res, next) => {
+    editPermission({...req.body, id: req.params.id?.toString()}).then(() => {
         res.status(201).send("Permission edited successfully!!")
     }).catch(err => {
         console.error(err);

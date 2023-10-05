@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putRating } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 
@@ -26,8 +26,8 @@ router.delete('/:id', async (req, res) => {
         });
 })
 
-router.put("/", async (req, res, next) => {
-    editVoluntaryWork({ ...req.body, id: req.query.id?.toString() }).then(() => {
+router.put("/:id", async (req, res, next) => {
+    editVoluntaryWork({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Voluntary Work edited successfully!!")
     }).catch(err => {
         console.error(err);
@@ -68,6 +68,15 @@ router.get('/', async (req, res, next) => {
             console.error(error);
             res.status(500).send('Something went wrong');
         });
+});
+
+router.put("/rating/:id", async (req, res, next) => {
+    putRating( Number(req.params.id?.toString()),Number(req.body.rating?.tostring()) ).then(() => {
+        res.status(201).send("Voluntary Work edited successfully!!")
+    }).catch(err => {
+        console.error(err);
+        res.status(500).send(err);
+    });
 });
 
 export default router;

@@ -26,8 +26,8 @@ router.delete('/:id', async (req, res) => {
         });
 })
 
-router.put("/", async (req, res, next) => {
-    editRole(req.body).then(() => {
+router.put("/:id", async (req, res, next) => {
+    editRole({...req.body,id: req.params.id?.toString()}).then(() => {
         res.status(201).send("Role edited successfully!!")
     }).catch(err => {
         console.error(err);

@@ -58,7 +58,7 @@ const getVoluntaryWork = (payload: { id: number }) => {
     return VoluntaryWork.findOne({ where: { id: payload.id } })
 }
 
-const getVoluntaryWorks = async (payload:NSVoluntaryWork.GetVoluntaryWorks ) => {
+const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => {
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
     const conditions = [];
@@ -123,7 +123,7 @@ const getVoluntaryWorks = async (payload:NSVoluntaryWork.GetVoluntaryWorks ) => 
         conditions.push({ rating: MoreThanOrEqual(payload.ratingMore) });
     }
 
-    if (payload.ratingLess ) {
+    if (payload.ratingLess) {
         conditions.push({ rating: LessThanOrEqual(payload.ratingLess) });
     }
 
@@ -134,7 +134,7 @@ const getVoluntaryWorks = async (payload:NSVoluntaryWork.GetVoluntaryWorks ) => 
         order: {
             createdAt: 'ASC'
         },
-        relations: ['skillTags'] 
+        relations: ['skillTags']
     });
 
     return {
@@ -145,5 +145,15 @@ const getVoluntaryWorks = async (payload:NSVoluntaryWork.GetVoluntaryWorks ) => 
     };
 }
 
+const putRating = async(id: number, rating:number) => {
+    let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+    if(voluntaryWork){
+        voluntaryWork.rating+=rating;
+        voluntaryWork.rating/=2;
+        return voluntaryWork.save();
+    }else{
+        throw "VoluntaryWork not found :(";
+    }
+}
 
-export { createVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }
+export { createVoluntaryWork, editVoluntaryWork, putRating,getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }
