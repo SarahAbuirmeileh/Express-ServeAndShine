@@ -1,7 +1,4 @@
 import express from 'express';
-import * as EmailValidator from 'email-validator';
-import { isValidPassword } from '../../controllers/index.js';
-
 
 const validateOrganizationAdmin = (req: express.Request,
     res: express.Response,
