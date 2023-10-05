@@ -11,7 +11,7 @@ export class OrganizationAdmin extends BaseEntity {
     @Column({ length: 255, nullable: false })
     name: string;
 
-    @Column({ nullable: false })
+    @Column({ nullable: false, unique:true })
     email: string;
 
     @BeforeInsert()
