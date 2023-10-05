@@ -168,4 +168,14 @@ const putFeedback = async (id: number, feedback: string) => {
     }
 }
 
-export { createVoluntaryWork, putFeedback,editVoluntaryWork, putRating, getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }
+const putImages = async (id: number, images: string[]) => {
+    let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+    if (voluntaryWork){
+        voluntaryWork.images.push(...images);
+        await voluntaryWork.save();
+    }else{
+        throw "VoluntaryWork not found :(";
+    }
+}
+
+export { putImages,createVoluntaryWork, putFeedback,editVoluntaryWork, putRating, getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }

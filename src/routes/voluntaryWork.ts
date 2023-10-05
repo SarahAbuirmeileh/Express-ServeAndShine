@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putRating } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putImages, putRating } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 
@@ -82,6 +82,15 @@ router.put("/rating/:id", async (req, res, next) => {
 router.put("/feedback/:id", async (req, res, next) => {
     putFeedback( Number(req.params.id),req.body.feedback).then(() => {
         res.status(201).send("Feedback added successfully!!")
+    }).catch(err => {
+        console.error(err);
+        res.status(500).send(err);
+    });
+});
+
+router.put("/images/:id", async (req, res, next) => {
+    putImages( Number(req.params.id),req.body.images).then(() => {
+        res.status(201).send("Images added successfully!!")
     }).catch(err => {
         console.error(err);
         res.status(500).send(err);
