@@ -1,4 +1,4 @@
-import { DeepPartial, FindOperator, FindOptionsWhere, In } from "typeorm";
+import { DeepPartial, FindOperator, FindOptionsWhere, In, LessThan, MoreThan } from "typeorm";
 import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
@@ -115,6 +115,26 @@ const getVoluntaryWorks = async (payload: {
     }
     if (payload.capacity) {
         conditions.push({ capacity: payload.capacity });
+    }
+
+    if (payload.startedAfter) {
+        const startedAfterDate = getDate(payload.startedAfter);
+        conditions.push({ startedDate: MoreThan(startedAfterDate) });
+    }
+
+    if (payload.startedBefore) {
+        const startedBeforeDate = getDate(payload.startedBefore);
+        conditions.push({ startedDate: LessThan(startedBeforeDate) });
+    }
+
+    if (payload.finishedAfter) {
+        const finishedAfterDate = getDate(payload.finishedAfter);
+        conditions.push({ finishedDate: MoreThan(finishedAfterDate) });
+    }
+
+    if (payload.finishedBefore) {
+        const finishedBeforeDate = getDate(payload.finishedBefore);
+        conditions.push({ finishedDate: LessThan(finishedBeforeDate) });
     }
 
     const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
