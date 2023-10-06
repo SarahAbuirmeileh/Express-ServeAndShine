@@ -22,7 +22,7 @@ app.use(cookieParser());
 app.use('/', indexRouter);
 app.use('/permission',permissionRouter);
 app.use('/role',roleRouter);
-app.use('/voluntaryWork',voluntaryWorkRouter)
+app.use('/voluntaryWork',voluntaryWorkRouter);
 // app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
