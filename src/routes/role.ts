@@ -1,10 +1,12 @@
 import express from 'express';
 import { createRole, deleteRole, editRole, getRoles } from '../controllers/role.js';
 import { NSRole } from '../../types/role.js';
+import { authorize } from '../middleware/auth/authorize.js';
+import { validateRole } from '../middleware/validation/role.js';
 
 var router = express.Router();
 
-router.post('/', (req, res, next) => {
+router.post('/', authorize("POST_role"), validateRole, (req, res, next) => {
     createRole(req.body).then(() => {
         res.status(201).send("Role created successfully!!")
     }).catch(err => {
@@ -13,7 +15,7 @@ router.post('/', (req, res, next) => {
     });
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorize("DELETE_role"), async (req, res) => {
     const id = Number(req.params.id?.toString());
 
     deleteRole(id)
@@ -26,8 +28,8 @@ router.delete('/:id', async (req, res) => {
         });
 })
 
-router.put("/:id", async (req, res, next) => {
-    editRole({...req.body,id: req.params.id?.toString()}).then(() => {
+router.put("/:id", authorize("PUT_role"), async (req, res, next) => {
+    editRole({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Role edited successfully!!")
     }).catch(err => {
         console.error(err);
@@ -35,11 +37,11 @@ router.put("/:id", async (req, res, next) => {
     });
 });
 
-router.get('/', async (req, res, next) => {
+router.get('/', authorize("DELETE_role"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
-        id: Number(req.query.id ) || 0,
+        id: Number(req.query.id) || 0,
         name: req.query.name?.toString() as NSRole.Type
     };
 

@@ -2,7 +2,6 @@ import { DeepPartial, FindOperator, FindOptionsWhere, In, LessThan, LessThanOrEq
 import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
-import { NSVolunteer } from "../../types/volunteer.js";
 import { getDate } from "./index.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {

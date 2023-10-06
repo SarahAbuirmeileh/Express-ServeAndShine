@@ -1,10 +1,12 @@
 import express from "express";
-import { creatOrganizationProfile, deleteOrganizationProfile, editOrganizationProfile, getOrganizationProfile } from "../controllers/OrganizationProfile .js";
+import { createOrganizationProfile, deleteOrganizationProfile, editOrganizationProfile, getOrganizationProfile } from "../controllers/OrganizationProfile .js";
+import { authorize } from "../middleware/auth/authorize.js";
+import { validateOrganizationProfile } from "../middleware/validation/organizationProfile.js";
 
 const router = express.Router();
 
-router.post('/', (req, res, next) => {
-    creatOrganizationProfile(req.body).then(() => {
+router.post('/', authorize("POST_organizationProfile"), validateOrganizationProfile, (req, res, next) => {
+    createOrganizationProfile(req.body).then(() => {
         res.status(201).send("Organization Profile created successfully!!")
     }).catch(err => {
         console.error(err);
@@ -12,7 +14,7 @@ router.post('/', (req, res, next) => {
     });
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorize("DELETE_organizationProfile"), async (req, res) => {
     const id = Number(req.params.id?.toString());
 
     deleteOrganizationProfile(id)
@@ -25,7 +27,7 @@ router.delete('/:id', async (req, res) => {
         });
 });
 
-router.put("/", async (req, res, next) => {
+router.put("/", authorize("PUT_organizationProfile"), async (req, res, next) => {
     editOrganizationProfile(req.body).then(() => {
         res.status(201).send("Organization Profile edited successfully!!")
     }).catch(err => {
@@ -34,7 +36,7 @@ router.put("/", async (req, res, next) => {
     });
 });
 
-router.get('/', async (req, res, next) => {
+router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',

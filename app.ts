@@ -12,6 +12,8 @@ import roleRouter from "./src/routes/role.js"
 import voluntaryWorkRouter from "./src/routes/voluntaryWork.js"
 import organizationAdminRouter from "./src/routes/organizationAdmin.js"
 import organizationProfileRouter from "./src/routes/organizationProfile.js"
+import volunteerRouter from "./src/routes/volunteer.js"
+import { authenticate } from "./src/middleware/auth/authenticate.js"
 
 const app = express();
 dotenv.config();
@@ -22,13 +24,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use('/', indexRouter);
-app.use('/permission',permissionRouter);
-app.use('/role',roleRouter);
-app.use('/voluntaryWork',voluntaryWorkRouter);
-app.use('/organivationAdmin',organizationAdminRouter);
-app.use('/organivationProfile',organizationProfileRouter);
-
-// app.use('/users', usersRouter);
+app.use('/permission', authenticate, permissionRouter);
+app.use('/role', authenticate, roleRouter);
+app.use('/voluntaryWork', authenticate, voluntaryWorkRouter);
+app.use('/organizationAdmin', authenticate, organizationAdminRouter);
+app.use('/organizationProfile', authenticate, organizationProfileRouter);
+app.use("/volunteer",volunteerRouter );
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

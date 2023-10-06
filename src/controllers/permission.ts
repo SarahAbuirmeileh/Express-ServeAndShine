@@ -1,8 +1,5 @@
 import { NSPermission } from "../../types/permission.js";
-import jwt from 'jsonwebtoken';
 import { Permission } from "../db/entities/Permission.js"
-import { Volunteer } from "../db/entities/Volunteer.js";
-import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 
 const createPermission = async (payload: NSPermission.Item) => {
   try {
@@ -106,47 +103,4 @@ const getPermissions = async (payload: {
   };
 }
 
-const login = async (email: string, name: string) => {
-  const volunteer = await Volunteer.findOneBy({
-    email,
-    name
-  });
-
-  const organizationAdmin = await OrganizationAdmin.findOneBy({
-    email,
-    name
-  });
-
-  if (volunteer) {
-    const token = jwt.sign(
-      {
-        email: volunteer.email,
-        name: volunteer.name
-      },
-      process.env.SECRET_KEY || '',
-      {
-        expiresIn: "15m"
-      }
-    );
-    return token;
-  } else if (organizationAdmin) {
-    const token = jwt.sign(
-      {
-        email: organizationAdmin.email,
-        name: organizationAdmin.name,
-        id: organizationAdmin.id
-
-      },
-      process.env.SECRET_KEY || '',
-      {
-        expiresIn: "15m"
-      }
-    );
-    return token;
-  } else {
-    throw ("Invalid email or name or id !");
-  }
-
-}
-
-export { login,createPermission, deletePermission, editPermission, getPermissions }
+export { createPermission, deletePermission, editPermission, getPermissions }

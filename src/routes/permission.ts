@@ -1,9 +1,11 @@
 import express from 'express';
-import { createPermission, deletePermission, editPermission, getPermissions, login } from '../controllers/permission.js';
+import { createPermission, deletePermission, editPermission, getPermissions } from '../controllers/permission.js';
+import { authorize } from '../middleware/auth/authorize.js';
+import { validatePermission } from '../middleware/validation/permission.js';
 
 var router = express.Router();
 
-router.post('/', (req, res, next) => {
+router.post('/', authorize("GET_permissions"), validatePermission, (req, res, next) => {
     createPermission(req.body).then(() => {
         res.status(201).send("Permission created successfully!!")
     }).catch(err => {
@@ -12,7 +14,7 @@ router.post('/', (req, res, next) => {
     });
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorize("DELETE_permission"), async (req, res) => {
     const id = Number(req.params.id?.toString());
 
     deletePermission(id)
@@ -25,7 +27,7 @@ router.delete('/:id', async (req, res) => {
         });
 })
 
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", authorize("PUT_permission"), async (req, res, next) => {
     editPermission({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Permission edited successfully!!")
     }).catch(err => {
@@ -34,7 +36,7 @@ router.put("/:id", async (req, res, next) => {
     });
 });
 
-router.get('/', async (req, res, next) => {
+router.get('/', authorize("GET_permissions"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
@@ -50,28 +52,6 @@ router.get('/', async (req, res, next) => {
             console.error(error);
             res.status(500).send('Something went wrong');
         });
-});
-
-router.post('/login', (req, res) => {
-    const email = req.body.email;
-    const name = req.body.name;
-    login(email, name)
-        .then(data => {
-            res.cookie('myApp', data, {
-                httpOnly:true,
-                maxAge: 15 * 60 * 1000,
-                sameSite:"lax"       // Protect against CSRF attacks
-            });
-            res.cookie('name', res.locals.volunteer.name || res.locals.organizationAdmin.name, {
-                httpOnly:true,
-                maxAge: 15 * 60 * 1000,
-                sameSite:"lax"       // Protect against CSRF attacks
-            });
-            res.status(201).send(data);
-        })
-        .catch(err => {
-            res.status(401).send(err);
-        })
 });
 
 export default router;

@@ -1,10 +1,12 @@
 import express from "express";
-import { creatOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins } from "../controllers/organizationAdmin.js";
+import { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins } from "../controllers/organizationAdmin.js";
+import { authorize } from "../middleware/auth/authorize.js";
+import { validateOrganizationAdmin } from "../middleware/validation/organizationAdmin.js";
 
 const router = express.Router();
 
-router.post('/', (req, res, next) => {
-    creatOrganizationAdmin(req.body).then(() => {
+router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
+    createOrganizationAdmin(req.body).then(() => {
         res.status(201).send("Organization Admin created successfully!!")
     }).catch(err => {
         console.error(err);
@@ -12,7 +14,7 @@ router.post('/', (req, res, next) => {
     });
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorize("DELETE_organizationAdmin"), async (req, res) => {
     const id = Number(req.params.id?.toString());
 
     deleteOrganizationAdmin(id)
@@ -25,7 +27,7 @@ router.delete('/:id', async (req, res) => {
         });
 });
 
-router.put("/", async (req, res, next) => {
+router.put("/", authorize("PUT_organizationAdmin"), async (req, res, next) => {
     editOrganizationAdmin(req.body).then(() => {
         res.status(201).send("Organization Admin edited successfully!!")
     }).catch(err => {
@@ -34,13 +36,13 @@ router.put("/", async (req, res, next) => {
     });
 });
 
-router.get('/', async (req, res, next) => {
+router.get('/', authorize("GET_organizationAdmins"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
         id: req.query.id?.toString() || '',
         name: req.query.name?.toString() || '',
-        email: req.query.eamil?.toString() || '',
+        email: req.query.email?.toString() || '',
         organizationName: req.query.organizationName?.toString() || ''
     };
 
