@@ -6,7 +6,7 @@ import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { SkillTag } from "../db/entities/SkillTag.js";
-import { In } from "typeorm";
+import { In, Like } from "typeorm";
 
 
 const createVolunteer = async (payload: NSVolunteer.Item) => {
@@ -97,5 +97,61 @@ const login = async (email: string, name: string, id: string) => {
 
 }
 
-export { login, createVolunteer, deleteVolunteer, editVolunteer }
+const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSize: string }) => {
+    const page = parseInt(payload.page);
+    const pageSize = parseInt(payload.pageSize);
+    const conditions: Record<string, any> = {};    
+
+    if (payload.id) {
+        conditions["id"] = payload.id;
+    }
+    if (payload.name) {
+        conditions["name"] = Like(`%${payload.name}%`);
+    }
+    if (payload.email) {
+        conditions["email"] = payload.email;
+    }
+    if (payload.availableTime.length > 0) {
+        conditions["availableTime"] = In(payload.availableTime);
+    }
+    if (payload.availableLocation) {
+        conditions["availableLocation"] = payload.availableLocation;
+    }
+    if (payload.type) {
+        conditions["type"] = payload.type;
+    }
+    if (payload.availableDays.length > 0) {
+        conditions["availableDays"] = In(payload.availableDays);
+    }
+    const [volunteers, total] = await Volunteer.findAndCount({
+        where: conditions,
+        order: {
+            createdAt: 'ASC',
+        },
+        relations: [
+            "volunteerProfile.skillTags",
+            "volunteerProfile"
+        ],
+    });
+
+    const filteredVolunteers = volunteers.filter((volunteer) => {
+        if (payload.skills.length > 0) {
+            const hasMatchingSkill = volunteer.volunteerProfile.skillTags.some((skillTag) => payload.skills.includes(skillTag.name));
+            return hasMatchingSkill;
+        }
+        return true; 
+    });
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedVolunteers = filteredVolunteers.slice(startIndex, endIndex);
+
+    return {
+        page,
+        pageSize: paginatedVolunteers.length,
+        total: filteredVolunteers.length,
+        volunteers: paginatedVolunteers,
+    };
+};
+
+export { getVolunteers, login, createVolunteer, deleteVolunteer, editVolunteer }
 

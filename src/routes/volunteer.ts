@@ -2,7 +2,8 @@ import express from 'express';
 import { authorize, checkMe } from '../middleware/auth/authorize.js';
 import { authenticate } from '../middleware/auth/authenticate.js';
 import { validateVolunteer } from '../middleware/validation/volunteer.js';
-import { createVolunteer, deleteVolunteer, editVolunteer, login } from '../controllers/volunteer.js';
+import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login } from '../controllers/volunteer.js';
+import { NSVolunteer } from '../../types/volunteer.js';
 
 var router = express.Router();
 
@@ -61,21 +62,28 @@ router.put("/:id", authenticate, authorize("POST_volunteer"), checkMe, async (re
 });
 
 router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next) => {
-    // const payload = {
-    //     page: req.query.page?.toString() || '1',
-    //     pageSize: req.query.pageSize?.toString() || '10',
-    //     id: Number(req.query.id) || 0,
-    //     name: req.query.name?.toString() as NSRole.Type
-    // };
+    const payload = {
+        page: req.query.page?.toString() || '1',
+        pageSize: req.query.pageSize?.toString() || '10',
+        id: req.query.id?.toString()|| "",
+        name: req.query.name?.toString() || "",
+        email: req.query.email?.toString() || "",
+        availableLocation: req.query.availableLocation?.toString() || "",
+        skills: ((Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean)) as string[],
+        type: req.query.status as NSVolunteer.TypeVolunteer,
+        availableDays: (Array.isArray(req.query.availableDays) ? req.query.availableDays : [req.query.availableDays]).filter(Boolean) as NSVolunteer.AvailableDays[],
+        availableTime: ((Array.isArray(req.query.availableTime) ? req.query.availableTime : [req.query.availableTime]).filter(Boolean)) as NSVolunteer.AvailableTime[],
+        password:""
+    };
 
-    // getVoluneers(payload)
-    //     .then(data => {
-    //         res.send(data);
-    //     })
-    //     .catch(error => {
-    //         console.error(error);
-    //         res.status(500).send('Something went wrong');
-    //     });
+    getVolunteers(payload)
+        .then(data => {
+            res.send(data);
+        })
+        .catch(error => {
+            console.error(error);
+            res.status(500).send('Something went wrong');
+        });
 });
 
 router.get("/logout", authenticate, (req, res, next) => {
