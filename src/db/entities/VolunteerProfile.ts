@@ -24,9 +24,6 @@ export class VolunteerProfile extends BaseEntity {
     @Column({ nullable: false })
     availableLocation: string;
 
-    @Column({ nullable: false, type:"json" })
-    preferredActivities: string[];
-
     @ManyToMany(() => SkillTag)
     @JoinTable()
     skillTags: SkillTag[];

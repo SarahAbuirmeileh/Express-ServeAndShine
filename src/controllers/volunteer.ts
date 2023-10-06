@@ -5,18 +5,30 @@ import { VolunteerProfile } from "../db/entities/VolunteerProfile.js";
 import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import { SkillTag } from "../db/entities/SkillTag.js";
+import { In } from "typeorm";
 
 
 const createVolunteer = async (payload: NSVolunteer.Item) => {
 
     return dataSource.manager.transaction(async (transaction) => {
 
-        // tags
+        const existingSkillTags = await SkillTag.find({
+            where: { name: In(payload.skills) },
+        });
+
+        const newSkillTags = await Promise.all(
+            payload.skills.map(async (skillName) => {
+                return existingSkillTags.find((tag) => tag.name === skillName) ||
+                    (await transaction.save(SkillTag.create({ name: skillName })));
+            })
+        );
 
         const profile = VolunteerProfile.create({
             availableTime: payload.availableTime,
             availableLocation: payload.availableLocation,
-            availableDays: payload.availableDays
+            availableDays: payload.availableDays,
+            skillTags: newSkillTags
         });
         await transaction.save(profile);
 
@@ -34,14 +46,14 @@ const deleteVolunteer = async (volunteerId: number) => {
 const editVolunteer = async (payload: { name: string, id: string, email: string, password: string }) => {
     const volunteer = await Volunteer.findOne({ where: { id: payload.id } });
     if (volunteer) {
-        if(payload.name)
-        volunteer.name = payload.name;
+        if (payload.name)
+            volunteer.name = payload.name;
 
-        if(payload.email)
-        volunteer.email = payload.email;
+        if (payload.email)
+            volunteer.email = payload.email;
 
-        if(payload.password)
-        volunteer.password = await bcrypt.hash(payload.password, 10);
+        if (payload.password)
+            volunteer.password = await bcrypt.hash(payload.password, 10);
 
         return volunteer.save();
 
