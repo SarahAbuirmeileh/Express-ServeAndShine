@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPermission, deletePermission, editPermission, getPermissions } from '../controllers/permission.js';
+import { createPermission, deletePermission, editPermission, getPermissions, login } from '../controllers/permission.js';
 
 var router = express.Router();
 
@@ -26,7 +26,7 @@ router.delete('/:id', async (req, res) => {
 })
 
 router.put("/:id", async (req, res, next) => {
-    editPermission({...req.body, id: req.params.id?.toString()}).then(() => {
+    editPermission({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Permission edited successfully!!")
     }).catch(err => {
         console.error(err);
@@ -38,8 +38,8 @@ router.get('/', async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
-        id: Number(req.query.id ) || 0,
-        name: req.query.name?.toString() || "" 
+        id: Number(req.query.id) || 0,
+        name: req.query.name?.toString() || ""
     };
 
     getPermissions(payload)
@@ -50,6 +50,18 @@ router.get('/', async (req, res, next) => {
             console.error(error);
             res.status(500).send('Something went wrong');
         });
+});
+
+router.post('/login', (req, res) => {
+    const email = req.body.email;
+    const name = req.body.name;
+    login(email, name)
+        .then(data => {
+            res.status(201).send(data);
+        })
+        .catch(err => {
+            res.status(401).send(err);
+        })
 });
 
 export default router;
