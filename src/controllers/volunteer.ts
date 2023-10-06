@@ -5,18 +5,30 @@ import { VolunteerProfile } from "../db/entities/VolunteerProfile.js";
 import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import { SkillTag } from "../db/entities/SkillTag.js";
+import { In, Like } from "typeorm";
 
 
 const createVolunteer = async (payload: NSVolunteer.Item) => {
 
     return dataSource.manager.transaction(async (transaction) => {
 
-        // tags
+        const existingSkillTags = await SkillTag.find({
+            where: { name: In(payload.skills) },
+        });
+
+        const newSkillTags = await Promise.all(
+            payload.skills.map(async (skillName) => {
+                return existingSkillTags.find((tag) => tag.name === skillName) ||
+                    (await transaction.save(SkillTag.create({ name: skillName })));
+            })
+        );
 
         const profile = VolunteerProfile.create({
             availableTime: payload.availableTime,
             availableLocation: payload.availableLocation,
-            availableDays: payload.availableDays
+            availableDays: payload.availableDays,
+            skillTags: newSkillTags
         });
         await transaction.save(profile);
 
@@ -34,14 +46,14 @@ const deleteVolunteer = async (volunteerId: number) => {
 const editVolunteer = async (payload: { name: string, id: string, email: string, password: string }) => {
     const volunteer = await Volunteer.findOne({ where: { id: payload.id } });
     if (volunteer) {
-        if(payload.name)
-        volunteer.name = payload.name;
+        if (payload.name)
+            volunteer.name = payload.name;
 
-        if(payload.email)
-        volunteer.email = payload.email;
+        if (payload.email)
+            volunteer.email = payload.email;
 
-        if(payload.password)
-        volunteer.password = await bcrypt.hash(payload.password, 10);
+        if (payload.password)
+            volunteer.password = await bcrypt.hash(payload.password, 10);
 
         return volunteer.save();
 
@@ -85,5 +97,61 @@ const login = async (email: string, name: string, id: string) => {
 
 }
 
-export { login, createVolunteer, deleteVolunteer, editVolunteer }
+const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSize: string }) => {
+    const page = parseInt(payload.page);
+    const pageSize = parseInt(payload.pageSize);
+    const conditions: Record<string, any> = {};    
+
+    if (payload.id) {
+        conditions["id"] = payload.id;
+    }
+    if (payload.name) {
+        conditions["name"] = Like(`%${payload.name}%`);
+    }
+    if (payload.email) {
+        conditions["email"] = payload.email;
+    }
+    if (payload.availableTime.length > 0) {
+        conditions["availableTime"] = In(payload.availableTime);
+    }
+    if (payload.availableLocation) {
+        conditions["availableLocation"] = payload.availableLocation;
+    }
+    if (payload.type) {
+        conditions["type"] = payload.type;
+    }
+    if (payload.availableDays.length > 0) {
+        conditions["availableDays"] = In(payload.availableDays);
+    }
+    const [volunteers, total] = await Volunteer.findAndCount({
+        where: conditions,
+        order: {
+            createdAt: 'ASC',
+        },
+        relations: [
+            "volunteerProfile.skillTags",
+            "volunteerProfile"
+        ],
+    });
+
+    const filteredVolunteers = volunteers.filter((volunteer) => {
+        if (payload.skills.length > 0) {
+            const hasMatchingSkill = volunteer.volunteerProfile.skillTags.some((skillTag) => payload.skills.includes(skillTag.name));
+            return hasMatchingSkill;
+        }
+        return true; 
+    });
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedVolunteers = filteredVolunteers.slice(startIndex, endIndex);
+
+    return {
+        page,
+        pageSize: paginatedVolunteers.length,
+        total: filteredVolunteers.length,
+        volunteers: paginatedVolunteers,
+    };
+};
+
+export { getVolunteers, login, createVolunteer, deleteVolunteer, editVolunteer }
 

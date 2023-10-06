@@ -4,41 +4,45 @@ import { isValidPassword } from '../../controllers/index.js';
 import { NSVolunteer } from '../../../types/volunteer.js';
 
 
-const validateVolunteer = (req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-) => {
-    const values = ["name", "email", "password", "type","availableTime","availableLocation", "PreferredActivities", "availableDays" ];
+const validateVolunteer = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const volunteer = req.body;
-    const errorList = values.map(key => !volunteer[key] && `${key} is Required!`).filter(Boolean);
+    const errorList: string[] = [];
+
+    const requiredFields = ["name", "email", "password", "type", "availableTime", "availableLocation", "availableDays", "skills"];
+    requiredFields.forEach((field) => {
+        if (!volunteer[field]) {
+            errorList.push(`${field} is required.`);
+        }
+    });
 
     if (!EmailValidator.validate(volunteer.email)) {
-        errorList.push('Email is not Valid');
+        errorList.push('Email is not valid.');
     }
-    
-    errorList.push(...isValidPassword(volunteer.password ));
 
-    const validType= volunteer.type.every((status: string) => Object.values(NSVolunteer.TypeVolunteer).includes(status as NSVolunteer.TypeVolunteer));
+    const validType = Object.values(NSVolunteer.TypeVolunteer).includes(volunteer.type);
     if (!validType) {
-        errorList.push("Invalid status !");
+        errorList.push("Invalid type!");
     }
 
-    const validTime = volunteer.time.every((time: string) => Object.values(NSVolunteer.AvailableTime).includes(time as NSVolunteer.AvailableTime));
+    const validTime = volunteer.availableTime.every((time: string) => Object.values(NSVolunteer.AvailableTime).includes(time as NSVolunteer.AvailableTime));
     if (!validTime) {
-        errorList.push("Invalid time !");
+        errorList.push("Invalid time!");
     }
 
-    const validDays = volunteer.days.every((days: string) => Object.values(NSVolunteer.AvailableDays).includes(days as NSVolunteer.AvailableDays));
+    const validDays = volunteer.availableDays.every((days: string) => Object.values(NSVolunteer.AvailableDays).includes(days as NSVolunteer.AvailableDays));
     if (!validDays) {
-        errorList.push("Invalid days !");
+        errorList.push("Invalid days!");
     }
+
+    errorList.push(...isValidPassword(volunteer.password));
 
     if (errorList.length) {
-        res.status(400).send(errorList);
+        res.status(400).send({ errors: errorList });
     } else {
         next();
     }
-}
+};
+
 
 export {
     validateVolunteer
