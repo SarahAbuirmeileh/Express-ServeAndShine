@@ -10,6 +10,8 @@ import indexRouter from "./src/routes/index.js"
 import permissionRouter from "./src/routes/permission.js"
 import roleRouter from "./src/routes/role.js"
 import voluntaryWorkRouter from "./src/routes/voluntaryWork.js"
+import organizationAdminRouter from "./src/routes/organizationAdmin.js"
+import organizationProfileRouter from "./src/routes/organizationProfile.js"
 
 const app = express();
 dotenv.config();
@@ -23,6 +25,9 @@ app.use('/', indexRouter);
 app.use('/permission',permissionRouter);
 app.use('/role',roleRouter);
 app.use('/voluntaryWork',voluntaryWorkRouter);
+app.use('/organivationAdmin',organizationAdminRouter);
+app.use('/organivationProfile',organizationProfileRouter);
+
 // app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
