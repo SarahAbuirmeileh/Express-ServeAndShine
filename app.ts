@@ -2,7 +2,7 @@ import "./config.js"
 import express from 'express'
 import dotenv from 'dotenv'
 import createError from 'http-errors'
-import dataSource from './src/db/dataSource.js'
+import dataSource, { initDB } from './src/db/dataSource.js'
 import logger from 'morgan'
 import cookieParser from 'cookie-parser'
 
@@ -46,16 +46,10 @@ app.use(function (err: any, req: any, res: any, next: any) {
   res.status(err.status || 500).send({ error: err.message });
 });
 
-dataSource.initialize().then(() => {
-  console.log("Connected to DB!");
-}).catch(err => {
-  console.error('Failed to connect to DB: ' + err);
-});
-
 app.listen(PORT, () => {
   logger(`App is listening on port ${PORT}`);
   console.log(`App is listening on port ${PORT} and host http://localhost:${PORT}`);
+  initDB();
 });
-
 
 export default app;

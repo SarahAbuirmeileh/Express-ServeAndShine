@@ -22,4 +22,11 @@ const dataSource = new DataSource({
     logging: false
 });
 
+export const initDB = async () =>
+  await dataSource.initialize().then(() => {
+    console.log("Connected to DB!");
+  }).catch(err => {
+    console.log('Failed to connect to DB: ' + err)
+  });
+
 export default dataSource;
