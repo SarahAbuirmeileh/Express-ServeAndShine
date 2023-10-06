@@ -3,6 +3,8 @@ import { NSPermission } from '../../../types/permission.js';
 import { OrganizationAdmin } from '../../db/entities/OrganizationAdmin.js';
 import { Volunteer } from '../../db/entities/Volunteer.js';
 import { OrganizationProfile } from '../../db/entities/OrganizationProfile.js';
+import { VoluntaryWork } from '../../db/entities/VoluntaryWork.js';
+import { VolunteerProfile } from '../../db/entities/VolunteerProfile.js';
 
 const authorize = (api: string) => {
     return async (
@@ -61,13 +63,13 @@ const checkAdmin = () => {
     ) => {
         const id = req.params.id;
         let organizationProfile = await OrganizationProfile.findOne({ where: { id } });
-        const admin =  await OrganizationAdmin.findOne({ where: { orgProfile: { id: organizationProfile?.id } } });
+        const admin = await OrganizationAdmin.findOne({ where: { orgProfile: { id: organizationProfile?.id } } });
         if (res.locals.organizationAdmin) {
             if (res.locals.organizationAdmin.id == admin?.id) {
                 next();
-            } else {
-                res.status(403).send("You don't have the permission to access this resource!");
             }
+        } else {
+            res.status(403).send("You don't have the permission to access this resource!");
         }
     }
 }
@@ -78,15 +80,35 @@ const checkCreator = () => {
         res: express.Response,
         next: express.NextFunction
     ) => {
-        const id = req.params.id;
-        let organizationProfile = await OrganizationProfile.findOne({ where: { id } });
-        const admin =  await OrganizationAdmin.findOne({ where: { orgProfile: { id: organizationProfile?.id } } });
+        const id = Number(req.params.id);
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+
         if (res.locals.organizationAdmin) {
-            if (res.locals.organizationAdmin.id == admin?.id) {
+            if (res.locals.organizationAdmin.id == voluntaryWork?.creatorId) {
                 next();
-            } else {
-                res.status(403).send("You don't have the permission to access this resource!");
             }
+        } else if (res.locals.volunteer) {
+            if (res.locals.volunteer.id == voluntaryWork?.creatorId) {
+                next();
+            }
+        } else {
+            res.status(403).send("You don't have the permission to access this resource!");
+        }
+    }
+}
+
+const c1heckParticipation = () => {
+    return async (
+        req: express.Request,
+        res: express.Response,
+        next: express.NextFunction
+    ) => {
+        const id = Number(req.params.id);
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+        if(res.locals.volunteer) {
+            const volunteer:Volunteer=res.locals.volunteer;
+        }else {
+            res.status(403).send("You don't have the permission to access this resource!");
         }
     }
 }
@@ -97,9 +119,26 @@ const checkParticipation = () => {
         res: express.Response,
         next: express.NextFunction
     ) => {
+        const id = Number(req.params.id);
 
-    }
-}
+        if (res.locals.volunteer) {
+            const volunteer = res.locals.volunteer;
+            const volunteerProfile = volunteer.volunteerProfile;
+
+            if (volunteerProfile) {
+                const voluntaryWork = await VoluntaryWork.findOne({
+                    where: { id },
+                    relations: ['volunteerProfiles'] 
+                });
+
+                if (voluntaryWork && voluntaryWork.volunteerProfiles.includes(volunteerProfile)) {
+                    next();
+                }
+            }
+        } 
+        res.status(403).send("You don't have permission to access this resource.");
+    };
+};
 
 export {
     authorize,

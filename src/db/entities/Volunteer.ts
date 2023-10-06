@@ -34,7 +34,7 @@ export class Volunteer extends BaseEntity {
     @JoinTable()
     roles: Role[];
 
-    @OneToOne(() => VolunteerProfile, {cascade: true, onDelete:"CASCADE"})
+    @OneToOne(() => VolunteerProfile, {cascade: true, onDelete:"SET NULL"})
     @JoinColumn()
     volunteerProfile: VolunteerProfile
 
