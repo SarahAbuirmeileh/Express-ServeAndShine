@@ -57,6 +57,16 @@ router.post('/login', (req, res) => {
     const name = req.body.name;
     login(email, name)
         .then(data => {
+            res.cookie('myApp', data, {
+                httpOnly:true,
+                maxAge: 15 * 60 * 1000,
+                sameSite:"lax"       // Protect against CSRF attacks
+            });
+            res.cookie('name', res.locals.volunteer.name || res.locals.organizationAdmin.name, {
+                httpOnly:true,
+                maxAge: 15 * 60 * 1000,
+                sameSite:"lax"       // Protect against CSRF attacks
+            });
             res.status(201).send(data);
         })
         .catch(err => {
