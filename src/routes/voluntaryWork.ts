@@ -8,7 +8,7 @@ import { validateVoluntaryWork } from '../middleware/validation/voluntaryWork.js
 var router = express.Router();
 
 router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, res, next) => {
-    createVoluntaryWork(req.body).then(() => {
+    createVoluntaryWork({ ...req.body, creatorId: res.locals.volunteer.id || res.locals.organizationAdmin.id }).then(() => {
         res.status(201).send("Voluntary work created successfully!!")
     }).catch(err => {
         console.error(err);
@@ -37,7 +37,7 @@ router.put("/:id", authorize("PUT_voluntaryWork"), checkCreator, async (req, res
     });
 });
 
-router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
+router.get('/', async (req, res, next) => {
 
     const payload = {
         page: req.query.page?.toString() || '1',
@@ -59,7 +59,7 @@ router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
         startedBefore: "",
         ratingMore: Number(req.query.ratingMore) || 0,
         ratingLess: Number(req.query.ratingLess) || 0,
-
+        creatorId: ""
     };
 
     getVoluntaryWorks(payload)
@@ -94,7 +94,7 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
         startedBefore: req.query.startedBefore?.toString() || "",
         ratingMore: Number(req.query.ratingMore) || 0,
         ratingLess: Number(req.query.ratingLess) || 0,
-
+        creatorId:req.query.creatorId?.toString() || ""
     };
 
     getVoluntaryWorks(payload)

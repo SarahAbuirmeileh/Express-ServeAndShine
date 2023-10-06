@@ -26,7 +26,7 @@ app.use(cookieParser());
 app.use('/', indexRouter);
 app.use('/permission', authenticate, permissionRouter);
 app.use('/role', authenticate, roleRouter);
-app.use('/voluntaryWork', authenticate, voluntaryWorkRouter);
+app.use('/voluntaryWork', voluntaryWorkRouter);
 app.use('/organizationAdmin', authenticate, organizationAdminRouter);
 app.use('/organizationProfile', authenticate, organizationProfileRouter);
 app.use("/volunteer",volunteerRouter );

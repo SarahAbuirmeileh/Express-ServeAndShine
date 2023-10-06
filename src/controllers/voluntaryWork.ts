@@ -12,8 +12,8 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
         where: { id: In(payload.skillTagIds) },
     });
     newVoluntaryWork.skillTags = skillTags;
-    newVoluntaryWork.feedback=[];
-    newVoluntaryWork.images=[];
+    newVoluntaryWork.feedback = [];
+    newVoluntaryWork.images = [];
     return newVoluntaryWork.save();
 }
 
@@ -99,6 +99,9 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
     if (payload.capacity) {
         conditions.push({ capacity: payload.capacity });
     }
+    if (payload.creatorId) {
+        conditions.push({ creatorId: payload.creatorId });
+    }
 
     if (payload.startedAfter) {
         const startedAfterDate = getDate(payload.startedAfter);
@@ -135,14 +138,17 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         order: {
             createdAt: 'ASC'
         },
-        relations: ['skillTags']
+        relations: ['skillTags', 'volunteerProfiles']
     });
 
     return {
         page,
         pageSize: voluntaryWorks.length,
         total,
-        voluntaryWorks
+        voluntaryWorks: voluntaryWorks.map(voluntaryWork => ({
+            ...voluntaryWork,
+            volunteerNumbers: voluntaryWork.volunteerProfiles.length,
+        }))
     };
 }
 
@@ -159,22 +165,22 @@ const putRating = async (id: number, rating: number) => {
 
 const putFeedback = async (id: number, feedback: string) => {
     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
-    if (voluntaryWork){
+    if (voluntaryWork) {
         voluntaryWork.feedback.push(feedback);
         await voluntaryWork.save();
-    }else{
+    } else {
         throw "VoluntaryWork not found :(";
     }
 }
 
 const putImages = async (id: number, images: string[]) => {
     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
-    if (voluntaryWork){
+    if (voluntaryWork) {
         voluntaryWork.images.push(...images);
         await voluntaryWork.save();
-    }else{
+    } else {
         throw "VoluntaryWork not found :(";
     }
 }
 
-export { putImages,createVoluntaryWork, putFeedback,editVoluntaryWork, putRating, getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }
+export { putImages, createVoluntaryWork, putFeedback, editVoluntaryWork, putRating, getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }

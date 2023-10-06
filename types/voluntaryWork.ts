@@ -48,6 +48,7 @@ export namespace NSVoluntaryWork {
         startedBefore: string;
         ratingMore:number;
         ratingLess:number;
+        creatorId:string;
     }
 
     export interface Date {
@@ -72,5 +73,6 @@ export namespace NSVoluntaryWork {
         finishedDate: string;
         capacity: number;
         skillTagIds: number[];
+        creatorId:string;
     }
 }
