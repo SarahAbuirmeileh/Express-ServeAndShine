@@ -2,7 +2,7 @@ import express from 'express';
 import { createVoluntaryWork, deleteVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putImages, putRating } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
-import { authorize } from '../middleware/auth/authorize.js';
+import { authorize, checkCreator, checkParticipation } from '../middleware/auth/authorize.js';
 import { validateVoluntaryWork } from '../middleware/validation/voluntaryWork.js';
 
 var router = express.Router();
@@ -16,7 +16,7 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
     });
 });
 
-router.delete('/:id', authorize("DELETE_voluntaryWork"), async (req, res) => {
+router.delete('/:id', authorize("DELETE_voluntaryWork"), checkCreator, async (req, res) => {
     const id = Number(req.params.id?.toString());
 
     deleteVoluntaryWork(id)
@@ -28,7 +28,7 @@ router.delete('/:id', authorize("DELETE_voluntaryWork"), async (req, res) => {
         });
 })
 
-router.put("/:id", authorize("PUT_voluntaryWork"), async (req, res, next) => {
+router.put("/:id", authorize("PUT_voluntaryWork"), checkCreator, async (req, res, next) => {
     editVoluntaryWork({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Voluntary Work edited successfully!!")
     }).catch(err => {
@@ -53,10 +53,10 @@ router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
         startedDate: req.query.startedDate?.toString() || "",
         finishedDate: req.query.finishedDate?.toString() || "",
         capacity: Number(req.query.capacity) || 0,
-        finishedAfter: req.query.finishedDate?.toString() || "",
-        finishedBefore: req.query.finishedBefore?.toString() || "",
-        startedAfter: req.query.startedAfter?.toString() || "",
-        startedBefore: req.query.startedBefore?.toString() || "",
+        finishedAfter: "",
+        finishedBefore: "",
+        startedAfter: "",
+        startedBefore: "",
         ratingMore: Number(req.query.ratingMore) || 0,
         ratingLess: Number(req.query.ratingLess) || 0,
 
@@ -108,30 +108,7 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
 });
 
 router.get('/recommendation', authorize("GET_recommendation"), async (req, res, next) => {
-
-    const payload = {
-        page: req.query.page?.toString() || '1',
-        pageSize: req.query.pageSize?.toString() || '10',
-        id: Number(req.query.id) || 0,
-        name: req.query.name?.toString() || '',
-        time: ((Array.isArray(req.query.time) ? req.query.time : [req.query.time]).filter(Boolean)) as NSVolunteer.AvailableTime[],
-        location: (typeof req.query.location === 'string' ? req.query.location : ''),
-        days: (Array.isArray(req.query.days) ? req.query.days : [req.query.days]).filter(Boolean) as NSVolunteer.AvailableDays[],
-        rating: Number(req.query.rating) || 0,
-        status: req.query.status as NSVoluntaryWork.StatusType,
-        skills: (Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean) as string[],
-        startedDate: req.query.startedDate?.toString() || "",
-        finishedDate: req.query.finishedDate?.toString() || "",
-        capacity: Number(req.query.capacity) || 0,
-        finishedAfter: req.query.finishedDate?.toString() || "",
-        finishedBefore: req.query.finishedBefore?.toString() || "",
-        startedAfter: req.query.startedAfter?.toString() || "",
-        startedBefore: req.query.startedBefore?.toString() || "",
-        ratingMore: Number(req.query.ratingMore) || 0,
-        ratingLess: Number(req.query.ratingLess) || 0,
-
-    };
-
+    const payload = { ...res.locals.volunteer };
     getVoluntaryWorks(payload)
         .then(data => {
             res.send(data);
@@ -142,7 +119,7 @@ router.get('/recommendation', authorize("GET_recommendation"), async (req, res, 
         });
 });
 
-router.put("/rating/:id", authorize("PUT_rating"), async (req, res, next) => {
+router.put("/rating/:id", authorize("PUT_rating"), checkParticipation, async (req, res, next) => {
     putRating(Number(req.params.id), Number(req.body.rating)).then(() => {
         res.status(201).send("Rating added successfully!!")
     }).catch(err => {
@@ -151,7 +128,7 @@ router.put("/rating/:id", authorize("PUT_rating"), async (req, res, next) => {
     });
 });
 
-router.put("/feedback/:id", authorize("PUT_feedback"), async (req, res, next) => {
+router.put("/feedback/:id", authorize("PUT_feedback"), checkParticipation, async (req, res, next) => {
     putFeedback(Number(req.params.id), req.body.feedback).then(() => {
         res.status(201).send("Feedback added successfully!!")
     }).catch(err => {
@@ -170,12 +147,6 @@ router.put("/images/:id", authorize("PUT_images"), async (req, res, next) => {
 });
 
 router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
-    editVoluntaryWork({ ...req.body, id: req.params.id?.toString() }).then(() => {
-        res.status(201).send("Voluntary Work edited successfully!!")
-    }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
-    });
 });
 
 export default router;

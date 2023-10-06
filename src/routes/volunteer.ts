@@ -1,5 +1,5 @@
 import express from 'express';
-import { authorize } from '../middleware/auth/authorize.js';
+import { authorize, checkMe } from '../middleware/auth/authorize.js';
 import { authenticate } from '../middleware/auth/authenticate.js';
 import { validateVolunteer } from '../middleware/validation/volunteer.js';
 import { login } from '../controllers/volunteer.js';
@@ -33,11 +33,11 @@ router.post('/login', (req, res, next) => {
         })
 });
 
-router.delete('/:id', authenticate, authorize("DELETE_volunteer"), async (req, res) => {
+router.delete('/:id', authenticate, authorize("DELETE_volunteer"), checkMe, async (req, res) => {
 
 })
 
-router.put("/:id", authenticate, authorize("POST_volunteer"), async (req, res, next) => {
+router.put("/:id", authenticate, authorize("POST_volunteer"), checkMe, async (req, res, next) => {
 
 });
 

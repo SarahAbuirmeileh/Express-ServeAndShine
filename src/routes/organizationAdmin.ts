@@ -1,6 +1,6 @@
 import express from "express";
 import { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins } from "../controllers/organizationAdmin.js";
-import { authorize } from "../middleware/auth/authorize.js";
+import { authorize, checkMe } from "../middleware/auth/authorize.js";
 import { validateOrganizationAdmin } from "../middleware/validation/organizationAdmin.js";
 
 const router = express.Router();
@@ -14,7 +14,7 @@ router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin,
     });
 });
 
-router.delete('/:id', authorize("DELETE_organizationAdmin"), async (req, res) => {
+router.delete('/:id', authorize("DELETE_organizationAdmin"), checkMe, async (req, res) => {
     const id = Number(req.params.id?.toString());
 
     deleteOrganizationAdmin(id)
@@ -27,8 +27,8 @@ router.delete('/:id', authorize("DELETE_organizationAdmin"), async (req, res) =>
         });
 });
 
-router.put("/", authorize("PUT_organizationAdmin"), async (req, res, next) => {
-    editOrganizationAdmin(req.body).then(() => {
+router.put("/:id", authorize("PUT_organizationAdmin"),checkMe(), async (req, res, next) => {
+    editOrganizationAdmin({...req.body, id:req.params.id}).then(() => {
         res.status(201).send("Organization Admin edited successfully!!")
     }).catch(err => {
         console.error(err);
