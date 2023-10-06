@@ -1,6 +1,6 @@
 import express from 'express';
 
-const validateOrganizationAdmin = (req: express.Request,
+const validateOrganizationProfile = (req: express.Request,
     res: express.Response,
     next: express.NextFunction
 ) => {
@@ -16,5 +16,5 @@ const validateOrganizationAdmin = (req: express.Request,
 }
 
 export {
-    validateOrganizationAdmin
+    validateOrganizationProfile 
 }

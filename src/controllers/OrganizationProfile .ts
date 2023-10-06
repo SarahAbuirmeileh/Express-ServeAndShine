@@ -1,8 +1,7 @@
 import { NSOrganizationProfile } from "../../types/organizationProfile.js";
-import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 
-const creatOrganizationProfile = async (payload: NSOrganizationProfile.Item) => {
+const createOrganizationProfile = async (payload: NSOrganizationProfile.Item) => {
 
     const newOrganizationProfile = OrganizationProfile.create(payload);
     return newOrganizationProfile.save();
@@ -74,4 +73,4 @@ const getOrganizationProfile = async (payload: {
 }
 
 
-export { creatOrganizationProfile, editOrganizationProfile, deleteOrganizationProfile, getOrganizationProfile }
+export { createOrganizationProfile, editOrganizationProfile, deleteOrganizationProfile, getOrganizationProfile }

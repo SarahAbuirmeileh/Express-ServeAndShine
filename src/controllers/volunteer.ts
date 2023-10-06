@@ -3,6 +3,11 @@
 // import { Volunteer } from "../db/entities/Volunteer.js";
 // import { VolunteerProfile } from "../db/entities/VolunteerProfile.js";
 
+import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
+import { Volunteer } from "../db/entities/Volunteer.js";
+import jwt from 'jsonwebtoken';
+
+
 // const createVolunteer = async (payload: NSVolunteer.Item) => {
 
 //     return dataSource.manager.transaction(async (transaction) => {
@@ -28,5 +33,40 @@
 //     return Volunteer.delete(volunteerId);
 // }
 
-// export { createVolunteer, deleteVolunteer, }
+const login = async (email: string, name: string, id: string) => {
+    const volunteer = await Volunteer.findOne({
+        where: { email, name, id },
+        relations: ["roles", "roles.permissions"],
+    });
+
+    const organizationAdmin = await OrganizationAdmin.findOne({
+        where: { email, name, id },
+        relations: ["roles", "roles.permissions"],
+    });
+
+    if (volunteer) {
+        const token = jwt.sign(
+            { email, name, id },
+            process.env.SECRET_KEY || '',
+            {
+                expiresIn: "15m"
+            }
+        );
+        return token;
+    } else if (organizationAdmin) {
+        const token = jwt.sign(
+            { email, name, id },
+            process.env.SECRET_KEY || '',
+            {
+                expiresIn: "15m"
+            }
+        );
+        return token;
+    } else {
+        throw ("Invalid email or name or id !");
+    }
+
+}
+
+export { login,/* createVolunteer, deleteVolunteer,*/ }
 

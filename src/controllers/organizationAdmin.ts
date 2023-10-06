@@ -2,8 +2,9 @@ import { NSOrganizationAdmin } from "../../types/organizationAdmin.js";
 import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import bcrypt from 'bcrypt';
+import { Volunteer } from "../db/entities/Volunteer.js";
 
-const creatOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
+const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
 
     const newOrganizationAdmin = OrganizationAdmin.create(payload);
 
@@ -99,4 +100,4 @@ const editOrganizationAdmin = async (payload: { id: string, name: string, email:
 }
 
 
-export { creatOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins }
+export { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins }

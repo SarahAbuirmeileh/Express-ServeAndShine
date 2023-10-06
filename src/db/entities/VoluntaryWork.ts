@@ -53,8 +53,11 @@ export class VoluntaryWork extends BaseEntity {
     @Column({ type: 'json', nullable: true })
     feedback: string[];
 
-    @Column()
+    @Column({nullable:false})
     capacity: number;
+
+    @Column({nullable:false})
+    creatorId: string;
 
     @ManyToMany(() => SkillTag)
     @JoinTable()
