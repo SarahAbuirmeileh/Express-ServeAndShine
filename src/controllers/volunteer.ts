@@ -1,37 +1,54 @@
-// import { NSVolunteer } from "../../types/volunteer.js";
-// import dataSource from "../db/dataSource.js";
-// import { Volunteer } from "../db/entities/Volunteer.js";
-// import { VolunteerProfile } from "../db/entities/VolunteerProfile.js";
-
-import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
+import { NSVolunteer } from "../../types/volunteer.js";
+import dataSource from "../db/dataSource.js";
 import { Volunteer } from "../db/entities/Volunteer.js";
+import { VolunteerProfile } from "../db/entities/VolunteerProfile.js";
+import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
 
-// const createVolunteer = async (payload: NSVolunteer.Item) => {
+const createVolunteer = async (payload: NSVolunteer.Item) => {
 
-//     return dataSource.manager.transaction(async (transaction) => {
+    return dataSource.manager.transaction(async (transaction) => {
 
-//         const profile = VolunteerProfile.create({
-//             availableTime: payload.availableTime
+        // tags
 
-//         })
+        const profile = VolunteerProfile.create({
+            availableTime: payload.availableTime,
+            availableLocation: payload.availableLocation,
+            availableDays: payload.availableDays
+        });
+        await transaction.save(profile);
 
-//         await transaction.save(profile);
+        const newVolunteer = Volunteer.create(payload);
 
-//         const newUser = User.create(payload);
-//         const roles = await Role.find({ where: { name: newUser?.type || 'user' } })
-//         newUser.roles = roles;
-//         newUser.profile = profile;
-//         await transaction.save(newUser);
-//     });
+        newVolunteer.volunteerProfile = profile;
+        await transaction.save(newVolunteer);
+    });
+};
 
+const deleteVolunteer = async (volunteerId: number) => {
+    return Volunteer.delete(volunteerId);
+}
 
-// };
+const editVolunteer = async (payload: { name: string, id: string, email: string, password: string }) => {
+    const volunteer = await Volunteer.findOne({ where: { id: payload.id } });
+    if (volunteer) {
+        if(payload.name)
+        volunteer.name = payload.name;
 
-// const deleteVolunteer = async (volunteerId: number) => {
-//     return Volunteer.delete(volunteerId);
-// }
+        if(payload.email)
+        volunteer.email = payload.email;
+
+        if(payload.password)
+        volunteer.password = await bcrypt.hash(payload.password, 10);
+
+        return volunteer.save();
+
+    } else {
+        throw "Volunteer not found :(";
+    }
+}
 
 const login = async (email: string, name: string, id: string) => {
     const volunteer = await Volunteer.findOne({
@@ -68,5 +85,5 @@ const login = async (email: string, name: string, id: string) => {
 
 }
 
-export { login,/* createVolunteer, deleteVolunteer,*/ }
+export { login, createVolunteer, deleteVolunteer, editVolunteer }
 

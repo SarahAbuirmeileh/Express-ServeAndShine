@@ -29,7 +29,7 @@ export namespace NSVolunteer {
         type: TypeVolunteer;
         availableTime: AvailableTime[];
         availableLocation: string;
-        PreferredActivities: string[];
         availableDays: AvailableDays[];
+        skills: string[];
     }
 }
