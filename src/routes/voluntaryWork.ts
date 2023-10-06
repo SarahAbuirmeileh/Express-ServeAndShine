@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putImages, putRating } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putImages, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkCreator, checkParticipation } from '../middleware/auth/authorize.js';
@@ -37,7 +37,7 @@ router.put("/:id", authorize("PUT_voluntaryWork"), checkCreator, async (req, res
     });
 });
 
-router.get('/', async (req, res, next) => {
+router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
 
     const payload = {
         page: req.query.page?.toString() || '1',
@@ -94,7 +94,7 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
         startedBefore: req.query.startedBefore?.toString() || "",
         ratingMore: Number(req.query.ratingMore) || 0,
         ratingLess: Number(req.query.ratingLess) || 0,
-        creatorId:req.query.creatorId?.toString() || ""
+        creatorId: req.query.creatorId?.toString() || ""
     };
 
     getVoluntaryWorks(payload)
@@ -147,6 +147,25 @@ router.put("/images/:id", authorize("PUT_images"), async (req, res, next) => {
 });
 
 router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
+    if (res.locals.volunteer) {
+        registerByVolunteer(Number(req.params.id), res.locals.volunteer["volunteerProfile"]).then(() => {
+            res.status(201).send("Rating added successfully!!")
+        }).catch(err => {
+            console.error(err);
+            res.status(500).send(err);
+        });
+    } else if (res.locals.organizationAdmin) {
+        if (!req.body.volunteerId.toString()) {
+            throw "volunteer id is required!";
+        }
+
+        registerByOrganizationAdmin(Number(req.params.id), req.body.volunteerId.toString()).then(() => {
+            res.status(201).send("Rating added successfully!!")
+        }).catch(err => {
+            console.error(err);
+            res.status(500).send(err);
+        });
+    }
 });
 
 export default router;

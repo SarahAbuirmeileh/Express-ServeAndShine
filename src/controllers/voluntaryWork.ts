@@ -3,6 +3,7 @@ import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
 import { getDate } from "./index.js";
+import { Volunteer } from "../db/entities/Volunteer.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
     let payloadDate = { ...payload, startedDate: getDate(payload.startedDate), finishedDate: getDate(payload.finishedDate) };
@@ -65,10 +66,20 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
     const conditions = [];
 
     if (payload.id) {
-        return VoluntaryWork.findOne({ where: { id: payload.id } })
+        const voluntaryWork = await VoluntaryWork.findOne({ where: { id: payload.id }, relations: ['skillTags', 'volunteerProfiles'] })
+        return {
+            ...voluntaryWork,
+            volunteerNumbers: voluntaryWork?.volunteerProfiles.length
+        }
+
+
     }
     if (payload.name) {
-        return VoluntaryWork.findOne({ where: { name: payload.name } })
+        const voluntaryWork = await VoluntaryWork.findOne({ where: { name: payload.name }, relations: ['skillTags', 'volunteerProfiles'] })
+        return {
+            ...voluntaryWork,
+            volunteerNumbers: voluntaryWork?.volunteerProfiles.length
+        }
     }
     if (payload.time.length > 0) {
         conditions.push({ time: In(payload.time) });
@@ -183,4 +194,46 @@ const putImages = async (id: number, images: string[]) => {
     }
 }
 
-export { putImages, createVoluntaryWork, putFeedback, editVoluntaryWork, putRating, getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }
+const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["volunteerProfile"]) => {
+    const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
+    if (!voluntaryWork) {
+        throw new Error("VoluntaryWork not found");
+    }
+
+    if (
+        volunteerProfile.availableLocation !== voluntaryWork.location ||
+        !volunteerProfile.availableDays.every(day => voluntaryWork.days.includes(day)) ||
+        !volunteerProfile.availableTime.every(time => voluntaryWork.time.includes(time)) ||
+        !volunteerProfile.skillTags.every(skillTag => voluntaryWork.skillTags.some(workSkill => workSkill.id === skillTag.id))
+    ) {
+        throw new Error("Volunteer's profile information does not align with the VoluntaryWork information");
+    }
+
+    if (voluntaryWork.volunteerProfiles.length >= voluntaryWork.capacity) {
+        throw new Error("VoluntaryWork is already at full capacity");
+    }
+
+    voluntaryWork.volunteerProfiles.push(volunteerProfile);
+    await voluntaryWork.save();
+
+    return "Registration successful!";
+}
+
+const registerByOrganizationAdmin = async (workId: number, volunteerId: string) => {
+    const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
+    const volunteer = await Volunteer.findOne({where:{id:volunteerId}});
+
+    if (!voluntaryWork) {
+        throw new Error("VoluntaryWork not found");
+    }
+    if(!volunteer){
+        throw new Error("Volunteer not found");
+    }
+
+    voluntaryWork.volunteerProfiles.push(volunteer.volunteerProfile);
+    await voluntaryWork.save();
+
+    return "Registration successful!";
+}
+
+export { registerByOrganizationAdmin, registerByVolunteer, putImages, createVoluntaryWork, putFeedback, editVoluntaryWork, putRating, getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }
