@@ -26,7 +26,7 @@ export namespace NSVolunteer {
         email: string;
         password: string;
         createdAt?: Date;
-        type: TypeVolunteer;
+        type?: TypeVolunteer;
         availableTime: AvailableTime[];
         availableLocation: string;
         availableDays: AvailableDays[];

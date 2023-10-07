@@ -20,9 +20,11 @@ const validateVolunteer = (req: express.Request, res: express.Response, next: ex
         errorList.push('Email is not valid.');
     }
 
-    const validType = Object.values(NSVolunteer.TypeVolunteer).includes(volunteer.type);
-    if (!validType) {
-        errorList.push("Invalid type!");
+    if (volunteer.type){
+        const validType = Object.values(NSVolunteer.TypeVolunteer).includes(volunteer.type);
+        if (!validType) {
+            errorList.push("Invalid type!");
+        }
     }
 
     const validTime = volunteer.availableTime.every((time: string) => Object.values(NSVolunteer.AvailableTime).includes(time as NSVolunteer.AvailableTime));

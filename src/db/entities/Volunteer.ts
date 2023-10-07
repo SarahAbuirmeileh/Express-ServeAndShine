@@ -26,7 +26,8 @@ export class Volunteer extends BaseEntity {
     @Column({
         type: 'enum',
         enum: ['volunteer', 'premium'],
-        default: 'volunteer'
+        default: 'volunteer',
+        nullable:true
     })
     type: 'volunteer' | 'premium';
 
