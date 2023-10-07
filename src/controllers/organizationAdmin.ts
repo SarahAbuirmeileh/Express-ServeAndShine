@@ -2,7 +2,6 @@ import { NSOrganizationAdmin } from "../../types/organizationAdmin.js";
 import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import bcrypt from 'bcrypt';
-import { Volunteer } from "../db/entities/Volunteer.js";
 
 const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
 

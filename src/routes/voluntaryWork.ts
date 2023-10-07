@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putImages, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putImages, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkCreator, checkParticipation } from '../middleware/auth/authorize.js';
@@ -149,23 +149,33 @@ router.put("/images/:id", authorize("PUT_images"), async (req, res, next) => {
 router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
     if (res.locals.volunteer) {
         registerByVolunteer(Number(req.params.id), res.locals.volunteer["volunteerProfile"]).then(() => {
-            res.status(201).send("Rating added successfully!!")
+            res.status(201).send("Registration done successfully!!")
         }).catch(err => {
             console.error(err);
             res.status(500).send(err);
         });
     } else if (res.locals.organizationAdmin) {
         if (!req.body.volunteerId.toString()) {
-            throw "volunteer id is required!";
+            res.status(400).send("volunteer id is required!");
         }
 
         registerByOrganizationAdmin(Number(req.params.id), req.body.volunteerId.toString()).then(() => {
-            res.status(201).send("Rating added successfully!!")
+            res.status(201).send("Registration done successfully!!")
         }).catch(err => {
             console.error(err);
             res.status(500).send(err);
         });
     }
+});
+
+router.put("/deregister/:id", authorize("DEREGISTER_voluntaryWork"), async (req, res, next) => {
+
+    deregisterVoluntaryWork(Number(req.params.id), res.locals.volunteer.id || req.body.volunteerId.toString()).then(() => {
+        res.status(201).send("Deregistration done successfully!!")
+    }).catch(err => {
+        console.error(err);
+        res.status(500).send(err);
+    });
 });
 
 export default router;

@@ -36,7 +36,7 @@ router.put("/:id", authorize("PUT_organizationProfile"),checkAdmin, async (req, 
     });
 });
 
-router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) => {
+router.get('/', /*authorize("GET_organizationProfiles"),*/ async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
@@ -51,7 +51,7 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
         })
         .catch(error => {
             console.error(error);
-            res.status(500).send('Something went wrong');
+            res.status(500).send(error);
         });
 });
 
