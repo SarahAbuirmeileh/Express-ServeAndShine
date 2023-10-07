@@ -5,6 +5,7 @@ import { Volunteer } from '../../db/entities/Volunteer.js';
 import { OrganizationProfile } from '../../db/entities/OrganizationProfile.js';
 import { VoluntaryWork } from '../../db/entities/VoluntaryWork.js';
 import { VolunteerProfile } from '../../db/entities/VolunteerProfile.js';
+import createError from 'http-errors';
 
 const authorize = (api: string) => {
     return async (
@@ -43,13 +44,13 @@ const checkMe = () => {
         const id = req.params.id;
         if (res.locals.volunteer) {
             if (res.locals.volunteer.id == id) {
-                next()
+                next(createError(403));
             }
         } else if (res.locals.organizationAdmin) {
             if (res.locals.organizationAdmin.id == id) {
                 next();
             } else {
-                res.status(403).send("You don't have the permission to access this resource!");
+                next(createError(401));
             }
         }
     }
@@ -69,7 +70,7 @@ const checkAdmin = () => {
                 next();
             }
         } else {
-            res.status(403).send("You don't have the permission to access this resource!");
+            next()
         }
     }
 }
@@ -92,7 +93,7 @@ const checkCreator = () => {
                 next();
             }
         } else {
-            res.status(403).send("You don't have the permission to access this resource!");
+            next(createError(401));
         }
     }
 }
@@ -108,7 +109,7 @@ const c1heckParticipation = () => {
         if(res.locals.volunteer) {
             const volunteer:Volunteer=res.locals.volunteer;
         }else {
-            res.status(403).send("You don't have the permission to access this resource!");
+            next(createError(401));
         }
     }
 }
@@ -136,7 +137,7 @@ const checkParticipation = () => {
                 }
             }
         } 
-        res.status(403).send("You don't have permission to access this resource.");
+        next(createError(401));
     };
 };
 

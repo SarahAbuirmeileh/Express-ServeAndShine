@@ -9,21 +9,23 @@ router.post('/', authorize("POST_permissions"), validatePermission, (req, res, n
     createPermission(req.body).then(() => {
         res.status(201).send("Permission created successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
-router.delete('/:id', authorize("DELETE_permission"), async (req, res) => {
+router.delete('/:id', authorize("DELETE_permission"), async (req, res, next) => {
     const id = Number(req.params.id?.toString());
 
     deletePermission(id)
         .then(data => {
-            res.send(data);
+            res.send("Deleted");
         })
-        .catch(error => {
-            console.error(error);
-            res.status(500).send('Something went wrong');
+        .catch(err => {
+            // console.error(error);
+            // res.status(500).send('Something went wrong');
+            next(err);
         });
 })
 
@@ -31,8 +33,9 @@ router.put("/:id", authorize("PUT_permission"), validatePermissionId, async (req
     editPermission({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Permission edited successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
@@ -48,9 +51,10 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
         .then(data => {
             res.send(data);
         })
-        .catch(error => {
-            console.error(error);
-            res.status(500).send('Something went wrong');
+        .catch(err => {
+            // console.error(error);
+            // res.status(500).send('Something went wrong');
+            next(err);
         });
 });
 

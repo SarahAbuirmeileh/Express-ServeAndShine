@@ -2,6 +2,7 @@ import { NSOrganizationAdmin } from "../../types/organizationAdmin.js";
 import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import bcrypt from 'bcrypt';
+import createError from 'http-errors';
 
 const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
 
@@ -15,7 +16,7 @@ const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
         newOrganizationAdmin.orgProfile = organization;
         return newOrganizationAdmin.save();
     } else {
-        throw "Organization not found :(";
+        throw createError(404);
     }
 }
 
@@ -46,7 +47,7 @@ const getOrganizationAdmins = async (payload: {
 
             return await OrganizationAdmin.findOne({ where: { orgProfile: { id: organization.id } } });
         } else {
-            throw "Organization name not found :(";
+            throw createError(404);
         }
     }
 
@@ -66,7 +67,7 @@ const getOrganizationAdmins = async (payload: {
     };
 }
 
-const deleteOrganizationAdmin = async (adminId: number) => {
+const deleteOrganizationAdmin = async (adminId: string) => {
     return OrganizationAdmin.delete(adminId);
 }
 
@@ -104,7 +105,7 @@ const editOrganizationAdmin = async (payload: { id: string, name: string, email:
 
 
     } else {
-        throw "Organization admin not found :(";
+        throw createError(404);
     }
 }
 

@@ -11,8 +11,9 @@ router.post('/register', validateVolunteer, (req, res, next) => {
     createVolunteer(req.body).then(() => {
         res.status(201).send("Volunteer created successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
@@ -39,16 +40,15 @@ router.post('/login', (req, res, next) => {
         })
 });
 
-router.delete('/:id', authenticate, authorize("DELETE_volunteer"), checkMe, async (req, res) => {
-    const id = Number(req.params.id?.toString());
+router.delete('/:id', authenticate, authorize("DELETE_volunteer"), checkMe, async (req, res, next) => {
+    const id = req.params.id?.toString();
 
     deleteVolunteer(id)
         .then(data => {
-            res.send(data);
+            res.send("Deleted");
         })
         .catch(error => {
-            console.error(error);
-            res.status(500).send('Something went wrong');
+            next(error);
         });
 })
 
@@ -56,12 +56,13 @@ router.put("/:id", authenticate, authorize("POST_volunteer"), checkMe, validateE
     editVolunteer({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Volunteer edited successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
-router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next) => {
+router.get('/', /*authenticate, authorize("GET_volunteers"), */async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
@@ -80,9 +81,10 @@ router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next
         .then(data => {
             res.send(data);
         })
-        .catch(error => {
-            console.error(error);
-            res.status(500).send('Something went wrong');
+        .catch(err => {
+            // console.error(error);
+            // res.status(500).send('Something went wrong');
+            next(err);
         });
 });
 

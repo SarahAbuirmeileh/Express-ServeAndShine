@@ -1,5 +1,6 @@
 import express from 'express';
 import { OrganizationProfile } from '../../db/entities/OrganizationProfile.js';
+import createError from 'http-errors';
 
 const validateOrganizationProfile = (req: express.Request,
     res: express.Response,
@@ -23,7 +24,8 @@ const validateOrgId = async (req: express.Request,
     const id = req.params.id.toString();
     const v = await OrganizationProfile.findOne({ where: { id } });
     if (!v) {
-        res.status(400).send("Id not valid");
+        //res.status(400).send("Id not valid");
+        next(createError(404));
     }else{
         next();
     }

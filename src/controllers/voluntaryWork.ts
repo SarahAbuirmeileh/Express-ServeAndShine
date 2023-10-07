@@ -4,6 +4,7 @@ import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
 import { getDate } from "./index.js";
 import { Volunteer } from "../db/entities/Volunteer.js";
+import createError from 'http-errors';
 import { VolunteerProfile } from "../db/entities/VolunteerProfile.js";
 import { UploadedFile } from "express-fileupload";
 import { configureS3Bucket } from "../utilites/AWS_configure_S3.js";
@@ -55,7 +56,7 @@ const editVoluntaryWork = async (payload: NSVoluntaryWork.Edit) => {
 
         return voluntaryWork.save();
     } else {
-        throw "VoluntaryWork not found :(";
+        throw createError(404);
     }
 }
 
@@ -173,7 +174,7 @@ const putRating = async (id: number, rating: number) => {
         voluntaryWork.rating /= 2;
         return voluntaryWork.save();
     } else {
-        throw "VoluntaryWork not found :(";
+        throw createError(404);
     }
 }
 
@@ -183,7 +184,7 @@ const putFeedback = async (id: number, feedback: string) => {
         voluntaryWork.feedback.push(feedback);
         await voluntaryWork.save();
     } else {
-        throw "VoluntaryWork not found :(";
+        throw createError(404);
     }
 }
 
@@ -215,14 +216,14 @@ const putImages = async (id: number, uploadedFiles: UploadedFile[]) => {
         }
 
     } else {
-        throw "VoluntaryWork not found :(";
+        throw createError(404);
     }
 }
 
 const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["volunteerProfile"]) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
     if (!voluntaryWork) {
-        throw new Error("VoluntaryWork not found");
+        throw createError(404);
     }
 
     if (
@@ -249,10 +250,10 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
     const volunteer = await Volunteer.findOne({ where: { id: volunteerId } });
 
     if (!voluntaryWork) {
-        throw new Error("VoluntaryWork not found");
+        throw createError(404);
     }
     if (!volunteer) {
-        throw new Error("Volunteer not found");
+        throw createError(404);
     }
 
     voluntaryWork.volunteerProfiles.push(volunteer.volunteerProfile);
@@ -266,11 +267,11 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     const volunteer = await Volunteer.findOne({ where: { id: volunteerId } });
 
     if (!voluntaryWork) {
-        throw new Error("VoluntaryWork not found");
+        throw createError(404);
     }
 
     if (!volunteer) {
-        throw new Error("Volunteer not found");
+        throw createError(404);
     }
 
     const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);

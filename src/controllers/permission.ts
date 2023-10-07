@@ -1,5 +1,6 @@
 import { NSPermission } from "../../types/permission.js";
 import { Permission } from "../db/entities/Permission.js"
+import createError from 'http-errors';
 
 const createPermission = async (payload: NSPermission.Item) => {
   try {
@@ -24,7 +25,7 @@ const editPermission = async (payload: { name: string, id: number }) => {
     permission.name = payload.name;
     return permission.save();
   } else {
-    throw "Permission not found :(";
+    throw createError(404);
   }
 }
 

@@ -34,7 +34,7 @@ export class VoluntaryWork extends BaseEntity {
     @Column({ nullable: false, type: "timestamp" })
     startedDate: Date;
 
-    @Column({ nullable: false, type: "timestamp" })
+    @Column({ nullable: true, type: "timestamp" })
     finishedDate: Date;
 
     @Column({

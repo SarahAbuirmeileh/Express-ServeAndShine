@@ -9,21 +9,23 @@ router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin,
     createOrganizationAdmin(req.body).then(() => {
         res.status(201).send("Organization Admin created successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
-router.delete('/:id', authorize("DELETE_organizationAdmin"), checkMe, async (req, res) => {
-    const id = Number(req.params.id?.toString());
+router.delete('/:id', authorize("DELETE_organizationAdmin"), checkMe, async (req, res, next) => {
+    const id = req.params.id?.toString();
 
     deleteOrganizationAdmin(id)
         .then(data => {
-            res.send(data);
+            res.send("Deleted");
         })
-        .catch(error => {
-            console.error(error);
-            res.status(500).send('Something went wrong');
+        .catch(err => {
+            // console.error(error);
+            // res.status(500).send('Something went wrong');
+            next(err);
         });
 });
 
@@ -31,8 +33,9 @@ router.put("/:id", authorize("PUT_organizationAdmin"), checkMe, validateAdminEdi
     editOrganizationAdmin({ ...req.body, id: req.params.id }).then(() => {
         res.status(201).send("Organization Admin edited successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
@@ -50,9 +53,10 @@ router.get('/', authorize("GET_organizationAdmins"), async (req, res, next) => {
         .then(data => {
             res.send(data);
         })
-        .catch(error => {
-            console.error(error);
-            res.status(500).send(error);
+        .catch(err => {
+            // console.error(error);
+            // res.status(500).send(error);
+            next(err);
         });
 });
 
