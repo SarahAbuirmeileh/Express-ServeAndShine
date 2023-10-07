@@ -40,7 +40,7 @@ router.put("/:id", authorize("PUT_role"),validateEditedRole, async (req, res, ne
     });
 });
 
-router.get('/', authorize("DELETE_role"), async (req, res, next) => {
+router.get('/', authorize("GET_roles"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',

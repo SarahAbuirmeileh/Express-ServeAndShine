@@ -52,7 +52,7 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), checkMe, asyn
         });
 })
 
-router.put("/:id", authenticate, authorize("POST_volunteer"), checkMe, validateEditedVolunteer,async (req, res, next) => {
+router.put("/:id", authenticate, authorize("POST_volunteer"), checkMe, validateEditedVolunteer, async (req, res, next) => {
     editVolunteer({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Volunteer edited successfully!!")
     }).catch(err => {
@@ -66,7 +66,7 @@ router.get('/', /*authenticate, authorize("GET_volunteers"), */async (req, res, 
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
-        id: req.query.id?.toString()|| "",
+        id: req.query.id?.toString() || "",
         name: req.query.name?.toString() || "",
         email: req.query.email?.toString() || "",
         availableLocation: req.query.availableLocation?.toString() || "",
@@ -74,7 +74,7 @@ router.get('/', /*authenticate, authorize("GET_volunteers"), */async (req, res, 
         type: req.query.status as NSVolunteer.TypeVolunteer,
         availableDays: (Array.isArray(req.query.availableDays) ? req.query.availableDays : [req.query.availableDays]).filter(Boolean) as NSVolunteer.AvailableDays[],
         availableTime: ((Array.isArray(req.query.availableTime) ? req.query.availableTime : [req.query.availableTime]).filter(Boolean)) as NSVolunteer.AvailableTime[],
-        password:""
+        password: ""
     };
 
     getVolunteers(payload)
@@ -99,7 +99,7 @@ router.get("/logout", authenticate, (req, res, next) => {
     res.send("Logout correctly!");
 })
 
-router.get('/me', authenticate, async (req, res, next) => {
+router.get('/me', authenticate, authorize("GET_me"), async (req, res, next) => {
     if (res.locals.volunteer) {
         res.send(res.locals.volunteer);
     } else if (res.locals.organizationAdmin) {

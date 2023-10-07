@@ -4,13 +4,10 @@ import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
 import { getDate } from "./index.js";
 import { Volunteer } from "../db/entities/Volunteer.js";
-
-
-
-
-
-
 import createError from 'http-errors';
+import { VolunteerProfile } from "../db/entities/VolunteerProfile.js";
+import { UploadedFile } from "express-fileupload";
+import { configureS3Bucket } from "../utilites/AWS_configure_S3.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
     let payloadDate = { ...payload, startedDate: getDate(payload.startedDate), finishedDate: getDate(payload.finishedDate) };
@@ -191,11 +188,33 @@ const putFeedback = async (id: number, feedback: string) => {
     }
 }
 
-const putImages = async (id: number, images: string[]) => {
+const putImages = async (id: number, uploadedFiles: UploadedFile[]) => {
     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
     if (voluntaryWork) {
-        voluntaryWork.images.push(...images);
-        await voluntaryWork.save();
+
+        try {
+            const S3 = await configureS3Bucket();
+            const imageUrls = [];
+
+            for (const file of uploadedFiles) {
+                const uploadParams = {
+                    Bucket: process.env.AWS_BUCKET_NAME || '',
+                    Body: Buffer.from(file.data),
+                    Key: `${Date.now().toString()}.png`,
+                    ACL: 'public-read',
+                };
+
+                const data = await S3.upload(uploadParams).promise();
+                imageUrls.push(data.Location);
+            }
+            voluntaryWork.images.push(...imageUrls);
+            await voluntaryWork.save();
+        }
+        catch(err){
+            console.log(err);
+            return "Internet Error!";
+        }
+
     } else {
         throw createError(404);
     }

@@ -4,6 +4,7 @@ import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkCreator, checkParticipation } from '../middleware/auth/authorize.js';
 import { validateEditedVoluntaryWork, validateVoluntaryWork } from '../middleware/validation/voluntaryWork.js';
+import { UploadedFile } from 'express-fileupload';
 
 var router = express.Router();
 
@@ -146,7 +147,7 @@ router.put("/feedback/:id", authorize("PUT_feedback"), checkParticipation, async
 });
 
 router.put("/images/:id", authorize("PUT_images"), async (req, res, next) => {
-    putImages(Number(req.params.id), req.body.images).then(() => {
+    putImages(Number(req.params.id), ((Array.isArray(req.files?.image) ? req.files?.image : [req.files?.image]).filter(Boolean)) as UploadedFile[]).then(() => {
         res.status(201).send("Images added successfully!!")
     }).catch(err => {
         // console.error(err);
