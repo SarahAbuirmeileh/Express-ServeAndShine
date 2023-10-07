@@ -9,21 +9,23 @@ router.post('/', authorize("POST_organizationProfile"), validateOrganizationProf
     createOrganizationProfile(req.body).then(() => {
         res.status(201).send("Organization Profile created successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
-router.delete('/:id', authorize("DELETE_organizationProfile"), checkAdmin, async (req, res) => {
+router.delete('/:id', authorize("DELETE_organizationProfile"), checkAdmin, async (req, res, next) => {
     const id = Number(req.params.id?.toString());
 
     deleteOrganizationProfile(id)
         .then(data => {
-            res.send(data);
+            res.send("Deleted");
         })
-        .catch(error => {
-            console.error(error);
-            res.status(500).send('Something went wrong');
+        .catch(err => {
+            // console.error(error);
+            // res.status(500).send('Something went wrong');
+            next(err);
         });
 });
 
@@ -31,8 +33,9 @@ router.put("/:id", authorize("PUT_organizationProfile"),checkAdmin,validateOrgId
     editOrganizationProfile(req.body).then(() => {
         res.status(201).send("Organization Profile edited successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
@@ -49,9 +52,10 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
         .then(data => {
             res.send(data);
         })
-        .catch(error => {
-            console.error(error);
-            res.status(500).send(error);
+        .catch(err => {
+            // console.error(error);
+            // res.status(500).send(error);
+            next(err);
         });
 });
 

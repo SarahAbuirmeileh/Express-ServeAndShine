@@ -2,6 +2,7 @@ import { In } from "typeorm";
 import { NSRole } from "../../types/role.js";
 import { Permission } from "../db/entities/Permission.js";
 import { Role } from "../db/entities/Role.js";
+import createError from 'http-errors';
 
 const createRole = async (payload: NSRole.Item) => {
     try {
@@ -30,7 +31,7 @@ const editRole = async (payload: { name: NSRole.Type, id: number }) => {
         return role.save();
 
     } else {
-        throw "Role not found :(";
+        throw createError(404);
     }
 }
 

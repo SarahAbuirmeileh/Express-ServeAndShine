@@ -11,20 +11,22 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
     createVoluntaryWork({ ...req.body, creatorId: res.locals.volunteer.id || res.locals.organizationAdmin.id }).then(() => {
         res.status(201).send("Voluntary work created successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
-router.delete('/:id', authorize("DELETE_voluntaryWork"), checkCreator, async (req, res) => {
+router.delete('/:id', authorize("DELETE_voluntaryWork"), checkCreator, async (req, res, next) => {
     const id = Number(req.params.id?.toString());
 
     deleteVoluntaryWork(id)
         .then(data => {
-            res.send(data);
+            res.send("Deleted");
         })
-        .catch(error => {
-            res.status(500).send('Something went wrong');
+        .catch(err => {
+            // res.status(500).send('Something went wrong');
+            next(err);
         });
 })
 
@@ -32,8 +34,9 @@ router.put("/:id", authorize("PUT_voluntaryWork"), checkCreator,validateEditedVo
     editVoluntaryWork({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Voluntary Work edited successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
@@ -66,9 +69,10 @@ router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
         .then(data => {
             res.send(data);
         })
-        .catch(error => {
-            console.error(error);
-            res.status(500).send('Something went wrong');
+        .catch(err => {
+            // console.error(error);
+            // res.status(500).send('Something went wrong');
+            next(err);
         });
 });
 
@@ -101,9 +105,10 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
         .then(data => {
             res.send(data);
         })
-        .catch(error => {
-            console.error(error);
-            res.status(500).send('Something went wrong');
+        .catch(err => {
+            // console.error(error);
+            // res.status(500).send('Something went wrong');
+            next(err);
         });
 });
 
@@ -113,9 +118,10 @@ router.get('/recommendation', authorize("GET_recommendation"), async (req, res, 
         .then(data => {
             res.send(data);
         })
-        .catch(error => {
-            console.error(error);
-            res.status(500).send('Something went wrong');
+        .catch(err => {
+            // console.error(error);
+            // res.status(500).send('Something went wrong');
+            next(err);
         });
 });
 
@@ -123,8 +129,9 @@ router.put("/rating/:id", authorize("PUT_rating"), checkParticipation, async (re
     putRating(Number(req.params.id), Number(req.body.rating)).then(() => {
         res.status(201).send("Rating added successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
@@ -132,8 +139,9 @@ router.put("/feedback/:id", authorize("PUT_feedback"), checkParticipation, async
     putFeedback(Number(req.params.id), req.body.feedback).then(() => {
         res.status(201).send("Feedback added successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
@@ -141,8 +149,9 @@ router.put("/images/:id", authorize("PUT_images"), async (req, res, next) => {
     putImages(Number(req.params.id), req.body.images).then(() => {
         res.status(201).send("Images added successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 
@@ -151,8 +160,9 @@ router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res
         registerByVolunteer(Number(req.params.id), res.locals.volunteer["volunteerProfile"]).then(() => {
             res.status(201).send("Registration done successfully!!")
         }).catch(err => {
-            console.error(err);
-            res.status(500).send(err);
+            // console.error(err);
+            // res.status(500).send(err);
+            next(err);
         });
     } else if (res.locals.organizationAdmin) {
         if (!req.body.volunteerId.toString()) {
@@ -162,8 +172,9 @@ router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res
         registerByOrganizationAdmin(Number(req.params.id), req.body.volunteerId.toString()).then(() => {
             res.status(201).send("Registration done successfully!!")
         }).catch(err => {
-            console.error(err);
-            res.status(500).send(err);
+            // console.error(err);
+            // res.status(500).send(err);
+            next(err);
         });
     }
 });
@@ -175,8 +186,9 @@ router.put("/deregister/:id", authorize("DEREGISTER_voluntaryWork"), async (req,
     deregisterVoluntaryWork(Number(req.params.id), res.locals.volunteer.id || req.body.volunteerId.toString()).then(() => {
         res.status(201).send("Deregistration done successfully!!")
     }).catch(err => {
-        console.error(err);
-        res.status(500).send(err);
+        // console.error(err);
+        // res.status(500).send(err);
+        next(err);
     });
 });
 

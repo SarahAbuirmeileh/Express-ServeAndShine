@@ -1,6 +1,7 @@
 import { NSOrganizationProfile } from "../../types/organizationProfile.js";
 import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
+import createError from 'http-errors';
 
 const createOrganizationProfile = async (payload: NSOrganizationProfile.Item) => {
 
@@ -16,7 +17,7 @@ const editOrganizationProfile = async (payload: { id: string, name: string, desc
         profile = Object.assign(profile, payload);
         return profile.save();
     } else {
-        throw "Organization profile not found :(";
+        throw createError(404);
     }
 }
 
@@ -49,7 +50,7 @@ const getOrganizationProfile = async (payload: {
         if (admin) {
             return admin;
         } else {
-            throw "Admin name not found :(";
+            throw createError(404);
         }
     }
 

@@ -3,6 +3,7 @@ import { NSVoluntaryWork } from '../../../types/voluntaryWork.js';
 import { NSVolunteer } from '../../../types/volunteer.js';
 import { getDate, isValidDate } from '../../controllers/index.js';
 import { VoluntaryWork } from '../../db/entities/VoluntaryWork.js';
+import createError from 'http-errors';
 
 const validateVoluntaryWork = (req: express.Request,
     res: express.Response,
@@ -54,7 +55,8 @@ const validateEditedVoluntaryWork = async (req: express.Request,
     const id = Number(req.params.id.toString());
     const vw = await VoluntaryWork.findOne({where:{id}});
     if(!vw){
-        res.status(400).send("Id not valid");
+        //res.status(400).send("Id not valid");
+        next(createError(404));
     }
 
     if (voluntaryWork.status) {

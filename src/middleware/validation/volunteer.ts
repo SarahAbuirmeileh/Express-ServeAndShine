@@ -3,6 +3,7 @@ import * as EmailValidator from 'email-validator';
 import { isValidPassword } from '../../controllers/index.js';
 import { NSVolunteer } from '../../../types/volunteer.js';
 import { Volunteer } from '../../db/entities/Volunteer.js';
+import createError from 'http-errors'
 
 
 const validateVolunteer = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -20,7 +21,7 @@ const validateVolunteer = (req: express.Request, res: express.Response, next: ex
         errorList.push('Email is not valid.');
     }
 
-    if (volunteer.type){
+    if (volunteer.type) {
         const validType = Object.values(NSVolunteer.TypeVolunteer).includes(volunteer.type);
         if (!validType) {
             errorList.push("Invalid type!");
@@ -53,7 +54,8 @@ const validateEditedVolunteer = async (req: express.Request, res: express.Respon
     const id = req.params.id.toString();
     const v = await Volunteer.findOne({ where: { id } });
     if (!v) {
-        res.status(400).send("Id not valid");
+        //res.status(400).send("Id not valid");
+        next(createError(404));
     }
 
     if (volunteer.email) {

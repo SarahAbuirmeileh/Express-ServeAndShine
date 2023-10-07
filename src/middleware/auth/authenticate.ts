@@ -2,6 +2,7 @@ import express from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { OrganizationAdmin } from '../../db/entities/OrganizationAdmin.js';
 import { Volunteer } from '../../db/entities/Volunteer.js';
+import createError from 'http-errors';
 
 const authenticate = async (
     req: express.Request,
@@ -36,10 +37,12 @@ const authenticate = async (
             res.locals.volunteer = volunteer;
             next();
         } else {
-            res.status(401).send("You are Unauthorized!");
+            //res.status(401).send("You are Unauthorized!");
+            next(createError(401));
         }
     } else {
-        res.status(401).send("You are Unauthorized!");
+        //res.status(401).send("You are Unauthorized!");
+        next(createError(401));
     }
 }
 

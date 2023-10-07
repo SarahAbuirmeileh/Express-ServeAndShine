@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { In, Like } from "typeorm";
+import createError from 'http-errors';
 
 
 const createVolunteer = async (payload: NSVolunteer.Item) => {
@@ -39,8 +40,16 @@ const createVolunteer = async (payload: NSVolunteer.Item) => {
     });
 };
 
-const deleteVolunteer = async (volunteerId: number) => {
-    return Volunteer.delete(volunteerId);
+const deleteVolunteer = async (volunteerId: string) => {
+    const volunteer = await Volunteer.findOne({
+        where: { id: volunteerId },
+    });
+
+    if (volunteer) {
+        return Volunteer.delete(volunteerId);
+    } else {
+        throw createError(404);
+    }
 }
 
 const editVolunteer = async (payload: { name: string, id: string, email: string, oldPassword: string, newPassword: string }) => {
@@ -69,7 +78,7 @@ const editVolunteer = async (payload: { name: string, id: string, email: string,
         return volunteer.save();
 
     } else {
-        throw "Volunteer not found :(";
+        throw createError(404);
     }
 }
 

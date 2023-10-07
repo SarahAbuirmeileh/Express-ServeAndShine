@@ -1,5 +1,6 @@
 import express from 'express';
 import { Permission } from '../../db/entities/Permission.js';
+import createError from 'http-errors';
 
 const validatePermission = (req: express.Request,
   res: express.Response,
@@ -23,7 +24,8 @@ const validatePermissionId = async (req: express.Request,
   const id = Number(req.params.id.toString());
   const p = await Permission.findOne({ where: { id } });
   if (!p) {
-      res.status(400).send("Id not valid");
+      //res.status(400).send("Id not valid");
+      next(createError(404));
   }else{
       next();
   }

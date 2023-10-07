@@ -1,5 +1,6 @@
 import express from 'express';
 import { Role } from '../../db/entities/Role.js';
+import createError from 'http-errors';
 
 const validateRole = (req: express.Request,
     res: express.Response,
@@ -30,7 +31,8 @@ const validateEditedRole = async (req: express.Request,
     const id = Number(req.params.id.toString());
     const r = await Role.findOne({ where: { id } });
     if (!r) {
-        res.status(400).send("Id not valid");
+        //res.status(400).send("Id not valid");
+        next(createError(404));
     }
 
     if (role.name){
