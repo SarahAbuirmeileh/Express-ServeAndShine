@@ -261,4 +261,9 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
 }
 
 
-export { deregisterVoluntaryWork, registerByOrganizationAdmin, registerByVolunteer, putImages, createVoluntaryWork, putFeedback, editVoluntaryWork, putRating, getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }
+export {
+    deregisterVoluntaryWork, registerByOrganizationAdmin,
+    registerByVolunteer, putImages, createVoluntaryWork,
+    putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
+    getVoluntaryWorks, deleteVoluntaryWork
+}

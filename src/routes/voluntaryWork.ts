@@ -3,7 +3,7 @@ import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, edit
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkCreator, checkParticipation } from '../middleware/auth/authorize.js';
-import { validateVoluntaryWork } from '../middleware/validation/voluntaryWork.js';
+import { validateEditedVoluntaryWork, validateVoluntaryWork } from '../middleware/validation/voluntaryWork.js';
 
 var router = express.Router();
 
@@ -28,7 +28,7 @@ router.delete('/:id', authorize("DELETE_voluntaryWork"), checkCreator, async (re
         });
 })
 
-router.put("/:id", authorize("PUT_voluntaryWork"), checkCreator, async (req, res, next) => {
+router.put("/:id", authorize("PUT_voluntaryWork"), checkCreator,validateEditedVoluntaryWork, async (req, res, next) => {
     editVoluntaryWork({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Voluntary Work edited successfully!!")
     }).catch(err => {
@@ -169,7 +169,9 @@ router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res
 });
 
 router.put("/deregister/:id", authorize("DEREGISTER_voluntaryWork"), async (req, res, next) => {
-
+    if( res.locals.volunteer.id || req.body.volunteerId.toString()){
+        res.status(400).send("Volunteer id is required !");
+    }
     deregisterVoluntaryWork(Number(req.params.id), res.locals.volunteer.id || req.body.volunteerId.toString()).then(() => {
         res.status(201).send("Deregistration done successfully!!")
     }).catch(err => {
@@ -179,4 +181,3 @@ router.put("/deregister/:id", authorize("DEREGISTER_voluntaryWork"), async (req,
 });
 
 export default router;
-

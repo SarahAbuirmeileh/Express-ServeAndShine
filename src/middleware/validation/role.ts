@@ -19,6 +19,27 @@ const validateRole = (req: express.Request,
     }
 }
 
+const validateEditedRole = (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const role = req.body;
+    const errorList = [];
+
+    if (role.name){
+        if (!['root', 'admin', 'volunteer', 'premium'].includes(role.name)) {
+            errorList.push('role name unknown!');
+        }
+    }
+
+    if (errorList.length) {
+        res.status(400).send(errorList);
+    } else {
+        next();
+    }
+}
+
 export {
-    validateRole
+    validateRole,
+    validateEditedRole
 }

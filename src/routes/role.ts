@@ -2,7 +2,7 @@ import express from 'express';
 import { createRole, deleteRole, editRole, getRoles } from '../controllers/role.js';
 import { NSRole } from '../../types/role.js';
 import { authorize } from '../middleware/auth/authorize.js';
-import { validateRole } from '../middleware/validation/role.js';
+import { validateEditedRole, validateRole } from '../middleware/validation/role.js';
 
 var router = express.Router();
 
@@ -28,7 +28,7 @@ router.delete('/:id', authorize("DELETE_role"), async (req, res) => {
         });
 })
 
-router.put("/:id", authorize("PUT_role"), async (req, res, next) => {
+router.put("/:id", authorize("PUT_role"),validateEditedRole, async (req, res, next) => {
     editRole({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Role edited successfully!!")
     }).catch(err => {

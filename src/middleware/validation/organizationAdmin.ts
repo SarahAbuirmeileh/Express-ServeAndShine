@@ -24,6 +24,29 @@ const validateOrganizationAdmin = (req: express.Request,
     }
 }
 
+const validateAdminEdited = (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const organizationAdmin = req.body;
+    const errorList = [];
+
+    if (organizationAdmin.email){
+        if (!EmailValidator.validate(organizationAdmin.email)) {
+            errorList.push('Email is not Valid');
+        }
+    }
+    
+    errorList.push(...isValidPassword(organizationAdmin.password ));
+
+    if (errorList.length) {
+        res.status(400).send(errorList);
+    } else {
+        next();
+    }
+}
+
 export {
-    validateOrganizationAdmin
+    validateOrganizationAdmin,
+    validateAdminEdited 
 }
