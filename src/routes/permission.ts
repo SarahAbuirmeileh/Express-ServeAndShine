@@ -5,7 +5,7 @@ import { validatePermission, validatePermissionId } from '../middleware/validati
 
 var router = express.Router();
 
-router.post('/', authorize("GET_permissions"), validatePermission, (req, res, next) => {
+router.post('/', authorize("POST_permissions"), validatePermission, (req, res, next) => {
     createPermission(req.body).then(() => {
         res.status(201).send("Permission created successfully!!")
     }).catch(err => {
