@@ -1,7 +1,7 @@
 import express from 'express';
 import { createPermission, deletePermission, editPermission, getPermissions } from '../controllers/permission.js';
 import { authorize } from '../middleware/auth/authorize.js';
-import { validatePermission } from '../middleware/validation/permission.js';
+import { validatePermission, validatePermissionId } from '../middleware/validation/permission.js';
 
 var router = express.Router();
 
@@ -27,7 +27,7 @@ router.delete('/:id', authorize("DELETE_permission"), async (req, res) => {
         });
 })
 
-router.put("/:id", authorize("PUT_permission"), async (req, res, next) => {
+router.put("/:id", authorize("PUT_permission"), validatePermissionId, async (req, res, next) => {
     editPermission({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Permission edited successfully!!")
     }).catch(err => {

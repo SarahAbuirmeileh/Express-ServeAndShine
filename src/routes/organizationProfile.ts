@@ -1,7 +1,7 @@
 import express from "express";
 import { createOrganizationProfile, deleteOrganizationProfile, editOrganizationProfile, getOrganizationProfile } from "../controllers/OrganizationProfile .js";
 import { authorize, checkAdmin } from "../middleware/auth/authorize.js";
-import { validateOrganizationProfile } from "../middleware/validation/organizationProfile.js";
+import { validateOrgId, validateOrganizationProfile } from "../middleware/validation/organizationProfile.js";
 
 const router = express.Router();
 
@@ -27,7 +27,7 @@ router.delete('/:id', authorize("DELETE_organizationProfile"), checkAdmin, async
         });
 });
 
-router.put("/:id", authorize("PUT_organizationProfile"),checkAdmin, async (req, res, next) => {
+router.put("/:id", authorize("PUT_organizationProfile"),checkAdmin,validateOrgId, async (req, res, next) => {
     editOrganizationProfile(req.body).then(() => {
         res.status(201).send("Organization Profile edited successfully!!")
     }).catch(err => {

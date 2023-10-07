@@ -27,7 +27,7 @@ router.delete('/:id', authorize("DELETE_organizationAdmin"), checkMe, async (req
         });
 });
 
-router.put("/:id", authorize("PUT_organizationAdmin"), checkMe, validateAdminEdited,async (req, res, next) => {
+router.put("/:id", authorize("PUT_organizationAdmin"), checkMe, validateAdminEdited, async (req, res, next) => {
     editOrganizationAdmin({ ...req.body, id: req.params.id }).then(() => {
         res.status(201).send("Organization Admin edited successfully!!")
     }).catch(err => {
