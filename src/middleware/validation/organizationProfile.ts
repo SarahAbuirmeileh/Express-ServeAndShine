@@ -1,4 +1,5 @@
 import express from 'express';
+import { OrganizationProfile } from '../../db/entities/OrganizationProfile.js';
 
 const validateOrganizationProfile = (req: express.Request,
     res: express.Response,
@@ -15,6 +16,20 @@ const validateOrganizationProfile = (req: express.Request,
     }
 }
 
+const validateOrgId = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const id = req.params.id.toString();
+    const v = await OrganizationProfile.findOne({ where: { id } });
+    if (!v) {
+        res.status(400).send("Id not valid");
+    }else{
+        next();
+    }
+}
+
 export {
-    validateOrganizationProfile 
+    validateOrganizationProfile,
+    validateOrgId
 }

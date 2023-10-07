@@ -28,7 +28,7 @@ export class OrganizationAdmin extends BaseEntity {
     orgProfile: OrganizationProfile;
 
     @ManyToOne(() => Role, role => role.orgAdmins)
-      roles: Role;
+    roles: Role;
 
     @CreateDateColumn({
         type: 'timestamp',

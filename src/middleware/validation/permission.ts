@@ -1,4 +1,5 @@
 import express from 'express';
+import { Permission } from '../../db/entities/Permission.js';
 
 const validatePermission = (req: express.Request,
   res: express.Response,
@@ -15,6 +16,20 @@ const validatePermission = (req: express.Request,
   }
 }
 
+const validatePermissionId = async (req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  const id = Number(req.params.id.toString());
+  const p = await Permission.findOne({ where: { id } });
+  if (!p) {
+      res.status(400).send("Id not valid");
+  }else{
+      next();
+  }
+}
+
 export {
-    validatePermission
+    validatePermission,
+    validatePermissionId
 }

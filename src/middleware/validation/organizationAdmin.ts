@@ -1,6 +1,7 @@
 import express from 'express';
 import * as EmailValidator from 'email-validator';
 import { isValidPassword } from '../../controllers/index.js';
+import { OrganizationAdmin } from '../../db/entities/OrganizationAdmin.js';
 
 
 const validateOrganizationAdmin = (req: express.Request,
@@ -24,6 +25,35 @@ const validateOrganizationAdmin = (req: express.Request,
     }
 }
 
+const validateAdminEdited = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const organizationAdmin = req.body;
+    const errorList = [];
+
+    const id = req.params.id.toString();
+    const v = await OrganizationAdmin.findOne({ where: { id } });
+    if (!v) {
+        res.status(400).send("Id not valid");
+    }
+
+    if (organizationAdmin.email){
+        if (!EmailValidator.validate(organizationAdmin.email)) {
+            errorList.push('Email is not Valid');
+        }
+    }
+    
+    errorList.push(...isValidPassword(organizationAdmin.password ));
+
+    if (errorList.length) {
+        res.status(400).send(errorList);
+    } else {
+        next();
+    }
+}
+
 export {
-    validateOrganizationAdmin
+    validateOrganizationAdmin,
+    validateAdminEdited 
 }

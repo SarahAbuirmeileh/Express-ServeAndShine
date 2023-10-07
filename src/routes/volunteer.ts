@@ -1,7 +1,7 @@
 import express from 'express';
 import { authorize, checkMe } from '../middleware/auth/authorize.js';
 import { authenticate } from '../middleware/auth/authenticate.js';
-import { validateVolunteer } from '../middleware/validation/volunteer.js';
+import { validateEditedVolunteer, validateVolunteer } from '../middleware/validation/volunteer.js';
 import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login } from '../controllers/volunteer.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 
@@ -52,7 +52,7 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), checkMe, asyn
         });
 })
 
-router.put("/:id", authenticate, authorize("POST_volunteer"), checkMe, async (req, res, next) => {
+router.put("/:id", authenticate, authorize("POST_volunteer"), checkMe, validateEditedVolunteer,async (req, res, next) => {
     editVolunteer({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Volunteer edited successfully!!")
     }).catch(err => {

@@ -43,8 +43,9 @@ const deleteVolunteer = async (volunteerId: number) => {
     return Volunteer.delete(volunteerId);
 }
 
-const editVolunteer = async (payload: { name: string, id: string, email: string, password: string }) => {
+const editVolunteer = async (payload: { name: string, id: string, email: string, oldPassword: string, newPassword: string }) => {
     const volunteer = await Volunteer.findOne({ where: { id: payload.id } });
+   
     if (volunteer) {
         if (payload.name)
             volunteer.name = payload.name;
@@ -52,8 +53,18 @@ const editVolunteer = async (payload: { name: string, id: string, email: string,
         if (payload.email)
             volunteer.email = payload.email;
 
-        if (payload.password)
-            volunteer.password = await bcrypt.hash(payload.password, 10);
+        if (payload.newPassword) {
+            if (!payload.oldPassword) {
+                throw "Old password is needed !";
+            }
+
+            const passwordMatching = await bcrypt.compare(payload.oldPassword, volunteer?.password || '');
+            if (passwordMatching) {
+                volunteer.password = await bcrypt.hash(payload.newPassword, 10);
+            } else {
+                throw "The old password isn't correct !"
+            }
+        }
 
         return volunteer.save();
 
@@ -100,7 +111,7 @@ const login = async (email: string, name: string, id: string) => {
 const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSize: string }) => {
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
-    const conditions: Record<string, any> = {};    
+    const conditions: Record<string, any> = {};
 
     if (payload.id) {
         conditions["id"] = payload.id;
@@ -139,7 +150,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
             const hasMatchingSkill = volunteer.volunteerProfile.skillTags.some((skillTag) => payload.skills.includes(skillTag.name));
             return hasMatchingSkill;
         }
-        return true; 
+        return true;
     });
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;

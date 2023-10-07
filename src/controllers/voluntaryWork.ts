@@ -4,6 +4,7 @@ import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
 import { getDate } from "./index.js";
 import { Volunteer } from "../db/entities/Volunteer.js";
+import { VolunteerProfile } from "../db/entities/VolunteerProfile.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
     let payloadDate = { ...payload, startedDate: getDate(payload.startedDate), finishedDate: getDate(payload.finishedDate) };
@@ -221,12 +222,12 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
 
 const registerByOrganizationAdmin = async (workId: number, volunteerId: string) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
-    const volunteer = await Volunteer.findOne({where:{id:volunteerId}});
+    const volunteer = await Volunteer.findOne({ where: { id: volunteerId } });
 
     if (!voluntaryWork) {
         throw new Error("VoluntaryWork not found");
     }
-    if(!volunteer){
+    if (!volunteer) {
         throw new Error("Volunteer not found");
     }
 
@@ -236,4 +237,33 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
     return "Registration successful!";
 }
 
-export { registerByOrganizationAdmin, registerByVolunteer, putImages, createVoluntaryWork, putFeedback, editVoluntaryWork, putRating, getVoluntaryWork, getVoluntaryWorks, deleteVoluntaryWork }
+const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
+    const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["volunteerProfiles"] });
+    const volunteer = await Volunteer.findOne({ where: { id: volunteerId } });
+
+    if (!voluntaryWork) {
+        throw new Error("VoluntaryWork not found");
+    }
+
+    if (!volunteer) {
+        throw new Error("Volunteer not found");
+    }
+
+    const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
+
+    if (index !== -1) {
+        voluntaryWork.volunteerProfiles.splice(index, 1);
+        await voluntaryWork.save();
+        return "Deregistration successful!";
+    } else {
+        throw new Error("Volunteer is not registered for this voluntary work");
+    }
+}
+
+
+export {
+    deregisterVoluntaryWork, registerByOrganizationAdmin,
+    registerByVolunteer, putImages, createVoluntaryWork,
+    putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
+    getVoluntaryWorks, deleteVoluntaryWork
+}

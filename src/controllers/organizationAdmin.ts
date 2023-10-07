@@ -2,7 +2,6 @@ import { NSOrganizationAdmin } from "../../types/organizationAdmin.js";
 import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import bcrypt from 'bcrypt';
-import { Volunteer } from "../db/entities/Volunteer.js";
 
 const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
 
@@ -41,7 +40,8 @@ const getOrganizationAdmins = async (payload: {
         return OrganizationAdmin.findOne({ where: { email: payload.email } })
     }
     if (payload.organizationName) {
-        const organization = await OrganizationProfile.findOne({ where: { name: payload.name } });
+        
+        const organization = await OrganizationProfile.findOne({ where: { name: payload.organizationName} });
         if (organization) {
 
             return await OrganizationAdmin.findOne({ where: { orgProfile: { id: organization.id } } });
@@ -70,7 +70,7 @@ const deleteOrganizationAdmin = async (adminId: number) => {
     return OrganizationAdmin.delete(adminId);
 }
 
-const editOrganizationAdmin = async (payload: { id: string, name: string, email: string, password: string, organizationName: string }) => {
+const editOrganizationAdmin = async (payload: { id: string, name: string, email: string, newPassword: string, oldPassword: string, organizationName: string }) => {
 
     const admin = await OrganizationAdmin.findOne({ where: { id: payload.id } });
 
@@ -81,18 +81,27 @@ const editOrganizationAdmin = async (payload: { id: string, name: string, email:
         if (payload.email)
             admin.email = payload.email;
 
-        if (payload.password) {
-            admin.password = await bcrypt.hash(payload.password, 10);
-
-            if (payload.organizationName) {
-
-                const profile = await OrganizationProfile.findOne({ where: { name: payload.organizationName } });
-                if (profile) {
-                    admin.orgProfile = profile;
-                }
+        if (payload.newPassword) {
+            if (!payload.oldPassword){
+                throw "Old password is needed !";
             }
-            return admin.save();
+
+            const passwordMatching = await bcrypt.compare(payload.oldPassword, admin?.password || '');
+            if (passwordMatching){
+                admin.password = await bcrypt.hash(payload.newPassword, 10);
+            }else{
+                throw "The old password isn't correct !"
+            }
         }
+        if (payload.organizationName) {
+
+            const profile = await OrganizationProfile.findOne({ where: { name: payload.organizationName } });
+            if (profile) {
+                admin.orgProfile = profile;
+            }
+        }
+        return admin.save();
+
 
     } else {
         throw "Organization admin not found :(";

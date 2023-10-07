@@ -1,4 +1,5 @@
 import { NSOrganizationProfile } from "../../types/organizationProfile.js";
+import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 
 const createOrganizationProfile = async (payload: NSOrganizationProfile.Item) => {
@@ -42,19 +43,15 @@ const getOrganizationProfile = async (payload: {
         return OrganizationProfile.findOne({ where: { name: payload.name } })
     }
 
-    // //get OrganizationProfile by organizationAdmin  
+    if (payload.adminName) {
+        const admin = await OrganizationAdmin.findOne({ where: { name: payload.adminName } });
 
-    // if (payload.adminName) {
-    //     const admin = await OrganizationAdmin.findOne({ where: { name: payload.name } });
-
-    //     if (admin) {
-
-    //         return await OrganizationProfile.findOne({ where: { orgProfile: { id: admin.id } } });
-    //     } else {
-    //         throw "Admin name not found :(";
-    //     }
-
-    // }
+        if (admin) {
+            return admin;
+        } else {
+            throw "Admin name not found :(";
+        }
+    }
 
     const [orgs, total] = await OrganizationProfile.findAndCount({
         skip: pageSize * (page - 1),

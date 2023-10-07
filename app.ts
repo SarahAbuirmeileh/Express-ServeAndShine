@@ -29,13 +29,12 @@ app.use('/role', authenticate, roleRouter);
 app.use('/voluntaryWork', authenticate, voluntaryWorkRouter);
 app.use('/organizationAdmin', authenticate, organizationAdminRouter);
 app.use('/organizationProfile', authenticate, organizationProfileRouter);
-app.use("/volunteer",volunteerRouter );
+app.use("/volunteer", volunteerRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
 });
-
 
 // error handler
 app.use(function (err: any, req: any, res: any, next: any) {

@@ -2,6 +2,7 @@ import express from 'express';
 import { NSVoluntaryWork } from '../../../types/voluntaryWork.js';
 import { NSVolunteer } from '../../../types/volunteer.js';
 import { getDate, isValidDate } from '../../controllers/index.js';
+import { VoluntaryWork } from '../../db/entities/VoluntaryWork.js';
 
 const validateVoluntaryWork = (req: express.Request,
     res: express.Response,
@@ -25,14 +26,14 @@ const validateVoluntaryWork = (req: express.Request,
     if (!validDays) {
         errorList.push("Invalid days !");
     }
-    
+
     if (voluntaryWork.capacity < 1 || voluntaryWork.capacity > 40) {
         errorList.push("Invalid capacity !");
     }
     if (!isValidDate(voluntaryWork.startedDate) || !isValidDate(voluntaryWork.finishedDate)) {
         errorList.push("Invalid date !")
     }
-    if (getDate(voluntaryWork.startedDate) > getDate(voluntaryWork.finishedDate)){
+    if (getDate(voluntaryWork.startedDate) > getDate(voluntaryWork.finishedDate)) {
         errorList.push("The started date should be before the finished date !");
     }
 
@@ -43,6 +44,71 @@ const validateVoluntaryWork = (req: express.Request,
     }
 }
 
+const validateEditedVoluntaryWork = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const voluntaryWork = req.body;
+    const errorList = [];
+
+    const id = Number(req.params.id.toString());
+    const vw = await VoluntaryWork.findOne({where:{id}});
+    if(!vw){
+        res.status(400).send("Id not valid");
+    }
+
+    if (voluntaryWork.status) {
+        const validStatus = voluntaryWork.status.every((status: string) => Object.values(NSVoluntaryWork.StatusType).includes(status as NSVoluntaryWork.StatusType));
+        if (!validStatus) {
+            errorList.push("Invalid status !");
+        }
+    }
+
+    if (voluntaryWork.time) {
+        const validTime = voluntaryWork.time.every((time: string) => Object.values(NSVolunteer.AvailableTime).includes(time as NSVolunteer.AvailableTime));
+        if (!validTime) {
+            errorList.push("Invalid time !");
+        }
+    }
+
+    if (voluntaryWork.days) {
+        const validDays = voluntaryWork.days.every((days: string) => Object.values(NSVolunteer.AvailableDays).includes(days as NSVolunteer.AvailableDays));
+        if (!validDays) {
+            errorList.push("Invalid days !");
+        }
+    }
+
+    if (voluntaryWork.capacity) {
+        if (voluntaryWork.capacity < 1 || voluntaryWork.capacity > 40) {
+            errorList.push("Invalid capacity !");
+        }
+    }
+    if (voluntaryWork.startedDate || voluntaryWork.finishedDate) {
+        if (!isValidDate(voluntaryWork.startedDate) || !isValidDate(voluntaryWork.finishedDate)) {
+            errorList.push("Invalid date !")
+        }
+    }
+    if (voluntaryWork.startedDate && voluntaryWork.finishedDate) {
+        if (getDate(voluntaryWork.startedDate) > getDate(voluntaryWork.finishedDate)) {
+            errorList.push("The started date should be before the finished date !");
+        }
+    }else if (voluntaryWork.startedDate && vw){
+        if (getDate(voluntaryWork.startedDate) > vw.finishedDate) {
+            errorList.push("The started date should be before the finished date !");
+        }
+    }else if (voluntaryWork.finishedDate && vw){
+        if (vw.startedDate > getDate(voluntaryWork.finishedDate)) {
+            errorList.push("The started date should be before the finished date !");
+        }
+    }
+
+    if (errorList.length) {
+        res.status(400).send(errorList);
+    } else {
+        next();
+    }
+}
 export {
-    validateVoluntaryWork
+    validateVoluntaryWork,
+    validateEditedVoluntaryWork
 }

@@ -1,4 +1,5 @@
 import express from 'express';
+import { Role } from '../../db/entities/Role.js';
 
 const validateRole = (req: express.Request,
     res: express.Response,
@@ -19,6 +20,33 @@ const validateRole = (req: express.Request,
     }
 }
 
+const validateEditedRole = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const role = req.body;
+    const errorList = [];
+
+    const id = Number(req.params.id.toString());
+    const r = await Role.findOne({ where: { id } });
+    if (!r) {
+        res.status(400).send("Id not valid");
+    }
+
+    if (role.name){
+        if (!['root', 'admin', 'volunteer', 'premium'].includes(role.name)) {
+            errorList.push('role name unknown!');
+        }
+    }
+
+    if (errorList.length) {
+        res.status(400).send(errorList);
+    } else {
+        next();
+    }
+}
+
 export {
-    validateRole
+    validateRole,
+    validateEditedRole
 }
