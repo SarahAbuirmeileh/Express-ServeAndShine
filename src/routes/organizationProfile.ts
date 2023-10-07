@@ -36,7 +36,7 @@ router.put("/:id", authorize("PUT_organizationProfile"),checkAdmin,validateOrgId
     });
 });
 
-router.get('/', /*authorize("GET_organizationProfiles"),*/ async (req, res, next) => {
+router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
