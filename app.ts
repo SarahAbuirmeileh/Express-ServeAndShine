@@ -5,6 +5,8 @@ import createError from 'http-errors'
 import dataSource, { initDB } from './src/db/dataSource.js'
 import logger from 'morgan'
 import cookieParser from 'cookie-parser'
+import fileUpload from 'express-fileupload';
+
 
 import indexRouter from "./src/routes/index.js"
 import permissionRouter from "./src/routes/permission.js"
@@ -22,6 +24,8 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }))
+
 
 app.use('/', indexRouter);
 app.use('/permission', authenticate, permissionRouter);
