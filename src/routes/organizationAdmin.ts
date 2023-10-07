@@ -52,7 +52,7 @@ router.get('/', authorize("GET_organizationAdmins"), async (req, res, next) => {
         })
         .catch(error => {
             console.error(error);
-            res.status(500).send('Something went wrong');
+            res.status(500).send(error);
         });
 });
 

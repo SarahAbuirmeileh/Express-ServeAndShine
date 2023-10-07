@@ -41,7 +41,8 @@ const getOrganizationAdmins = async (payload: {
         return OrganizationAdmin.findOne({ where: { email: payload.email } })
     }
     if (payload.organizationName) {
-        const organization = await OrganizationProfile.findOne({ where: { name: payload.name } });
+        
+        const organization = await OrganizationProfile.findOne({ where: { name: payload.organizationName} });
         if (organization) {
 
             return await OrganizationAdmin.findOne({ where: { orgProfile: { id: organization.id } } });
