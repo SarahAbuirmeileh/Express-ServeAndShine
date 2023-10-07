@@ -4,7 +4,12 @@ import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
 import { getDate } from "./index.js";
 import { Volunteer } from "../db/entities/Volunteer.js";
-import { VolunteerProfile } from "../db/entities/VolunteerProfile.js";
+
+
+
+
+
+
 import createError from 'http-errors';
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
