@@ -110,7 +110,23 @@ const validateEditedVoluntaryWork = async (req: express.Request,
         next();
     }
 }
+
+const validateVoluntaryWorkId = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const id = Number(req.params.id.toString());
+    const p = await VoluntaryWork.findOne({ where: { id } });
+    if (!p) {
+        //res.status(400).send("Id not valid");
+        next(createError(404));
+    } else {
+        next();
+    }
+}
+
 export {
     validateVoluntaryWork,
-    validateEditedVoluntaryWork
+    validateEditedVoluntaryWork,
+    validateVoluntaryWorkId
 }

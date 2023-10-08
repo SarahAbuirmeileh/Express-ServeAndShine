@@ -97,7 +97,22 @@ const validateEditedVolunteer = async (req: express.Request, res: express.Respon
     }
 };
 
+const validateVolunteerId = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const id = (req.params.id.toString());
+    const p = await Volunteer.findOne({ where: { id } });
+    if (!p) {
+        //res.status(400).send("Id not valid");
+        next(createError(404));
+    } else {
+        next();
+    }
+}
+
 export {
     validateVolunteer,
-    validateEditedVolunteer
+    validateEditedVolunteer,
+    validateVolunteerId
 }

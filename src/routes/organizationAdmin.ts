@@ -1,7 +1,7 @@
 import express from "express";
 import { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins } from "../controllers/organizationAdmin.js";
 import { authorize, checkMe } from "../middleware/auth/authorize.js";
-import { validateAdminEdited, validateOrganizationAdmin } from "../middleware/validation/organizationAdmin.js";
+import { validateAdminEdited, validateAdminId, validateOrganizationAdmin } from "../middleware/validation/organizationAdmin.js";
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin,
     });
 });
 
-router.delete('/:id', authorize("DELETE_organizationAdmin"), async (req, res, next) => {
+router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), async (req, res, next) => {
     const id = req.params.id?.toString();
 
     deleteOrganizationAdmin(id)
@@ -29,7 +29,7 @@ router.delete('/:id', authorize("DELETE_organizationAdmin"), async (req, res, ne
         });
 });
 
-router.put("/:id", authorize("PUT_organizationAdmin"),  validateAdminEdited, async (req, res, next) => {
+router.put("/:id", authorize("PUT_organizationAdmin"), validateAdminEdited, async (req, res, next) => {
     editOrganizationAdmin({ ...req.body, id: req.params.id }).then(() => {
         res.status(201).send("Organization Admin edited successfully!!")
     }).catch(err => {
