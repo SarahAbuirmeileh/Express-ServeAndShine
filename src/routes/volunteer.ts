@@ -4,15 +4,34 @@ import { authenticate } from '../middleware/auth/authenticate.js';
 import { validateEditedVolunteer, validateVolunteer } from '../middleware/validation/volunteer.js';
 import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login } from '../controllers/volunteer.js';
 import { NSVolunteer } from '../../types/volunteer.js';
+import { log } from '../controllers/logs.js';
 
 var router = express.Router();
 
 router.post('/register', validateVolunteer, (req, res, next) => {
     createVolunteer({...req.body,type:"volunteer" }).then(() => {
+        log ({
+            userId: res.locals.organizationAdmin.id || res.locals.volunteer.id,
+            userName: res.locals.organizationAdmin.name || res.locals.volunteer.name,
+            userType: 'admin', 
+            type: 'success', 
+            request: 'Register volunteer'}).then(() => {
+                console.log('logged');
+            }).catch(err => {
+                console.log('NOT logged');
+            })
         res.status(201).send("Volunteer created successfully!!")
     }).catch(err => {
-        // console.error(err);
-        // res.status(500).send(err);
+        log ({
+            userId: res.locals.organizationAdmin.id || res.locals.volunteer.id,
+            userName: res.locals.organizationAdmin.name || res.locals.volunteer.name,
+            userType: 'admin', 
+            type: 'failed', 
+            request: 'Register volunteer'}).then(() => {
+                console.log('logged');
+            }).catch(err => {
+                console.log('NOT logged');
+            })
         next(err);
     });
 });
@@ -28,9 +47,29 @@ router.post('/login', (req, res, next) => {
                 maxAge: 60 *24 * 60 * 1000,
                 sameSite: "lax"       // Protect against CSRF attacks
             });
+            log ({
+                userId: res.locals.organizationAdmin.id || res.locals.volunteer.id,
+                userName: res.locals.organizationAdmin.name || res.locals.volunteer.name,
+                userType: 'admin', 
+                type: 'success', 
+                request: 'Login'}).then(() => {
+                    console.log('logged');
+                }).catch(err => {
+                    console.log('NOT logged');
+                })
             res.status(201).send("You logged in successfully !");
         })
         .catch(err => {
+            log ({
+                userId: res.locals.organizationAdmin.id || res.locals.volunteer.id,
+                userName: res.locals.organizationAdmin.name || res.locals.volunteer.name,
+                userType: 'admin', 
+                type: 'failed', 
+                request: 'Login'}).then(() => {
+                    console.log('logged');
+                }).catch(err => {
+                    console.log('NOT logged');
+                })
             res.status(401).send(err);
         })
 });
@@ -40,19 +79,57 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), async (req, r
 
     deleteVolunteer(id)
         .then(data => {
+            log ({
+                userId: res.locals.organizationAdmin.id || res.locals.volunteer.id,
+                userName: res.locals.organizationAdmin.name || res.locals.volunteer.name,
+                userType: 'admin', 
+                type: 'success', 
+                request: 'Delete Volunteer'}).then(() => {
+                    console.log('logged');
+                }).catch(err => {
+                    console.log('NOT logged');
+                })
             res.send(data);
         })
         .catch(error => {
+            log ({
+                userId: res.locals.organizationAdmin.id || res.locals.volunteer.id,
+                userName: res.locals.organizationAdmin.name || res.locals.volunteer.name,
+                userType: 'admin', 
+                type: 'failed', 
+                request: 'Delete Volunteer'}).then(() => {
+                    console.log('logged');
+                }).catch(err => {
+                    console.log('NOT logged');
+                })
             next(error);
         });
 })
 
 router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolunteer, async (req, res, next) => {
     editVolunteer({ ...req.body, id: req.params.id?.toString() }).then(() => {
+        log ({
+            userId: res.locals.organizationAdmin.id || res.locals.volunteer.id,
+            userName: res.locals.organizationAdmin.name || res.locals.volunteer.name,
+            userType: 'admin', 
+            type: 'success', 
+            request: 'Edit Volunteer'}).then(() => {
+                console.log('logged');
+            }).catch(err => {
+                console.log('NOT logged');
+            })
         res.status(201).send("Volunteer edited successfully!!")
     }).catch(err => {
-        // console.error(err);
-        // res.status(500).send(err);
+        log ({
+            userId: res.locals.organizationAdmin.id || res.locals.volunteer.id,
+            userName: res.locals.organizationAdmin.name || res.locals.volunteer.name,
+            userType: 'admin', 
+            type: 'failed', 
+            request: 'Edit Volunteer'}).then(() => {
+                console.log('logged');
+            }).catch(err => {
+                console.log('NOT logged');
+            })
         next(err);
     });
 });
@@ -74,11 +151,29 @@ router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next
 
     getVolunteers(payload)
         .then(data => {
+            log ({
+                userId: res.locals.organizationAdmin.id || res.locals.volunteer.id,
+                userName: res.locals.organizationAdmin.name || res.locals.volunteer.name,
+                userType: 'admin', 
+                type: 'success', 
+                request: 'get Volunteer/s'}).then(() => {
+                    console.log('logged');
+                }).catch(err => {
+                    console.log('NOT logged');
+                })
             res.send(data);
         })
         .catch(err => {
-            // console.error(error);
-            // res.status(500).send('Something went wrong');
+            log ({
+                userId: res.locals.organizationAdmin.id || res.locals.volunteer.id,
+                userName: res.locals.organizationAdmin.name || res.locals.volunteer.name,
+                userType: 'admin', 
+                type: 'failed', 
+                request: 'Get Volunteer/s'}).then(() => {
+                    console.log('logged');
+                }).catch(err => {
+                    console.log('NOT logged');
+                })
             next(err);
         });
 });

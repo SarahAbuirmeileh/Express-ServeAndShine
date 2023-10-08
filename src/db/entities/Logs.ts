@@ -7,7 +7,6 @@ export class Logs extends BaseEntity {
 
     @Column({
         nullable:false,
-        unique:true
     })
     userId: string;
 
