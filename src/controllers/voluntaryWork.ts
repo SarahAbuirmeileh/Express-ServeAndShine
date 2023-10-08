@@ -183,11 +183,11 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
 const putRating = async (id: number, rating: number) => {
     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
     if (voluntaryWork) {
-        if (voluntaryWork.rating){
+        if (voluntaryWork.rating) {
             voluntaryWork.rating += rating;
             voluntaryWork.rating /= 2;
-        }else{
-            voluntaryWork.rating=rating;
+        } else {
+            voluntaryWork.rating = rating;
         }
         return voluntaryWork.save();
     } else {
@@ -206,31 +206,28 @@ const putFeedback = async (id: number, feedback: string) => {
 }
 
 const putImages = async (id: number, uploadedFiles: UploadedFile[]) => {
+    
     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
     if (voluntaryWork) {
 
-        try {
-            const S3 = await configureS3Bucket();
-            const imageUrls = [];
+        const S3 = await configureS3Bucket();
+        const imageUrls = [];
 
-            for (const file of uploadedFiles) {
-                const uploadParams = {
-                    Bucket: process.env.AWS_BUCKET_NAME || '',
-                    Body: Buffer.from(file.data),
-                    Key: `${Date.now().toString()}.png`,
-                    ACL: 'public-read',
-                };
+        for (const file of uploadedFiles) {
+            const uploadParams = {
+                Bucket: process.env.AWS_BUCKET_NAME || '',
+                Body: Buffer.from(file.data),
+                Key: `${Date.now().toString()}.png`,
+                ACL: 'public-read',
+            };
 
-                const data = await S3.upload(uploadParams).promise();
-                imageUrls.push(data.Location);
-            }
-            voluntaryWork.images.push(...imageUrls);
-            await voluntaryWork.save();
+            const data = await S3.upload(uploadParams).promise();
+            imageUrls.push(data.Location);
         }
-        catch (err) {
-            console.log(err);
-            return "Internet Error!";
-        }
+
+        voluntaryWork.images.push(...imageUrls);
+        await voluntaryWork.save();
+
 
     } else {
         throw createError(404);
@@ -293,7 +290,7 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
 
 const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["volunteerProfiles"] });
-    const volunteer = await Volunteer.findOne({ where: { id: volunteerId },relations: ["volunteerProfile"] });
+    const volunteer = await Volunteer.findOne({ where: { id: volunteerId }, relations: ["volunteerProfile"] });
 
     if (!voluntaryWork) {
         throw createError(404);
@@ -304,7 +301,7 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     }
     const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
     console.log(index);
-    
+
     if (index !== -1) {
         voluntaryWork.volunteerProfiles.splice(index, 1);
         await voluntaryWork.save();

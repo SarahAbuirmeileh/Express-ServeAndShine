@@ -33,10 +33,14 @@ const authorize = (api: string) => {
                 checkAdmin(req, res, next);
             } else if ((/organizationAdmin$/.test(api)) || (/volunteer$/.test(api))) {
                 checkMe(req, res, next);
-            } else if ((/voluntaryWork$/.test(api))) {
+            } else if ((/voluntaryWork$/.test(api)) || ((/images/.test(api)))) {
                 checkCreator(req, res, next);
+            }else {
+                res.status(403).send("You don't have the permission to access this resource!");
             }
         } else {
+
+           
             res.status(403).send("You don't have the permission to access this resource!");
         }
     }
@@ -99,24 +103,24 @@ const checkCreator = async (req: express.Request, res: express.Response, next: e
 
 const checkParticipation = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const id = Number(req.params.id);
-    
+
     if (res.locals.volunteer) {
         const volunteer = res.locals.volunteer;
         const volunteerProfile = volunteer.volunteerProfile;
-        
+
         if (volunteerProfile) {
             const voluntaryWork = await VoluntaryWork.findOne({
                 where: { id },
                 relations: ['volunteerProfiles']
             });
-            
+
             if (voluntaryWork) {
                 // Check if volunteerProfile.id exists in the array of volunteerProfiles' ids
                 const isParticipating = voluntaryWork.volunteerProfiles.some(profile => profile.id === volunteerProfile.id);
-                
+
                 if (isParticipating) {
                     next();
-                } else {    
+                } else {
                     next(createError(401));
                 }
             } else {
