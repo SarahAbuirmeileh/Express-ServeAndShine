@@ -28,12 +28,7 @@ router.post('/login', (req, res, next) => {
                 maxAge: 15 * 60 * 1000,
                 sameSite: "lax"       // Protect against CSRF attacks
             });
-            res.cookie('name', res.locals.volunteer.name || res.locals.organizationAdmin.name, {
-                httpOnly: true,
-                maxAge: 15 * 60 * 1000,
-                sameSite: "lax"       // Protect against CSRF attacks
-            });
-            res.status(201).send(data);
+            res.status(201).send("You logged in successfully !");
         })
         .catch(err => {
             res.status(401).send(err);

@@ -109,7 +109,7 @@ const login = async (email: string, name: string, id: string) => {
             {
                 expiresIn: "15m"
             }
-        );
+        );        
         return token;
     } else {
         throw ("Invalid email or name or id !");
