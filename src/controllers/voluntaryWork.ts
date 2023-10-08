@@ -287,9 +287,33 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
     return "Registration successful!";
 }
 
+// const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
+//     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["volunteerProfiles"] });
+//     const volunteer = await Volunteer.findOne({ where: { id: volunteerId } });
+
+//     if (!voluntaryWork) {
+//         throw createError(404);
+//     }
+
+//     if (!volunteer) {
+//         throw createError(404);
+//     }
+//     console.log('voluntaryWork:', voluntaryWork);
+//     console.log('volunteer:', volunteer);
+//     const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
+    
+//     if (index !== -1) {
+//         voluntaryWork.volunteerProfiles.splice(index, 1);
+//         await voluntaryWork.save();
+//         return "Deregistration successful!";
+//     } else {
+//         throw new Error("Volunteer is not registered for this voluntary work");
+//     }
+// }
+
 const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["volunteerProfiles"] });
-    const volunteer = await Volunteer.findOne({ where: { id: volunteerId } });
+    const volunteer = await Volunteer.findOne({ where: { id: volunteerId },relations: ["volunteerProfile"] });
 
     if (!voluntaryWork) {
         throw createError(404);
@@ -298,9 +322,10 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     if (!volunteer) {
         throw createError(404);
     }
-
+    // Check if the volunteer is registered for this voluntary work
     const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
-
+    console.log(index);
+    
     if (index !== -1) {
         voluntaryWork.volunteerProfiles.splice(index, 1);
         await voluntaryWork.save();
@@ -309,7 +334,6 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
         throw new Error("Volunteer is not registered for this voluntary work");
     }
 }
-
 
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,

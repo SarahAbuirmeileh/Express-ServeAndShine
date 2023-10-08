@@ -176,7 +176,7 @@ router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res
         registerByOrganizationAdmin(Number(req.params.id), req.body.volunteerId.toString()).then(() => {
             res.status(201).send("Registration done successfully!!")
         }).catch(err => {
-             console.error(err);
+            // console.error(err);
             // res.status(500).send(err);
             next(err);
         });
@@ -184,15 +184,16 @@ router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res
 });
 
 router.put("/deregister/:id", authorize("DEREGISTER_voluntaryWork"), async (req, res, next) => {
-    if( res.locals.volunteer.id || req.body.volunteerId.toString()){
+    
+    if( !res.locals.volunteer?.id && !req.body.volunteerId?.toString()){        
         res.status(400).send("Volunteer id is required !");
     }
     deregisterVoluntaryWork(Number(req.params.id), res.locals.volunteer.id || req.body.volunteerId.toString()).then(() => {
         res.status(201).send("Deregistration done successfully!!")
     }).catch(err => {
         // console.error(err);
-        // res.status(500).send(err);
-        next(err);
+         res.status(500).send(err);
+        //next(err);
     });
 });
 
