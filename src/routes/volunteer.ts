@@ -8,7 +8,7 @@ import { NSVolunteer } from '../../types/volunteer.js';
 var router = express.Router();
 
 router.post('/register', validateVolunteer, (req, res, next) => {
-    createVolunteer(req.body).then(() => {
+    createVolunteer({...req.body,type:"volunteer" }).then(() => {
         res.status(201).send("Volunteer created successfully!!")
     }).catch(err => {
         // console.error(err);
