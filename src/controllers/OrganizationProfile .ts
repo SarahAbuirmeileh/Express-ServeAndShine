@@ -4,7 +4,7 @@ import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import createError from 'http-errors';
 
 const createOrganizationProfile = async (payload: NSOrganizationProfile.Item) => {
-    const newOrganizationProfile = OrganizationProfile.create({name:payload.name,description:payload.description });
+    const newOrganizationProfile = OrganizationProfile.create({ name: payload.name, description: payload.description });
     return newOrganizationProfile.save();
 }
 
@@ -20,7 +20,7 @@ const editOrganizationProfile = async (payload: { id: string, name: string, desc
     }
 }
 
-const deleteOrganizationProfile = async (profileId: number) => {
+const deleteOrganizationProfile = async (profileId: string) => {    
     return OrganizationProfile.delete(profileId);
 }
 
@@ -58,7 +58,8 @@ const getOrganizationProfile = async (payload: {
         take: pageSize,
         order: {
             createdAt: 'ASC'
-        }
+        },
+        select: ["name", "description", "createdAt"]
     })
 
     return {

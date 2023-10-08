@@ -16,7 +16,7 @@ router.post('/', authorize("POST_organizationProfile"), validateOrganizationProf
 });
 
 router.delete('/:id', authorize("DELETE_organizationProfile"), async (req, res, next) => {
-    const id = Number(req.params.id?.toString());
+    const id = (req.params.id?.toString());
 
     deleteOrganizationProfile(id)
         .then(data => {
