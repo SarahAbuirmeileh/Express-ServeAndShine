@@ -4,6 +4,7 @@ import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import bcrypt from 'bcrypt';
 import createError from 'http-errors';
 import { Role } from "../db/entities/Role.js";
+import { Not } from "typeorm";
 
 const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
 
@@ -37,22 +38,33 @@ const getOrganizationAdmins = async (payload: {
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
 
+
     if (payload.id) {
-        return OrganizationAdmin.findOne({ where: { id: payload.id } })
+        return OrganizationAdmin.findOne({
+            where: { id: payload.id, name: Not("root") },
+            select: ["name", "email", "createdAt"]
+        })
     }
     if (payload.name) {
-        return OrganizationAdmin.findOne({ where: { name: payload.name } })
+        return OrganizationAdmin.findOne({
+            where: { name: payload.name === 'root' ? "" : payload.name },
+            select: ["name", "email", "createdAt"]
+        })
     }
     if (payload.email) {
-        return OrganizationAdmin.findOne({ where: { email: payload.email } })
+        return OrganizationAdmin.findOne({
+            where: { email: payload.email, name: Not("root") },
+            select: ["name", "email", "createdAt"]
+        })
     }
     if (payload.organizationName) {
 
         const organization = await OrganizationProfile.findOne({ where: { name: payload.organizationName } });
         if (organization) {
-
-            return await OrganizationAdmin.findOne({ where: { orgProfile: { id: organization.id } } });
+            const admin = await OrganizationAdmin.findOne({ where: { orgProfile: { id: organization.id } } });
+            return {name:admin?.name, createdAt:admin?.createdAt, email:admin?.email};
         } else {
+
             throw createError(404);
         }
     }
@@ -62,7 +74,11 @@ const getOrganizationAdmins = async (payload: {
         take: pageSize,
         order: {
             createdAt: 'ASC'
-        }
+        },
+        where: {
+            name: Not("root")
+        },
+        select: ["name", "email", "createdAt"]
     })
 
     return {
