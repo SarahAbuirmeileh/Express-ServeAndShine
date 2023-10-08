@@ -75,7 +75,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
     if (payload.name) {
         conditions["name"] = payload.name;
     }
-    if (payload.time.length > 0) {
+    if (payload.time?.length > 0) {
         conditions["time"] = In(payload.time);
     }
     if (payload.location) {
@@ -87,10 +87,10 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
     if (payload.status) {
         conditions["status"] = payload.status;
     }
-    if (payload.days.length > 0) {
+    if (payload.days?.length > 0) {
         conditions["days"] = In(payload.days);
     }
-    if (payload.skills.length > 0) {
+    if (payload.skills?.length > 0) {
         conditions["skillTags"] = In(payload.skills);
     }
     if (payload.startedDate) {
@@ -238,17 +238,18 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
     if (!voluntaryWork) {
         throw createError(404);
     }
+    console.log(volunteerProfile.availableDays);
 
     if (
         volunteerProfile.availableLocation !== voluntaryWork.location ||
-        !volunteerProfile.availableDays.every(day => voluntaryWork.days.includes(day)) ||
-        !volunteerProfile.availableTime.every(time => voluntaryWork.time.includes(time)) ||
-        !volunteerProfile.skillTags.every(skillTag => voluntaryWork.skillTags.some(workSkill => workSkill.id === skillTag.id))
+        !(volunteerProfile.availableDays?.length > 0 && volunteerProfile.availableDays?.every(day => voluntaryWork.days.includes(day))) ||
+        !(volunteerProfile.availableTime?.length > 0 && volunteerProfile.availableTime?.every(time => voluntaryWork.time.includes(time))) ||
+        !(volunteerProfile.skillTags?.length > 0 && volunteerProfile.skillTags.every(skillTag => voluntaryWork.skillTags.some(workSkill => workSkill.id === skillTag.id)))
     ) {
         throw new Error("Volunteer's profile information does not align with the VoluntaryWork information");
     }
 
-    if (voluntaryWork.volunteerProfiles.length >= voluntaryWork.capacity) {
+    if (voluntaryWork.volunteerProfiles?.length >= voluntaryWork.capacity) {
         throw new Error("VoluntaryWork is already at full capacity");
     }
 
