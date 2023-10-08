@@ -15,6 +15,7 @@ import organizationAdminRouter from "./src/routes/organizationAdmin.js"
 import organizationProfileRouter from "./src/routes/organizationProfile.js"
 import volunteerRouter from "./src/routes/volunteer.js"
 import { authenticate } from "./src/middleware/auth/authenticate.js"
+import baseLogger from "./logger.js"
 import { errorHandler } from "./src/middleware/errorHandler/errorHandler.js"
 
 const app = express();
@@ -24,14 +25,48 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }))
+
+
+// catch 404 and forward to error handler
+// app.use(function (req, res, next) {
+//   next(createError(404));
+// });
+
+const errorHandler = (
+  error: any,
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction) => {
+  if (error.status == 404) {
+    res.status(404).send("Something is not found");
+  } else if (error.status == 401) {
+    res.status(401).send("You are unautharized");
+  } else if (error.status == 403) {
+    res.status(401).send("You don't have the permission");
+  } else {
+    res.status(500).send('Something went wrong');
+  }
+}
+
+// error handler
+// app.use(function (err: any, req: any, res: any, next: any) {
+//   // set locals, only providing error in development
+//   res.locals.message = err.message;
+//   res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+//   // render the error page
+//   res.status(err.status || 500).send({ error: err.message });
+// });
+
 app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }));
 
 app.use('/', indexRouter);
 app.use('/permission', authenticate, permissionRouter);
 app.use('/role', authenticate, roleRouter);
 app.use('/voluntaryWork', authenticate, voluntaryWorkRouter);
-app.use('/organizationAdmin', authenticate, organizationAdminRouter);
-app.use('/organizationProfile', authenticate, organizationProfileRouter);
+app.use('/organizationAdmin', /*authenticate,*/ organizationAdminRouter);
+app.use('/organizationProfile', /*authenticate,*/ organizationProfileRouter);
 app.use("/volunteer", volunteerRouter);
 
 // catch 404 and forward to error handler

@@ -7,6 +7,7 @@ import { SkillTag } from "./entities/SkillTag.js";
 import { VoluntaryWork } from "./entities/VoluntaryWork.js";
 import { Volunteer } from "./entities/Volunteer.js";
 import { VolunteerProfile } from "./entities/VolunteerProfile.js";
+import { Logs } from "./entities/Logs.js";
 
 const dataSource = new DataSource({
     type: 'mysql',
@@ -16,7 +17,7 @@ const dataSource = new DataSource({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     entities: [OrganizationAdmin, OrganizationProfile, Permission,
-        Role, SkillTag, VoluntaryWork, Volunteer, VolunteerProfile],
+        Role, SkillTag, VoluntaryWork, Volunteer, VolunteerProfile, Logs],
     migrations: ['./**/migration/*.ts'],
     synchronize: true,
     logging: false
