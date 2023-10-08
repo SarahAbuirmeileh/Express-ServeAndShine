@@ -59,19 +59,20 @@ const checkMe = (req: express.Request, res: express.Response, next: express.Next
 
 }
 
-const checkAdmin = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const checkAdmin = async (req: express.Request, res: express.Response, next: express.NextFunction) => {    
     const id = req.params.id;
     const admin = await OrganizationAdmin.findOne({ where: { orgProfile: { id } } });
 
     if (res.locals.organizationAdmin) {
         if (res.locals.organizationAdmin.id == admin?.id) {
             next();
+        }else{
+            next(createError(401));
         }
     } else {
         next(createError(401));
     }
 }
-
 
 const checkCreator = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const id = Number(req.params.id);
@@ -84,6 +85,8 @@ const checkCreator = async (req: express.Request, res: express.Response, next: e
     } else if (res.locals.volunteer) {
         if (res.locals.volunteer.id == voluntaryWork?.creatorId) {
             next();
+        }else{
+            next(createError(401));
         }
     } else {
         next(createError(401));

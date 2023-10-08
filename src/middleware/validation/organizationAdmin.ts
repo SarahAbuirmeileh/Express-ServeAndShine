@@ -45,8 +45,8 @@ const validateAdminEdited = async (req: express.Request,
             errorList.push('Email is not Valid');
         }
     }
-    
-    errorList.push(...isValidPassword(organizationAdmin.password ));
+    if (organizationAdmin.password )
+        errorList.push(...isValidPassword(organizationAdmin.password ));
 
     if (errorList.length) {
         res.status(400).send(errorList);
