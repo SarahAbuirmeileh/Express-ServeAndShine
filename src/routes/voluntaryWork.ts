@@ -162,7 +162,7 @@ router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res
         registerByVolunteer(Number(req.params.id), res.locals.volunteer.volunteerProfile).then(() => {
             res.status(201).send("Registration done successfully!!")
         }).catch(err => {
-             console.error(err);
+            // console.error(err);
             // res.status(500).send(err);
             next(err);
         });
@@ -192,8 +192,8 @@ router.put("/deregister/:id", authorize("DEREGISTER_voluntaryWork"), async (req,
         res.status(201).send("Deregistration done successfully!!")
     }).catch(err => {
         // console.error(err);
-         res.status(500).send(err);
-        //next(err);
+         //res.status(500).send(err);
+        next(err);
     });
 });
 

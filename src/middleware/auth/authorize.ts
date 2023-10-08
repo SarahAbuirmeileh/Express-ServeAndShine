@@ -97,29 +97,37 @@ const checkCreator = async (req: express.Request, res: express.Response, next: e
     }
 }
 
-const checkParticipation = async (
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-) => {
+const checkParticipation = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const id = Number(req.params.id);
-
+    
     if (res.locals.volunteer) {
         const volunteer = res.locals.volunteer;
         const volunteerProfile = volunteer.volunteerProfile;
-
+        
         if (volunteerProfile) {
             const voluntaryWork = await VoluntaryWork.findOne({
                 where: { id },
                 relations: ['volunteerProfiles']
             });
-
-            if (voluntaryWork && voluntaryWork.volunteerProfiles.includes(volunteerProfile)) {
-                next();
+            
+            if (voluntaryWork) {
+                // Check if volunteerProfile.id exists in the array of volunteerProfiles' ids
+                const isParticipating = voluntaryWork.volunteerProfiles.some(profile => profile.id === volunteerProfile.id);
+                
+                if (isParticipating) {
+                    next();
+                } else {    
+                    next(createError(401));
+                }
+            } else {
+                next(createError(404)); // Optional: Handle the case when voluntaryWork is not found
             }
+        } else {
+            next(createError(401)); // Handle the case when volunteerProfile is not defined
         }
+    } else {
+        next(createError(401)); // Handle the case when res.locals.volunteer is not defined
     }
-    next(createError(401));
 };
 
 

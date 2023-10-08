@@ -183,8 +183,12 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
 const putRating = async (id: number, rating: number) => {
     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
     if (voluntaryWork) {
-        voluntaryWork.rating += rating;
-        voluntaryWork.rating /= 2;
+        if (voluntaryWork.rating){
+            voluntaryWork.rating += rating;
+            voluntaryWork.rating /= 2;
+        }else{
+            voluntaryWork.rating=rating;
+        }
         return voluntaryWork.save();
     } else {
         throw createError(404);
@@ -238,7 +242,6 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
     if (!voluntaryWork) {
         throw createError(404);
     }
-    console.log(volunteerProfile.availableDays);
 
     if (
         volunteerProfile.availableLocation !== voluntaryWork.location ||
@@ -287,29 +290,6 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
     return "Registration successful!";
 }
 
-// const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
-//     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["volunteerProfiles"] });
-//     const volunteer = await Volunteer.findOne({ where: { id: volunteerId } });
-
-//     if (!voluntaryWork) {
-//         throw createError(404);
-//     }
-
-//     if (!volunteer) {
-//         throw createError(404);
-//     }
-//     console.log('voluntaryWork:', voluntaryWork);
-//     console.log('volunteer:', volunteer);
-//     const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
-    
-//     if (index !== -1) {
-//         voluntaryWork.volunteerProfiles.splice(index, 1);
-//         await voluntaryWork.save();
-//         return "Deregistration successful!";
-//     } else {
-//         throw new Error("Volunteer is not registered for this voluntary work");
-//     }
-// }
 
 const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["volunteerProfiles"] });
@@ -322,7 +302,6 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     if (!volunteer) {
         throw createError(404);
     }
-    // Check if the volunteer is registered for this voluntary work
     const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
     console.log(index);
     
