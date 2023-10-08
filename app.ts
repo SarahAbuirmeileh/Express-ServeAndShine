@@ -16,6 +16,7 @@ import organizationAdminRouter from "./src/routes/organizationAdmin.js"
 import organizationProfileRouter from "./src/routes/organizationProfile.js"
 import volunteerRouter from "./src/routes/volunteer.js"
 import { authenticate } from "./src/middleware/auth/authenticate.js"
+import baseLogger from "./logger.js"
 
 const app = express();
 dotenv.config();
@@ -28,9 +29,9 @@ app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }))
 
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
-});
+// app.use(function (req, res, next) {
+//   next(createError(404));
+// });
 
 const errorHandler = (
   error: any,
@@ -62,8 +63,8 @@ app.use('/', indexRouter);
 app.use('/permission', authenticate, permissionRouter);
 app.use('/role', authenticate, roleRouter);
 app.use('/voluntaryWork', authenticate, voluntaryWorkRouter);
-app.use('/organizationAdmin', authenticate, organizationAdminRouter);
-app.use('/organizationProfile', authenticate, organizationProfileRouter);
+app.use('/organizationAdmin', /*authenticate,*/ organizationAdminRouter);
+app.use('/organizationProfile', /*authenticate,*/ organizationProfileRouter);
 app.use("/volunteer", volunteerRouter);
 app.use(errorHandler);
 
