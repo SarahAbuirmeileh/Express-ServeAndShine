@@ -2,7 +2,7 @@ import "./config.js"
 import express from 'express'
 import dotenv from 'dotenv'
 import createError from 'http-errors'
-import dataSource, { initDB } from './src/db/dataSource.js'
+import { initDB } from './src/db/dataSource.js'
 import logger from 'morgan'
 import cookieParser from 'cookie-parser'
 import fileUpload from 'express-fileupload';
@@ -33,21 +33,21 @@ app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }))
 //   next(createError(404));
 // });
 
-const errorHandler = (
-  error: any,
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction) => {
-  if (error.status == 404) {
-    res.status(404).send("Something is not found");
-  } else if (error.status == 401) {
-    res.status(401).send("You are unautharized");
-  } else if (error.status == 403) {
-    res.status(401).send("You don't have the permission");
-  } else {
-    res.status(500).send('Something went wrong');
-  }
-}
+// const errorHandler = (
+//   error: any,
+//   req: express.Request,
+//   res: express.Response,
+//   next: express.NextFunction) => {
+//   if (error.status == 404) {
+//     res.status(404).send("Something is not found");
+//   } else if (error.status == 401) {
+//     res.status(401).send("You are unautharized");
+//   } else if (error.status == 403) {
+//     res.status(401).send("You don't have the permission");
+//   } else {
+//     res.status(500).send('Something went wrong');
+//   }
+// }
 
 // error handler
 // app.use(function (err: any, req: any, res: any, next: any) {

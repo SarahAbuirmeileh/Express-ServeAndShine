@@ -5,7 +5,7 @@ const baseLogger = winston.createLogger({
   defaultMeta: { project: 'serve and shine', time: new Date() },
   transports: [
     new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs/all.log' }),
+    //new winston.transports.File({ filename: 'logs/all.log' }),
   ],
 });
 
