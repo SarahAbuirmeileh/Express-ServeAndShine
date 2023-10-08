@@ -47,8 +47,23 @@ const validateEditedRole = async (req: express.Request,
         next();
     }
 }
+const validateRoleId = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    const id = Number(req.params.id.toString());
+    const p = await Role.findOne({ where: { id } });
+    if (!p) {
+        //res.status(400).send("Id not valid");
+        next(createError(404));
+    }else{
+        next();
+    }
+  }
+  
 
 export {
     validateRole,
-    validateEditedRole
+    validateEditedRole,
+    validateRoleId
 }

@@ -15,12 +15,12 @@ router.post('/', authorize("POST_organizationProfile"), validateOrganizationProf
     });
 });
 
-router.delete('/:id', authorize("DELETE_organizationProfile"), checkAdmin, async (req, res, next) => {
-    const id = Number(req.params.id?.toString());
+router.delete('/:id', validateOrgId, authorize("DELETE_organizationProfile"), async (req, res, next) => {
+    const id = (req.params.id?.toString());
 
     deleteOrganizationProfile(id)
         .then(data => {
-            res.send("Deleted");
+            res.send(data);
         })
         .catch(err => {
             // console.error(error);
@@ -29,7 +29,7 @@ router.delete('/:id', authorize("DELETE_organizationProfile"), checkAdmin, async
         });
 });
 
-router.put("/:id", authorize("PUT_organizationProfile"),checkAdmin,validateOrgId, async (req, res, next) => {
+router.put("/:id", validateOrgId, authorize("PUT_organizationProfile"), async (req, res, next) => {
     editOrganizationProfile(req.body).then(() => {
         res.status(201).send("Organization Profile edited successfully!!")
     }).catch(err => {

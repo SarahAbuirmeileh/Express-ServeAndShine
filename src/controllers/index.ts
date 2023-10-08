@@ -5,7 +5,7 @@ const getDate = (date: string): Date => {
 
 const isValidPassword = (password: string) => {
     const validation = [];
-    if (password.length < 10) {
+    if (password?.length < 10) {
         validation.push("The password should be at least 10 characters");
     }
 

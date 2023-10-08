@@ -15,12 +15,12 @@ router.post('/', authorize("POST_permissions"), validatePermission, (req, res, n
     });
 });
 
-router.delete('/:id', authorize("DELETE_permission"), async (req, res, next) => {
+router.delete('/:id', validatePermissionId, authorize("DELETE_permission"), async (req, res, next) => {
     const id = Number(req.params.id?.toString());
 
     deletePermission(id)
         .then(data => {
-            res.send("Deleted");
+            res.send(data);
         })
         .catch(err => {
             // console.error(error);

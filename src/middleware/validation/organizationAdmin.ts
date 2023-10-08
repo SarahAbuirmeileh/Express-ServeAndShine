@@ -16,8 +16,8 @@ const validateOrganizationAdmin = (req: express.Request,
     if (!EmailValidator.validate(organizationAdmin.email)) {
         errorList.push('Email is not Valid');
     }
-    
-    errorList.push(...isValidPassword(organizationAdmin.password ));
+
+    errorList.push(...isValidPassword(organizationAdmin.password));
 
     if (errorList.length) {
         res.status(400).send(errorList);
@@ -40,13 +40,13 @@ const validateAdminEdited = async (req: express.Request,
         next(createError(404));
     }
 
-    if (organizationAdmin.email){
+    if (organizationAdmin.email) {
         if (!EmailValidator.validate(organizationAdmin.email)) {
             errorList.push('Email is not Valid');
         }
     }
-    
-    errorList.push(...isValidPassword(organizationAdmin.password ));
+    if (organizationAdmin.password)
+        errorList.push(...isValidPassword(organizationAdmin.password));
 
     if (errorList.length) {
         res.status(400).send(errorList);
@@ -55,7 +55,22 @@ const validateAdminEdited = async (req: express.Request,
     }
 }
 
+const validateAdminId = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const id = req.params.id.toString();
+    const p = await OrganizationAdmin.findOne({ where: { id } });
+    if (!p) {
+        //res.status(400).send("Id not valid");
+        next(createError(404));
+    } else {
+        next();
+    }
+}
+
 export {
     validateOrganizationAdmin,
-    validateAdminEdited 
+    validateAdminEdited,
+    validateAdminId
 }

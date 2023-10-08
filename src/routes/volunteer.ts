@@ -8,7 +8,7 @@ import { NSVolunteer } from '../../types/volunteer.js';
 var router = express.Router();
 
 router.post('/register', validateVolunteer, (req, res, next) => {
-    createVolunteer(req.body).then(() => {
+    createVolunteer({...req.body,type:"volunteer" }).then(() => {
         res.status(201).send("Volunteer created successfully!!")
     }).catch(err => {
         // console.error(err);
@@ -25,34 +25,29 @@ router.post('/login', (req, res, next) => {
         .then(data => {
             res.cookie('myApp', data, {
                 httpOnly: true,
-                maxAge: 15 * 60 * 1000,
+                maxAge: 60 *24 * 60 * 1000,
                 sameSite: "lax"       // Protect against CSRF attacks
             });
-            res.cookie('name', res.locals.volunteer.name || res.locals.organizationAdmin.name, {
-                httpOnly: true,
-                maxAge: 15 * 60 * 1000,
-                sameSite: "lax"       // Protect against CSRF attacks
-            });
-            res.status(201).send(data);
+            res.status(201).send("You logged in successfully !");
         })
         .catch(err => {
             res.status(401).send(err);
         })
 });
 
-router.delete('/:id', authenticate, authorize("DELETE_volunteer"), checkMe, async (req, res, next) => {
+router.delete('/:id', authenticate, authorize("DELETE_volunteer"), async (req, res, next) => {
     const id = req.params.id?.toString();
 
     deleteVolunteer(id)
         .then(data => {
-            res.send("Deleted");
+            res.send(data);
         })
         .catch(error => {
             next(error);
         });
 })
 
-router.put("/:id", authenticate, authorize("POST_volunteer"), checkMe, validateEditedVolunteer, async (req, res, next) => {
+router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolunteer, async (req, res, next) => {
     editVolunteer({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Volunteer edited successfully!!")
     }).catch(err => {
@@ -62,7 +57,7 @@ router.put("/:id", authenticate, authorize("POST_volunteer"), checkMe, validateE
     });
 });
 
-router.get('/', /*authenticate, authorize("GET_volunteers"), */async (req, res, next) => {
+router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
@@ -71,7 +66,7 @@ router.get('/', /*authenticate, authorize("GET_volunteers"), */async (req, res, 
         email: req.query.email?.toString() || "",
         availableLocation: req.query.availableLocation?.toString() || "",
         skills: ((Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean)) as string[],
-        type: req.query.status as NSVolunteer.TypeVolunteer,
+        type: req.query.type as NSVolunteer.TypeVolunteer,
         availableDays: (Array.isArray(req.query.availableDays) ? req.query.availableDays : [req.query.availableDays]).filter(Boolean) as NSVolunteer.AvailableDays[],
         availableTime: ((Array.isArray(req.query.availableTime) ? req.query.availableTime : [req.query.availableTime]).filter(Boolean)) as NSVolunteer.AvailableTime[],
         password: ""
@@ -96,7 +91,7 @@ router.get("/logout", authenticate, (req, res, next) => {
         maxAge: -1
     })
 
-    res.send("Logout correctly!");
+    res.send("You logged out successfully !");
 })
 
 router.get('/me', authenticate, authorize("GET_me"), async (req, res, next) => {

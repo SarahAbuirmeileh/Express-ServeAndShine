@@ -8,9 +8,10 @@ import createError from 'http-errors'
 
 const validateVolunteer = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const volunteer = req.body;
+    volunteer.type = "volunteer";
     const errorList: string[] = [];
 
-    const requiredFields = ["name", "email", "password", "type", "availableTime", "availableLocation", "availableDays", "skills"];
+    const requiredFields = ["name", "email", "password", "availableTime", "availableLocation", "availableDays", "skills"];
     requiredFields.forEach((field) => {
         if (!volunteer[field]) {
             errorList.push(`${field} is required.`);
@@ -96,7 +97,22 @@ const validateEditedVolunteer = async (req: express.Request, res: express.Respon
     }
 };
 
+const validateVolunteerId = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const id = (req.params.id.toString());
+    const p = await Volunteer.findOne({ where: { id } });
+    if (!p) {
+        //res.status(400).send("Id not valid");
+        next(createError(404));
+    } else {
+        next();
+    }
+}
+
 export {
     validateVolunteer,
-    validateEditedVolunteer
+    validateEditedVolunteer,
+    validateVolunteerId
 }

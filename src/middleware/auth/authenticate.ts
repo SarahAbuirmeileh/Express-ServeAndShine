@@ -18,7 +18,7 @@ const authenticate = async (
         tokenIsValid = null;
     }
 
-    if (tokenIsValid ) {
+    if (tokenIsValid) {
         const decoded = tokenIsValid as JwtPayload;
 
         const organizationAdmin = await OrganizationAdmin.findOne({
@@ -27,14 +27,24 @@ const authenticate = async (
         });
         const volunteer = await Volunteer.findOne({
             where: { name: decoded.name, email: decoded.email, id: decoded.id },
-            relations: ["roles", "roles.permissions"]
+            relations: ["roles", "roles.permissions", "volunteerProfile"]
         });
 
         if (organizationAdmin) {
             res.locals.organizationAdmin = organizationAdmin;
+            res.cookie('name', res.locals.organizationAdmin.name, {
+                httpOnly: true,
+                maxAge: 60 * 24 * 60 * 1000,
+                sameSite: "lax"       // Protect against CSRF attacks
+            });
             next();
         } else if (volunteer) {
             res.locals.volunteer = volunteer;
+            res.cookie('name', res.locals.volunteer.name, {
+                httpOnly: true,
+                maxAge: 60 * 24* 60 * 1000,
+                sameSite: "lax"       // Protect against CSRF attacks
+            });
             next();
         } else {
             //res.status(401).send("You are Unauthorized!");
