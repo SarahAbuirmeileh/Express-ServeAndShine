@@ -34,7 +34,7 @@ const authenticate = async (
             res.locals.organizationAdmin = organizationAdmin;
             res.cookie('name', res.locals.organizationAdmin.name, {
                 httpOnly: true,
-                maxAge: 15 * 60 * 1000,
+                maxAge: 60 * 24 * 60 * 1000,
                 sameSite: "lax"       // Protect against CSRF attacks
             });
             next();
@@ -42,7 +42,7 @@ const authenticate = async (
             res.locals.volunteer = volunteer;
             res.cookie('name', res.locals.volunteer.name, {
                 httpOnly: true,
-                maxAge: 15 * 60 * 1000,
+                maxAge: 60 * 24* 60 * 1000,
                 sameSite: "lax"       // Protect against CSRF attacks
             });
             next();

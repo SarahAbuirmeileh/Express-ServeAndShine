@@ -8,6 +8,7 @@ import bcrypt from 'bcrypt';
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { In, Like } from "typeorm";
 import createError from 'http-errors';
+import { Role } from "../db/entities/Role.js";
 
 
 const createVolunteer = async (payload: NSVolunteer.Item) => {
@@ -34,8 +35,13 @@ const createVolunteer = async (payload: NSVolunteer.Item) => {
         await transaction.save(profile);
 
         const newVolunteer = Volunteer.create(payload);
-
         newVolunteer.volunteerProfile = profile;
+
+        const role = await Role.findOne({where:{name:payload.type}});
+        if (role){
+            newVolunteer.roles = [role];
+        }
+        
         await transaction.save(newVolunteer);
     });
 };
@@ -98,7 +104,7 @@ const login = async (email: string, name: string, id: string) => {
             { email, name, id },
             process.env.SECRET_KEY || '',
             {
-                expiresIn: "15m"
+                expiresIn: "1d"
             }
         );
         return token;
@@ -107,7 +113,7 @@ const login = async (email: string, name: string, id: string) => {
             { email, name, id },
             process.env.SECRET_KEY || '',
             {
-                expiresIn: "15m"
+                expiresIn: "1d"
             }
         );        
         return token;

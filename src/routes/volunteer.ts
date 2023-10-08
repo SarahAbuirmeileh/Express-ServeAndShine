@@ -25,7 +25,7 @@ router.post('/login', (req, res, next) => {
         .then(data => {
             res.cookie('myApp', data, {
                 httpOnly: true,
-                maxAge: 15 * 60 * 1000,
+                maxAge: 60 *24 * 60 * 1000,
                 sameSite: "lax"       // Protect against CSRF attacks
             });
             res.status(201).send("You logged in successfully !");
@@ -35,19 +35,19 @@ router.post('/login', (req, res, next) => {
         })
 });
 
-router.delete('/:id', authenticate, authorize("DELETE_volunteer"), checkMe, async (req, res, next) => {
+router.delete('/:id', authenticate, authorize("DELETE_volunteer"), checkMe(), async (req, res, next) => {
     const id = req.params.id?.toString();
 
     deleteVolunteer(id)
         .then(data => {
-            res.send("Deleted");
+            res.send(data);
         })
         .catch(error => {
             next(error);
         });
 })
 
-router.put("/:id", authenticate, authorize("POST_volunteer"), checkMe, validateEditedVolunteer, async (req, res, next) => {
+router.put("/:id", authenticate, authorize("PUT_volunteer"), checkMe(), validateEditedVolunteer, async (req, res, next) => {
     editVolunteer({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Volunteer edited successfully!!")
     }).catch(err => {
@@ -57,7 +57,7 @@ router.put("/:id", authenticate, authorize("POST_volunteer"), checkMe, validateE
     });
 });
 
-router.get('/', /*authenticate, authorize("GET_volunteers"), */async (req, res, next) => {
+router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
@@ -91,7 +91,7 @@ router.get("/logout", authenticate, (req, res, next) => {
         maxAge: -1
     })
 
-    res.send("Logout correctly!");
+    res.send("You logged out successfully !");
 })
 
 router.get('/me', authenticate, authorize("GET_me"), async (req, res, next) => {

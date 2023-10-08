@@ -12,8 +12,7 @@ const authorize = (api: string) => {
         req: express.Request,
         res: express.Response,
         next: express.NextFunction
-    ) => {
-
+    ) => {        
         const permissions: NSPermission.Item[] = [];
 
         if (res.locals.organizationAdmin) {
@@ -42,9 +41,10 @@ const checkMe = () => {
         next: express.NextFunction
     ) => {
         const id = req.params.id;
+
         if (res.locals.volunteer) {
             if (res.locals.volunteer.id == id) {
-                next(createError(403));
+                next();
             }
         } else if (res.locals.organizationAdmin) {
             if (res.locals.organizationAdmin.id == id) {
