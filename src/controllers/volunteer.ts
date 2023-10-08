@@ -8,6 +8,7 @@ import bcrypt from 'bcrypt';
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { In, Like } from "typeorm";
 import createError from 'http-errors';
+import { Role } from "../db/entities/Role.js";
 
 
 const createVolunteer = async (payload: NSVolunteer.Item) => {
@@ -34,8 +35,13 @@ const createVolunteer = async (payload: NSVolunteer.Item) => {
         await transaction.save(profile);
 
         const newVolunteer = Volunteer.create(payload);
-
         newVolunteer.volunteerProfile = profile;
+
+        const role = await Role.findOne({where:{name:payload.type}});
+        if (role){
+            newVolunteer.roles = [role];
+        }
+
         await transaction.save(newVolunteer);
     });
 };
@@ -98,7 +104,7 @@ const login = async (email: string, name: string, id: string) => {
             { email, name, id },
             process.env.SECRET_KEY || '',
             {
-                expiresIn: "15m"
+                expiresIn: "1d"
             }
         );
         return token;
@@ -107,9 +113,9 @@ const login = async (email: string, name: string, id: string) => {
             { email, name, id },
             process.env.SECRET_KEY || '',
             {
-                expiresIn: "15m"
+                expiresIn: "1d"
             }
-        );
+        );        
         return token;
     } else {
         throw ("Invalid email or name or id !");
@@ -121,7 +127,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
     const conditions: Record<string, any> = {};
-
+    
     if (payload.id) {
         conditions["id"] = payload.id;
     }
@@ -135,9 +141,9 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
         conditions["availableTime"] = In(payload.availableTime);
     }
     if (payload.availableLocation) {
-        conditions["availableLocation"] = payload.availableLocation;
+        conditions["availableLocation"] = Like(`%${payload.availableLocation}%`);
     }
-    if (payload.type) {
+    if (payload.type) {        
         conditions["type"] = payload.type;
     }
     if (payload.availableDays.length > 0) {
@@ -152,9 +158,35 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
             "volunteerProfile.skillTags",
             "volunteerProfile"
         ],
+        select: [
+            "name",
+            "email",
+            "type",
+            "volunteerProfile"
+        ],
     });
 
-    const filteredVolunteers = volunteers.filter((volunteer) => {
+    const processedVolunteers = volunteers.map((volunteer) => {
+        // Create a new volunteer object with the desired properties
+        return {
+            name: volunteer.name,
+            email: volunteer.email,
+            type: volunteer.type,
+            createdAt: volunteer.createdAt,
+            volunteerProfile: {
+                availableTime: volunteer.volunteerProfile?.availableTime,
+                availableDays: volunteer.volunteerProfile?.availableDays,
+                availableLocation: volunteer.volunteerProfile?.availableLocation,
+                dateOfBirth: volunteer.volunteerProfile?.dateOfBirth,
+                roles:volunteer.volunteerProfile?.roles,
+                skillTags: volunteer.volunteerProfile?.skillTags?.map((skillTag) => {
+                    return { name: skillTag.name };
+                }),
+            },
+        };
+    });
+
+    const filteredVolunteers = processedVolunteers.filter((volunteer) => {
         if (payload.skills.length > 0) {
             const hasMatchingSkill = volunteer.volunteerProfile.skillTags.some((skillTag) => payload.skills.includes(skillTag.name));
             return hasMatchingSkill;
@@ -172,6 +204,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
         volunteers: paginatedVolunteers,
     };
 };
+
 
 export { getVolunteers, login, createVolunteer, deleteVolunteer, editVolunteer }
 

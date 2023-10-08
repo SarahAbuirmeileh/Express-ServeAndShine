@@ -2,6 +2,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, Ma
 import { SkillTag } from "./SkillTag.js";
 import { VolunteerProfile } from "./VolunteerProfile.js";
 import { OrganizationProfile } from "./OrganizationProfile.js";
+import { NSVolunteer } from "../../../types/volunteer.js";
 
 @Entity()
 export class VoluntaryWork extends BaseEntity {
@@ -15,18 +16,16 @@ export class VoluntaryWork extends BaseEntity {
     description: string;
 
     @Column({
-        type: 'enum',
-        enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        type: 'json',
         nullable: false
     })
-    days: ('Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday')[];
+    days: NSVolunteer.AvailableDays[];
 
     @Column({
-        type: 'enum',
-        enum: ['Morning', 'Afternoon'],
+        type: 'json',
         nullable: false
     })
-    time: ('Morning' | 'Afternoon')[];
+    time: NSVolunteer.AvailableTime[];
 
     @Column({ nullable: false })
     location: string;
@@ -47,7 +46,7 @@ export class VoluntaryWork extends BaseEntity {
     @Column({ type: 'json', nullable: true })
     images: string[];
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, default:0 })
     rating: number;
 
     @Column({ type: 'json', nullable: true })

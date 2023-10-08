@@ -1,4 +1,4 @@
-import { DeepPartial, FindOperator, FindOptionsWhere, In, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual } from "typeorm";
+import { DeepPartial, FindOperator, FindOptionsWhere, In, LessThan, LessThanOrEqual, Like, MoreThan, MoreThanOrEqual } from "typeorm";
 import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
@@ -67,87 +67,75 @@ const getVoluntaryWork = (payload: { id: number }) => {
 const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => {
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
-    const conditions = [];
+    const conditions: Record<string, any> = {};
 
     if (payload.id) {
-        const voluntaryWork = await VoluntaryWork.findOne({ where: { id: payload.id }, relations: ['skillTags', 'volunteerProfiles'] })
-        return {
-            ...voluntaryWork,
-            volunteerNumbers: voluntaryWork?.volunteerProfiles.length
-        }
-
-
+        conditions["id"] = payload.id;
     }
     if (payload.name) {
-        const voluntaryWork = await VoluntaryWork.findOne({ where: { name: payload.name }, relations: ['skillTags', 'volunteerProfiles'] })
-        return {
-            ...voluntaryWork,
-            volunteerNumbers: voluntaryWork?.volunteerProfiles.length
-        }
+        conditions["name"] = payload.name;
     }
-    if (payload.time.length > 0) {
-        conditions.push({ time: In(payload.time) });
+    if (payload.time?.length > 0) {
+        conditions["time"] = In(payload.time);
     }
     if (payload.location) {
-        conditions.push({ location: payload.location });
+        conditions["location"] = payload.location;
     }
     if (payload.rating) {
-        conditions.push({ rating: payload.rating });
+        conditions["rating"] = payload.rating;
     }
     if (payload.status) {
-        conditions.push({ status: payload.status });
+        conditions["status"] = payload.status;
     }
-    if (payload.days.length > 0) {
-        conditions.push({ days: In(payload.days) });
+    if (payload.days?.length > 0) {
+        conditions["days"] = In(payload.days);
     }
-    if (payload.skills.length > 0) {
-        conditions.push({ skillTags: { name: In(payload.skills) } });
+    if (payload.skills?.length > 0) {
+        conditions["skillTags"] = In(payload.skills);
     }
     if (payload.startedDate) {
-        let startedDate = getDate(payload.startedDate);
-        conditions.push({ startedDate: startedDate });
+        conditions["startedDate"] = payload.startedDate; // Assuming this is a specific date comparison
     }
     if (payload.finishedDate) {
-        let finishedDate = getDate(payload.finishedDate);
-        conditions.push({ finishedDate: finishedDate });
+        conditions["finishedDate"] = payload.finishedDate; // Assuming this is a specific date comparison
     }
     if (payload.capacity) {
-        conditions.push({ capacity: payload.capacity });
+        conditions["capacity"] = payload.capacity;
     }
     if (payload.creatorId) {
-        conditions.push({ creatorId: payload.creatorId });
+        conditions["creatorId"] = payload.creatorId;
     }
 
     if (payload.startedAfter) {
         const startedAfterDate = getDate(payload.startedAfter);
-        conditions.push({ startedDate: MoreThan(startedAfterDate) });
+        conditions["startedDate"] = MoreThan(payload.startedAfter);
     }
 
     if (payload.startedBefore) {
         const startedBeforeDate = getDate(payload.startedBefore);
-        conditions.push({ startedDate: LessThan(startedBeforeDate) });
+        conditions["startedDate"] = LessThan(payload.startedBefore);
     }
 
     if (payload.finishedAfter) {
         const finishedAfterDate = getDate(payload.finishedAfter);
-        conditions.push({ finishedDate: MoreThan(finishedAfterDate) });
+        conditions["finishedDate"] = MoreThan(payload.finishedAfter);
     }
 
     if (payload.finishedBefore) {
         const finishedBeforeDate = getDate(payload.finishedBefore);
-        conditions.push({ finishedDate: LessThan(finishedBeforeDate) });
+        conditions["finishedDate"] = LessThan(payload.finishedBefore);
     }
 
     if (payload.ratingMore) {
-        conditions.push({ rating: MoreThanOrEqual(payload.ratingMore) });
+        conditions["rating"] = MoreThanOrEqual(payload.ratingMore);
     }
 
     if (payload.ratingLess) {
-        conditions.push({ rating: LessThanOrEqual(payload.ratingLess) });
+        conditions["rating"] = LessThanOrEqual(payload.ratingLess);
     }
 
     const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
-        where: conditions.length > 0 ? conditions : {},
+        where: conditions,
         skip: pageSize * (page - 1),
         take: pageSize,
         order: {
@@ -155,23 +143,52 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         },
         relations: ['skillTags', 'volunteerProfiles']
     });
+    const processedVW = await Promise.all(voluntaryWorks.map(async vw => {
+        const volunteers = [];
+        for (const vp of vw.volunteerProfiles) {
+            const v = await Volunteer.findOne({ where: { volunteerProfile: { id: vp.id } } });
+            if (v) {
+                volunteers.push({ name: v.name });
+            }
+        }
+        return {
+            name: vw.name,
+            description: vw.description,
+            days: vw.days,
+            time: vw.time,
+            location: vw.location,
+            startedDate: vw.startedDate,
+            finishedDate: vw.finishedDate,
+            status: vw.status,
+            images: vw.images,
+            rating: vw.rating,
+            feedback: vw.feedback,
+            capacity: vw.capacity,
+            skillTags: vw.skillTags.map(st => { return { name: st.name } }),
+            volunteers,
+            volunteerNumbers: volunteers.length,
+            createdAt: vw.createdAt
+        };
+    }));
+
 
     return {
         page,
         pageSize: voluntaryWorks.length,
         total,
-        voluntaryWorks: voluntaryWorks.map(voluntaryWork => ({
-            ...voluntaryWork,
-            volunteerNumbers: voluntaryWork.volunteerProfiles.length,
-        }))
+        voluntaryWorks: processedVW
     };
 }
 
 const putRating = async (id: number, rating: number) => {
     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
     if (voluntaryWork) {
-        voluntaryWork.rating += rating;
-        voluntaryWork.rating /= 2;
+        if (voluntaryWork.rating) {
+            voluntaryWork.rating += rating;
+            voluntaryWork.rating /= 2;
+        } else {
+            voluntaryWork.rating = rating;
+        }
         return voluntaryWork.save();
     } else {
         throw createError(404);
@@ -189,31 +206,28 @@ const putFeedback = async (id: number, feedback: string) => {
 }
 
 const putImages = async (id: number, uploadedFiles: UploadedFile[]) => {
+    
     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
     if (voluntaryWork) {
 
-        try {
-            const S3 = await configureS3Bucket();
-            const imageUrls = [];
+        const S3 = await configureS3Bucket();
+        const imageUrls = [];
 
-            for (const file of uploadedFiles) {
-                const uploadParams = {
-                    Bucket: process.env.AWS_BUCKET_NAME || '',
-                    Body: Buffer.from(file.data),
-                    Key: `${Date.now().toString()}.png`,
-                    ACL: 'public-read',
-                };
+        for (const file of uploadedFiles) {
+            const uploadParams = {
+                Bucket: process.env.AWS_BUCKET_NAME || '',
+                Body: Buffer.from(file.data),
+                Key: `${Date.now().toString()}.png`,
+                ACL: 'public-read',
+            };
 
-                const data = await S3.upload(uploadParams).promise();
-                imageUrls.push(data.Location);
-            }
-            voluntaryWork.images.push(...imageUrls);
-            await voluntaryWork.save();
+            const data = await S3.upload(uploadParams).promise();
+            imageUrls.push(data.Location);
         }
-        catch(err){
-            console.log(err);
-            return "Internet Error!";
-        }
+
+        voluntaryWork.images.push(...imageUrls);
+        await voluntaryWork.save();
+
 
     } else {
         throw createError(404);
@@ -228,26 +242,33 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
 
     if (
         volunteerProfile.availableLocation !== voluntaryWork.location ||
-        !volunteerProfile.availableDays.every(day => voluntaryWork.days.includes(day)) ||
-        !volunteerProfile.availableTime.every(time => voluntaryWork.time.includes(time)) ||
-        !volunteerProfile.skillTags.every(skillTag => voluntaryWork.skillTags.some(workSkill => workSkill.id === skillTag.id))
+        !(volunteerProfile.availableDays?.length > 0 && volunteerProfile.availableDays?.every(day => voluntaryWork.days.includes(day))) ||
+        !(volunteerProfile.availableTime?.length > 0 && volunteerProfile.availableTime?.every(time => voluntaryWork.time.includes(time))) ||
+        !(volunteerProfile.skillTags?.length > 0 && volunteerProfile.skillTags.every(skillTag => voluntaryWork.skillTags.some(workSkill => workSkill.id === skillTag.id)))
     ) {
         throw new Error("Volunteer's profile information does not align with the VoluntaryWork information");
     }
 
-    if (voluntaryWork.volunteerProfiles.length >= voluntaryWork.capacity) {
+    if (voluntaryWork.volunteerProfiles?.length >= voluntaryWork.capacity) {
         throw new Error("VoluntaryWork is already at full capacity");
     }
 
-    voluntaryWork.volunteerProfiles.push(volunteerProfile);
-    await voluntaryWork.save();
+    if (voluntaryWork.volunteerProfiles) {
+        voluntaryWork.volunteerProfiles.push(volunteerProfile);
+    } else {
+        voluntaryWork.volunteerProfiles = [volunteerProfile];
+    }
 
+    await voluntaryWork.save();
     return "Registration successful!";
 }
 
 const registerByOrganizationAdmin = async (workId: number, volunteerId: string) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
-    const volunteer = await Volunteer.findOne({ where: { id: volunteerId } });
+    const volunteer = await Volunteer.findOne({
+        where: { id: volunteerId },
+        relations: ["roles", "roles.permissions", "volunteerProfile"]
+    });
 
     if (!voluntaryWork) {
         throw createError(404);
@@ -256,15 +277,20 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
         throw createError(404);
     }
 
-    voluntaryWork.volunteerProfiles.push(volunteer.volunteerProfile);
-    await voluntaryWork.save();
+    if (voluntaryWork.volunteerProfiles) {
+        voluntaryWork.volunteerProfiles.push(volunteer.volunteerProfile);
+    } else {
+        voluntaryWork.volunteerProfiles = [volunteer.volunteerProfile];
+    }
 
+    await voluntaryWork.save();
     return "Registration successful!";
 }
 
+
 const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["volunteerProfiles"] });
-    const volunteer = await Volunteer.findOne({ where: { id: volunteerId } });
+    const volunteer = await Volunteer.findOne({ where: { id: volunteerId }, relations: ["volunteerProfile"] });
 
     if (!voluntaryWork) {
         throw createError(404);
@@ -273,8 +299,8 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     if (!volunteer) {
         throw createError(404);
     }
-
     const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
+    console.log(index);
 
     if (index !== -1) {
         voluntaryWork.volunteerProfiles.splice(index, 1);
@@ -284,7 +310,6 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
         throw new Error("Volunteer is not registered for this voluntary work");
     }
 }
-
 
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,

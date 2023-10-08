@@ -1,6 +1,7 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
 import { SkillTag } from "./SkillTag.js";
 import { VoluntaryWork } from "./VoluntaryWork.js";
+import { NSVolunteer } from "../../../types/volunteer.js";
 
 @Entity()
 export class VolunteerProfile extends BaseEntity {
@@ -8,18 +9,16 @@ export class VolunteerProfile extends BaseEntity {
     id: string;
 
     @Column({
-        type: 'enum',
-        enum: ['Morning', 'Afternoon'],
+        type: 'json',
         nullable: false
     })
-    availableTime: ('Morning' | 'Afternoon')[];
+    availableTime: NSVolunteer.AvailableTime[];
 
     @Column({
-        type: 'enum',
-        enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        type: 'json',
         nullable: false
     })
-    availableDays: ('Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday')[];
+    availableDays:NSVolunteer.AvailableDays[];
 
     @Column({ nullable: false })
     availableLocation: string;

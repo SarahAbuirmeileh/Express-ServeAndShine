@@ -3,6 +3,8 @@ import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import bcrypt from 'bcrypt';
 import createError from 'http-errors';
+import { Role } from "../db/entities/Role.js";
+import { Not } from "typeorm";
 
 const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
 
@@ -11,6 +13,11 @@ const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
     const organization = await OrganizationProfile.findOne({
         where: { id: payload.organizationId },
     });
+
+    const role = await Role.findOne({ where: { name: "admin" } });
+    if (role) {
+        newOrganizationAdmin.roles = role;
+    }
 
     if (organization) {
         newOrganizationAdmin.orgProfile = organization;
@@ -31,22 +38,33 @@ const getOrganizationAdmins = async (payload: {
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
 
+
     if (payload.id) {
-        return OrganizationAdmin.findOne({ where: { id: payload.id } })
+        return OrganizationAdmin.findOne({
+            where: { id: payload.id, name: Not("root") },
+            select: ["name", "email", "createdAt"]
+        })
     }
     if (payload.name) {
-        return OrganizationAdmin.findOne({ where: { name: payload.name } })
+        return OrganizationAdmin.findOne({
+            where: { name: payload.name === 'root' ? "" : payload.name },
+            select: ["name", "email", "createdAt"]
+        })
     }
     if (payload.email) {
-        return OrganizationAdmin.findOne({ where: { email: payload.email } })
+        return OrganizationAdmin.findOne({
+            where: { email: payload.email, name: Not("root") },
+            select: ["name", "email", "createdAt"]
+        })
     }
     if (payload.organizationName) {
-        
-        const organization = await OrganizationProfile.findOne({ where: { name: payload.organizationName} });
-        if (organization) {
 
-            return await OrganizationAdmin.findOne({ where: { orgProfile: { id: organization.id } } });
+        const organization = await OrganizationProfile.findOne({ where: { name: payload.organizationName } });
+        if (organization) {
+            const admin = await OrganizationAdmin.findOne({ where: { orgProfile: { id: organization.id } } });
+            return {name:admin?.name, createdAt:admin?.createdAt, email:admin?.email};
         } else {
+
             throw createError(404);
         }
     }
@@ -56,7 +74,11 @@ const getOrganizationAdmins = async (payload: {
         take: pageSize,
         order: {
             createdAt: 'ASC'
-        }
+        },
+        where: {
+            name: Not("root")
+        },
+        select: ["name", "email", "createdAt"]
     })
 
     return {
@@ -83,14 +105,14 @@ const editOrganizationAdmin = async (payload: { id: string, name: string, email:
             admin.email = payload.email;
 
         if (payload.newPassword) {
-            if (!payload.oldPassword){
+            if (!payload.oldPassword) {
                 throw "Old password is needed !";
             }
 
             const passwordMatching = await bcrypt.compare(payload.oldPassword, admin?.password || '');
-            if (passwordMatching){
+            if (passwordMatching) {
                 admin.password = await bcrypt.hash(payload.newPassword, 10);
-            }else{
+            } else {
                 throw "The old password isn't correct !"
             }
         }

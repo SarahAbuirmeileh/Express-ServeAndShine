@@ -7,7 +7,6 @@ import logger from 'morgan'
 import cookieParser from 'cookie-parser'
 import fileUpload from 'express-fileupload';
 
-
 import indexRouter from "./src/routes/index.js"
 import permissionRouter from "./src/routes/permission.js"
 import roleRouter from "./src/routes/role.js"
@@ -17,6 +16,7 @@ import organizationProfileRouter from "./src/routes/organizationProfile.js"
 import volunteerRouter from "./src/routes/volunteer.js"
 import { authenticate } from "./src/middleware/auth/authenticate.js"
 import baseLogger from "./logger.js"
+import { errorHandler } from "./src/middleware/errorHandler/errorHandler.js"
 
 const app = express();
 dotenv.config();
@@ -59,6 +59,8 @@ const errorHandler = (
 //   res.status(err.status || 500).send({ error: err.message });
 // });
 
+app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }));
+
 app.use('/', indexRouter);
 app.use('/permission', authenticate, permissionRouter);
 app.use('/role', authenticate, roleRouter);
@@ -66,6 +68,11 @@ app.use('/voluntaryWork', authenticate, voluntaryWorkRouter);
 app.use('/organizationAdmin', /*authenticate,*/ organizationAdminRouter);
 app.use('/organizationProfile', /*authenticate,*/ organizationProfileRouter);
 app.use("/volunteer", volunteerRouter);
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+  next(createError(404));
+});
 app.use(errorHandler);
 
 app.listen(PORT, () => {
