@@ -17,7 +17,7 @@ const authorize = (api: string) => {
 
         if (res.locals.organizationAdmin) {
             const organizationAdmin: OrganizationAdmin = res.locals.organizationAdmin;
-            permissions.push(...organizationAdmin.roles.permissions);
+            permissions.push(...(organizationAdmin.roles.permissions));
 
         } else if (res.locals.volunteer) {
             const volunteer: Volunteer = res.locals.volunteer;

@@ -3,6 +3,7 @@ import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import bcrypt from 'bcrypt';
 import createError from 'http-errors';
+import { Role } from "../db/entities/Role.js";
 
 const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
 
@@ -11,6 +12,11 @@ const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
     const organization = await OrganizationProfile.findOne({
         where: { id: payload.organizationId },
     });
+
+    const role = await Role.findOne({ where: { name: "admin" } });
+    if (role) {
+        newOrganizationAdmin.roles = role;
+    }
 
     if (organization) {
         newOrganizationAdmin.orgProfile = organization;
@@ -41,8 +47,8 @@ const getOrganizationAdmins = async (payload: {
         return OrganizationAdmin.findOne({ where: { email: payload.email } })
     }
     if (payload.organizationName) {
-        
-        const organization = await OrganizationProfile.findOne({ where: { name: payload.organizationName} });
+
+        const organization = await OrganizationProfile.findOne({ where: { name: payload.organizationName } });
         if (organization) {
 
             return await OrganizationAdmin.findOne({ where: { orgProfile: { id: organization.id } } });
@@ -83,14 +89,14 @@ const editOrganizationAdmin = async (payload: { id: string, name: string, email:
             admin.email = payload.email;
 
         if (payload.newPassword) {
-            if (!payload.oldPassword){
+            if (!payload.oldPassword) {
                 throw "Old password is needed !";
             }
 
             const passwordMatching = await bcrypt.compare(payload.oldPassword, admin?.password || '');
-            if (passwordMatching){
+            if (passwordMatching) {
                 admin.password = await bcrypt.hash(payload.newPassword, 10);
-            }else{
+            } else {
                 throw "The old password isn't correct !"
             }
         }
