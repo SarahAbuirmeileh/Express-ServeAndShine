@@ -168,7 +168,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
 
     const processedVolunteers = volunteers.map((volunteer) => {
         // Create a new volunteer object with the desired properties
-        const processedVolunteer = {
+        return {
             name: volunteer.name,
             email: volunteer.email,
             type: volunteer.type,
@@ -184,8 +184,6 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
                 }),
             },
         };
-
-        return processedVolunteer;
     });
 
     const filteredVolunteers = processedVolunteers.filter((volunteer) => {
@@ -207,9 +205,6 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
     };
 };
 
-// "availableTime",
-// "availableLocation",
-// "availableDays",
 
 export { getVolunteers, login, createVolunteer, deleteVolunteer, editVolunteer }
 

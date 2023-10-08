@@ -8,8 +8,8 @@ import { UploadedFile } from 'express-fileupload';
 
 var router = express.Router();
 
-router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, res, next) => {
-    createVoluntaryWork({ ...req.body, creatorId: res.locals.volunteer.id || res.locals.organizationAdmin.id }).then(() => {
+router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, res, next) => {    
+    createVoluntaryWork({ ...req.body, creatorId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id }).then(() => {
         res.status(201).send("Voluntary work created successfully!!")
     }).catch(err => {
         // console.error(err);
@@ -18,7 +18,7 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
     });
 });
 
-router.delete('/:id', authorize("DELETE_voluntaryWork"), checkCreator, async (req, res, next) => {
+router.delete('/:id', authorize("DELETE_voluntaryWork"), async (req, res, next) => {
     const id = Number(req.params.id?.toString());
 
     deleteVoluntaryWork(id)
@@ -31,7 +31,7 @@ router.delete('/:id', authorize("DELETE_voluntaryWork"), checkCreator, async (re
         });
 })
 
-router.put("/:id", authorize("PUT_voluntaryWork"), checkCreator,validateEditedVoluntaryWork, async (req, res, next) => {
+router.put("/:id", authorize("PUT_voluntaryWork"),validateEditedVoluntaryWork, async (req, res, next) => {
     editVoluntaryWork({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Voluntary Work edited successfully!!")
     }).catch(err => {

@@ -13,7 +13,7 @@ const validateVoluntaryWork = (req: express.Request,
     const voluntaryWork = req.body;
     const errorList = values.map(key => !voluntaryWork[key] && `${key} is Required!`).filter(Boolean);
 
-    const validStatus = voluntaryWork.status.every((status: string) => Object.values(NSVoluntaryWork.StatusType).includes(status as NSVoluntaryWork.StatusType));
+    const validStatus = Object.values(NSVoluntaryWork.StatusType).includes(voluntaryWork.status);
     if (!validStatus) {
         errorList.push("Invalid status !");
     }
@@ -38,7 +38,7 @@ const validateVoluntaryWork = (req: express.Request,
         errorList.push("The started date should be before the finished date !");
     }
 
-    if (errorList.length) {
+    if (errorList.length > 0) {
         res.status(400).send(errorList);
     } else {
         next();
@@ -53,14 +53,14 @@ const validateEditedVoluntaryWork = async (req: express.Request,
     const errorList = [];
 
     const id = Number(req.params.id.toString());
-    const vw = await VoluntaryWork.findOne({where:{id}});
-    if(!vw){
+    const vw = await VoluntaryWork.findOne({ where: { id } });
+    if (!vw) {
         //res.status(400).send("Id not valid");
         next(createError(404));
     }
 
     if (voluntaryWork.status) {
-        const validStatus = voluntaryWork.status.every((status: string) => Object.values(NSVoluntaryWork.StatusType).includes(status as NSVoluntaryWork.StatusType));
+        const validStatus = Object.values(NSVoluntaryWork.StatusType).includes(voluntaryWork.status);
         if (!validStatus) {
             errorList.push("Invalid status !");
         }
@@ -94,11 +94,11 @@ const validateEditedVoluntaryWork = async (req: express.Request,
         if (getDate(voluntaryWork.startedDate) > getDate(voluntaryWork.finishedDate)) {
             errorList.push("The started date should be before the finished date !");
         }
-    }else if (voluntaryWork.startedDate && vw){
+    } else if (voluntaryWork.startedDate && vw) {
         if (getDate(voluntaryWork.startedDate) > vw.finishedDate) {
             errorList.push("The started date should be before the finished date !");
         }
-    }else if (voluntaryWork.finishedDate && vw){
+    } else if (voluntaryWork.finishedDate && vw) {
         if (vw.startedDate > getDate(voluntaryWork.finishedDate)) {
             errorList.push("The started date should be before the finished date !");
         }

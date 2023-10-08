@@ -1,4 +1,4 @@
-import { DeepPartial, FindOperator, FindOptionsWhere, In, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual } from "typeorm";
+import { DeepPartial, FindOperator, FindOptionsWhere, In, LessThan, LessThanOrEqual, Like, MoreThan, MoreThanOrEqual } from "typeorm";
 import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
@@ -67,87 +67,75 @@ const getVoluntaryWork = (payload: { id: number }) => {
 const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => {
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
-    const conditions = [];
-
+    const conditions: Record<string, any> = {};
+    
     if (payload.id) {
-        const voluntaryWork = await VoluntaryWork.findOne({ where: { id: payload.id }, relations: ['skillTags', 'volunteerProfiles'] })
-        return {
-            ...voluntaryWork,
-            volunteerNumbers: voluntaryWork?.volunteerProfiles.length
-        }
-
-
+        conditions["id"] = payload.id;
     }
     if (payload.name) {
-        const voluntaryWork = await VoluntaryWork.findOne({ where: { name: payload.name }, relations: ['skillTags', 'volunteerProfiles'] })
-        return {
-            ...voluntaryWork,
-            volunteerNumbers: voluntaryWork?.volunteerProfiles.length
-        }
+        conditions["name"] = payload.name;
     }
     if (payload.time.length > 0) {
-        conditions.push({ time: In(payload.time) });
+        conditions["time"] = In(payload.time);
     }
     if (payload.location) {
-        conditions.push({ location: payload.location });
+        conditions["location"] = payload.location;
     }
     if (payload.rating) {
-        conditions.push({ rating: payload.rating });
+        conditions["rating"] = payload.rating;
     }
     if (payload.status) {
-        conditions.push({ status: payload.status });
+        conditions["status"] = payload.status;
     }
     if (payload.days.length > 0) {
-        conditions.push({ days: In(payload.days) });
+        conditions["days"] = In(payload.days);
     }
     if (payload.skills.length > 0) {
-        conditions.push({ skillTags: { name: In(payload.skills) } });
+        conditions["skillTags"] = In(payload.skills);
     }
     if (payload.startedDate) {
-        let startedDate = getDate(payload.startedDate);
-        conditions.push({ startedDate: startedDate });
+        conditions["startedDate"] = payload.startedDate; // Assuming this is a specific date comparison
     }
     if (payload.finishedDate) {
-        let finishedDate = getDate(payload.finishedDate);
-        conditions.push({ finishedDate: finishedDate });
+        conditions["finishedDate"] = payload.finishedDate; // Assuming this is a specific date comparison
     }
     if (payload.capacity) {
-        conditions.push({ capacity: payload.capacity });
+        conditions["capacity"] = payload.capacity;
     }
     if (payload.creatorId) {
-        conditions.push({ creatorId: payload.creatorId });
+        conditions["creatorId"] = payload.creatorId;
     }
 
     if (payload.startedAfter) {
         const startedAfterDate = getDate(payload.startedAfter);
-        conditions.push({ startedDate: MoreThan(startedAfterDate) });
+        conditions["startedDate"] = MoreThan(payload.startedAfter);
     }
 
     if (payload.startedBefore) {
         const startedBeforeDate = getDate(payload.startedBefore);
-        conditions.push({ startedDate: LessThan(startedBeforeDate) });
+        conditions["startedDate"] = LessThan(payload.startedBefore);
     }
 
     if (payload.finishedAfter) {
         const finishedAfterDate = getDate(payload.finishedAfter);
-        conditions.push({ finishedDate: MoreThan(finishedAfterDate) });
+        conditions["finishedDate"] = MoreThan(payload.finishedAfter);
     }
 
     if (payload.finishedBefore) {
         const finishedBeforeDate = getDate(payload.finishedBefore);
-        conditions.push({ finishedDate: LessThan(finishedBeforeDate) });
+        conditions["finishedDate"] = LessThan(payload.finishedBefore);
     }
 
     if (payload.ratingMore) {
-        conditions.push({ rating: MoreThanOrEqual(payload.ratingMore) });
+        conditions["rating"] = MoreThanOrEqual(payload.ratingMore);
     }
 
     if (payload.ratingLess) {
-        conditions.push({ rating: LessThanOrEqual(payload.ratingLess) });
+        conditions["rating"] = LessThanOrEqual(payload.ratingLess);
     }
 
     const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
-        where: conditions.length > 0 ? conditions : {},
+        where: Object.keys(conditions).length > 0 ? conditions : {},
         skip: pageSize * (page - 1),
         take: pageSize,
         order: {
@@ -156,14 +144,38 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         relations: ['skillTags', 'volunteerProfiles']
     });
 
+    const processedVW = voluntaryWorks.map(vw => {
+        return {
+            name: vw.name,
+            description: vw.description,
+            days: vw.days,
+            time: vw.time,
+            location: vw.location,
+            startedDate: vw.startedDate,
+            finishedDate: vw.finishedDate,
+            status: vw.status,
+            images: vw.images,
+            rating: vw.rating,
+            feedback: vw.feedback,
+            capacity: vw.capacity,
+            skillTags: vw.skillTags.map(st => { return { name: st.name } }),
+            volunteers: vw.volunteerProfiles.map(async vp => {
+                const v = await Volunteer.findOne({ where: { volunteerProfile: { id: vp.id } } });
+                return {
+                    name: v?.name
+                }
+            }),
+            volunteerNumbers: vw.volunteerProfiles.length,
+            createdAt: vw.createdAt
+        };
+
+    });
+
     return {
         page,
         pageSize: voluntaryWorks.length,
         total,
-        voluntaryWorks: voluntaryWorks.map(voluntaryWork => ({
-            ...voluntaryWork,
-            volunteerNumbers: voluntaryWork.volunteerProfiles.length,
-        }))
+        voluntaryWorks: processedVW
     };
 }
 
@@ -210,7 +222,7 @@ const putImages = async (id: number, uploadedFiles: UploadedFile[]) => {
             voluntaryWork.images.push(...imageUrls);
             await voluntaryWork.save();
         }
-        catch(err){
+        catch (err) {
             console.log(err);
             return "Internet Error!";
         }
