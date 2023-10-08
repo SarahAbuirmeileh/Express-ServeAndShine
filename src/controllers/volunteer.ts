@@ -141,7 +141,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
         conditions["availableTime"] = In(payload.availableTime);
     }
     if (payload.availableLocation) {
-        conditions["availableLocation"] = payload.availableLocation;
+        conditions["availableLocation"] = Like(`%${payload.availableLocation}%`);
     }
     if (payload.type) {        
         conditions["type"] = payload.type;

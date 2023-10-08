@@ -4,8 +4,7 @@ import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import createError from 'http-errors';
 
 const createOrganizationProfile = async (payload: NSOrganizationProfile.Item) => {
-
-    const newOrganizationProfile = OrganizationProfile.create(payload);
+    const newOrganizationProfile = OrganizationProfile.create({name:payload.name,description:payload.description });
     return newOrganizationProfile.save();
 }
 

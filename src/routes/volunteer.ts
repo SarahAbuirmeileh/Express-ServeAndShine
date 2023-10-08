@@ -35,7 +35,7 @@ router.post('/login', (req, res, next) => {
         })
 });
 
-router.delete('/:id', authenticate, authorize("DELETE_volunteer"), checkMe(), async (req, res, next) => {
+router.delete('/:id', authenticate, authorize("DELETE_volunteer"), async (req, res, next) => {
     const id = req.params.id?.toString();
 
     deleteVolunteer(id)
@@ -47,7 +47,7 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), checkMe(), as
         });
 })
 
-router.put("/:id", authenticate, authorize("PUT_volunteer"), checkMe(), validateEditedVolunteer, async (req, res, next) => {
+router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolunteer, async (req, res, next) => {
     editVolunteer({ ...req.body, id: req.params.id?.toString() }).then(() => {
         res.status(201).send("Volunteer edited successfully!!")
     }).catch(err => {

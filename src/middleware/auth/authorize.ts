@@ -12,7 +12,7 @@ const authorize = (api: string) => {
         req: express.Request,
         res: express.Response,
         next: express.NextFunction
-    ) => {        
+    ) => {
         const permissions: NSPermission.Item[] = [];
 
         if (res.locals.organizationAdmin) {
@@ -26,120 +26,95 @@ const authorize = (api: string) => {
             });
         }
 
-        if (permissions?.filter(p => p.name === api).length > 0 || (/^PUT_.+/.test(api)) || (/^DELETE_.+/.test(api))) {
+        if (permissions?.filter(p => p.name === api).length > 0) {
             next();
+        } else if ((/^PUT_.+/.test(api)) || (/^DELETE_.+/.test(api))) {
+            if ((/organizationProfile$/.test(api))) {
+                checkAdmin(req, res, next);
+            } else if ((/organizationAdmin$/.test(api)) || (/volunteer$/.test(api))) {
+                checkMe(req, res, next);
+            } else if ((/voluntaryWork$/.test(api))) {
+                checkCreator(req, res, next);
+            }
         } else {
             res.status(403).send("You don't have the permission to access this resource!");
         }
     }
 }
 
-const checkMe = () => {
-    return (
-        req: express.Request,
-        res: express.Response,
-        next: express.NextFunction
-    ) => {
-        const id = req.params.id;
+const checkMe = (req: express.Request, res: express.Response, next: express.NextFunction) => {
 
-        if (res.locals.volunteer) {
-            if (res.locals.volunteer.id == id) {
-                next();
-            }
-        } else if (res.locals.organizationAdmin) {
-            if (res.locals.organizationAdmin.id == id) {
-                next();
-            } else {
-                next(createError(401));
-            }
+    const id = req.params.id;
+    if (res.locals.volunteer) {
+        if (res.locals.volunteer.id == id) {
+            next();
         }
-    }
-}
-
-const checkAdmin = () => {
-    return async (
-        req: express.Request,
-        res: express.Response,
-        next: express.NextFunction
-    ) => {
-        const id = req.params.id;
-        let organizationProfile = await OrganizationProfile.findOne({ where: { id } });
-        const admin = await OrganizationAdmin.findOne({ where: { orgProfile: { id: organizationProfile?.id } } });
-        if (res.locals.organizationAdmin) {
-            if (res.locals.organizationAdmin.id == admin?.id) {
-                next();
-            }
-        } else {
-            next()
-        }
-    }
-}
-
-const checkCreator = () => {
-    return async (
-        req: express.Request,
-        res: express.Response,
-        next: express.NextFunction
-    ) => {
-        const id = Number(req.params.id);
-        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
-
-        if (res.locals.organizationAdmin) {
-            if (res.locals.organizationAdmin.id == voluntaryWork?.creatorId) {
-                next();
-            }
-        } else if (res.locals.volunteer) {
-            if (res.locals.volunteer.id == voluntaryWork?.creatorId) {
-                next();
-            }
+    } else if (res.locals.organizationAdmin) {
+        if (res.locals.organizationAdmin.id == id) {
+            next();
         } else {
             next(createError(401));
         }
     }
+
 }
 
-const c1heckParticipation = () => {
-    return async (
-        req: express.Request,
-        res: express.Response,
-        next: express.NextFunction
-    ) => {
-        const id = Number(req.params.id);
-        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
-        if(res.locals.volunteer) {
-            const volunteer:Volunteer=res.locals.volunteer;
-        }else {
-            next(createError(401));
+const checkAdmin = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const id = req.params.id;
+    const admin = await OrganizationAdmin.findOne({ where: { orgProfile: { id } } });
+
+    if (res.locals.organizationAdmin) {
+        if (res.locals.organizationAdmin.id == admin?.id) {
+            next();
         }
-    }
-}
-
-const checkParticipation = () => {
-    return async (
-        req: express.Request,
-        res: express.Response,
-        next: express.NextFunction
-    ) => {
-        const id = Number(req.params.id);
-
-        if (res.locals.volunteer) {
-            const volunteer = res.locals.volunteer;
-            const volunteerProfile = volunteer.volunteerProfile;
-
-            if (volunteerProfile) {
-                const voluntaryWork = await VoluntaryWork.findOne({
-                    where: { id },
-                    relations: ['volunteerProfiles'] 
-                });
-
-                if (voluntaryWork && voluntaryWork.volunteerProfiles.includes(volunteerProfile)) {
-                    next();
-                }
-            }
-        } 
+    } else {
         next(createError(401));
-    };
+    }
+}
+
+
+const checkCreator = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const id = Number(req.params.id);
+    let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+
+    if (res.locals.organizationAdmin) {
+        if (res.locals.organizationAdmin.id == voluntaryWork?.creatorId) {
+            next();
+        }
+    } else if (res.locals.volunteer) {
+        if (res.locals.volunteer.id == voluntaryWork?.creatorId) {
+            next();
+        }
+    } else {
+        next(createError(401));
+    }
+}
+
+const checkParticipation = async (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const id = Number(req.params.id);
+
+    if (res.locals.volunteer) {
+        const volunteer = res.locals.volunteer;
+        const volunteerProfile = volunteer.volunteerProfile;
+
+        if (volunteerProfile) {
+            const voluntaryWork = await VoluntaryWork.findOne({
+                where: { id },
+                relations: ['volunteerProfiles']
+            });
+
+            if (voluntaryWork && voluntaryWork.volunteerProfiles.includes(volunteerProfile)) {
+                next();
+            }
+        }
+    }
+    next(createError(401));
 };
+
 
 export {
     authorize,

@@ -20,7 +20,7 @@ router.delete('/:id', authorize("DELETE_permission"), async (req, res, next) => 
 
     deletePermission(id)
         .then(data => {
-            res.send("Deleted");
+            res.send(data);
         })
         .catch(err => {
             // console.error(error);

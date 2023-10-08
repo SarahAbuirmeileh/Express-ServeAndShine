@@ -21,7 +21,7 @@ router.delete('/:id', authorize("DELETE_role"), async (req, res, next) => {
 
     deleteRole(id)
         .then(data => {
-            res.send("Deleted");
+            res.send(data);
         })
         .catch(err => {
             // console.error(error);
