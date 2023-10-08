@@ -68,7 +68,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
     const conditions: Record<string, any> = {};
-    
+
     if (payload.id) {
         conditions["id"] = payload.id;
     }
@@ -135,7 +135,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
     }
 
     const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
-        where: Object.keys(conditions).length > 0 ? conditions : {},
+        where: conditions,
         skip: pageSize * (page - 1),
         take: pageSize,
         order: {
@@ -143,8 +143,14 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         },
         relations: ['skillTags', 'volunteerProfiles']
     });
-
-    const processedVW = voluntaryWorks.map(vw => {
+    const processedVW = await Promise.all(voluntaryWorks.map(async vw => {
+        const volunteers = [];
+        for (const vp of vw.volunteerProfiles) {
+            const v = await Volunteer.findOne({ where: { volunteerProfile: { id: vp.id } } });
+            if (v) {
+                volunteers.push({ name: v.name });
+            }
+        }
         return {
             name: vw.name,
             description: vw.description,
@@ -159,17 +165,12 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
             feedback: vw.feedback,
             capacity: vw.capacity,
             skillTags: vw.skillTags.map(st => { return { name: st.name } }),
-            volunteers: vw.volunteerProfiles.map(async vp => {
-                const v = await Volunteer.findOne({ where: { volunteerProfile: { id: vp.id } } });
-                return {
-                    name: v?.name
-                }
-            }),
-            volunteerNumbers: vw.volunteerProfiles.length,
+            volunteers,
+            volunteerNumbers: volunteers.length,
             createdAt: vw.createdAt
         };
+    }));
 
-    });
 
     return {
         page,
@@ -251,15 +252,22 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
         throw new Error("VoluntaryWork is already at full capacity");
     }
 
-    voluntaryWork.volunteerProfiles.push(volunteerProfile);
-    await voluntaryWork.save();
+    if (voluntaryWork.volunteerProfiles) {
+        voluntaryWork.volunteerProfiles.push(volunteerProfile);
+    } else {
+        voluntaryWork.volunteerProfiles = [volunteerProfile];
+    }
 
+    await voluntaryWork.save();
     return "Registration successful!";
 }
 
 const registerByOrganizationAdmin = async (workId: number, volunteerId: string) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
-    const volunteer = await Volunteer.findOne({ where: { id: volunteerId } });
+    const volunteer = await Volunteer.findOne({
+        where: { id: volunteerId },
+        relations: ["roles", "roles.permissions", "volunteerProfile"]
+    });
 
     if (!voluntaryWork) {
         throw createError(404);
@@ -268,9 +276,13 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
         throw createError(404);
     }
 
-    voluntaryWork.volunteerProfiles.push(volunteer.volunteerProfile);
-    await voluntaryWork.save();
+    if (voluntaryWork.volunteerProfiles) {
+        voluntaryWork.volunteerProfiles.push(volunteer.volunteerProfile);
+    } else {
+        voluntaryWork.volunteerProfiles = [volunteer.volunteerProfile];
+    }
 
+    await voluntaryWork.save();
     return "Registration successful!";
 }
 

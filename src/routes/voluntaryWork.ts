@@ -5,6 +5,7 @@ import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkCreator, checkParticipation } from '../middleware/auth/authorize.js';
 import { validateEditedVoluntaryWork, validateVoluntaryWork } from '../middleware/validation/voluntaryWork.js';
 import { UploadedFile } from 'express-fileupload';
+import { Volunteer } from '../db/entities/Volunteer.js';
 
 var router = express.Router();
 
@@ -156,16 +157,18 @@ router.put("/images/:id", authorize("PUT_images"), async (req, res, next) => {
     });
 });
 
-router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
-    if (res.locals.volunteer) {
-        registerByVolunteer(Number(req.params.id), res.locals.volunteer["volunteerProfile"]).then(() => {
+router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res, next) => {    
+    if (res.locals.volunteer) {        
+        registerByVolunteer(Number(req.params.id), res.locals.volunteer.volunteerProfile).then(() => {
             res.status(201).send("Registration done successfully!!")
         }).catch(err => {
-            // console.error(err);
+             console.error(err);
             // res.status(500).send(err);
             next(err);
         });
     } else if (res.locals.organizationAdmin) {
+      
+        
         if (!req.body.volunteerId.toString()) {
             res.status(400).send("volunteer id is required!");
         }
@@ -173,7 +176,7 @@ router.put("/register/:id", authorize("REGISTER_voluntaryWork"), async (req, res
         registerByOrganizationAdmin(Number(req.params.id), req.body.volunteerId.toString()).then(() => {
             res.status(201).send("Registration done successfully!!")
         }).catch(err => {
-            // console.error(err);
+             console.error(err);
             // res.status(500).send(err);
             next(err);
         });

@@ -27,7 +27,7 @@ const authenticate = async (
         });
         const volunteer = await Volunteer.findOne({
             where: { name: decoded.name, email: decoded.email, id: decoded.id },
-            relations: ["roles", "roles.permissions"]
+            relations: ["roles", "roles.permissions", "volunteerProfile"]
         });
 
         if (organizationAdmin) {
