@@ -16,7 +16,7 @@ export class SkillTag extends BaseEntity {
 
   @ManyToMany(() => VoluntaryWork)
   @JoinTable()
-  roles: VoluntaryWork[];
+  voluntaryWorks: VoluntaryWork[];
 
   @CreateDateColumn({
     type: 'timestamp',

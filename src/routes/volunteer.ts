@@ -66,7 +66,7 @@ router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next
         email: req.query.email?.toString() || "",
         availableLocation: req.query.availableLocation?.toString() || "",
         skills: ((Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean)) as string[],
-        type: req.query.status as NSVolunteer.TypeVolunteer,
+        type: req.query.type as NSVolunteer.TypeVolunteer,
         availableDays: (Array.isArray(req.query.availableDays) ? req.query.availableDays : [req.query.availableDays]).filter(Boolean) as NSVolunteer.AvailableDays[],
         availableTime: ((Array.isArray(req.query.availableTime) ? req.query.availableTime : [req.query.availableTime]).filter(Boolean)) as NSVolunteer.AvailableTime[],
         password: ""

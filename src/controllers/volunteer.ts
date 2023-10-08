@@ -41,7 +41,7 @@ const createVolunteer = async (payload: NSVolunteer.Item) => {
         if (role){
             newVolunteer.roles = [role];
         }
-        
+
         await transaction.save(newVolunteer);
     });
 };
@@ -127,7 +127,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
     const page = parseInt(payload.page);
     const pageSize = parseInt(payload.pageSize);
     const conditions: Record<string, any> = {};
-
+    
     if (payload.id) {
         conditions["id"] = payload.id;
     }
@@ -143,7 +143,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
     if (payload.availableLocation) {
         conditions["availableLocation"] = payload.availableLocation;
     }
-    if (payload.type) {
+    if (payload.type) {        
         conditions["type"] = payload.type;
     }
     if (payload.availableDays.length > 0) {
@@ -158,9 +158,37 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
             "volunteerProfile.skillTags",
             "volunteerProfile"
         ],
+        select: [
+            "name",
+            "email",
+            "type",
+            "volunteerProfile"
+        ],
     });
 
-    const filteredVolunteers = volunteers.filter((volunteer) => {
+    const processedVolunteers = volunteers.map((volunteer) => {
+        // Create a new volunteer object with the desired properties
+        const processedVolunteer = {
+            name: volunteer.name,
+            email: volunteer.email,
+            type: volunteer.type,
+            createdAt: volunteer.createdAt,
+            volunteerProfile: {
+                availableTime: volunteer.volunteerProfile?.availableTime,
+                availableDays: volunteer.volunteerProfile?.availableDays,
+                availableLocation: volunteer.volunteerProfile?.availableLocation,
+                dateOfBirth: volunteer.volunteerProfile?.dateOfBirth,
+                roles:volunteer.volunteerProfile?.roles,
+                skillTags: volunteer.volunteerProfile?.skillTags?.map((skillTag) => {
+                    return { name: skillTag.name };
+                }),
+            },
+        };
+
+        return processedVolunteer;
+    });
+
+    const filteredVolunteers = processedVolunteers.filter((volunteer) => {
         if (payload.skills.length > 0) {
             const hasMatchingSkill = volunteer.volunteerProfile.skillTags.some((skillTag) => payload.skills.includes(skillTag.name));
             return hasMatchingSkill;
@@ -178,6 +206,10 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
         volunteers: paginatedVolunteers,
     };
 };
+
+// "availableTime",
+// "availableLocation",
+// "availableDays",
 
 export { getVolunteers, login, createVolunteer, deleteVolunteer, editVolunteer }
 
