@@ -3,16 +3,17 @@ import { createOrganizationProfile, deleteOrganizationProfile, editOrganizationP
 import { authorize, checkAdmin } from "../middleware/auth/authorize.js";
 import { validateOrgId, validateOrganizationProfile } from "../middleware/validation/organizationProfile.js";
 import { log } from "../controllers/logs.js";
+import { NSLogs } from "../../types/logs.js";
 
 const router = express.Router();
 
 router.post('/', authorize("POST_organizationProfile"), validateOrganizationProfile, (req, res, next) => {
     createOrganizationProfile(req.body).then(() => {
         log({
-            userId: res.locals.organizationAdmin.id,
-            userName: res.locals.organizationAdmin.name,
-            userType: 'admin',
-            type: 'success',
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: 'root' as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
             request: 'Create Organization Profile'
         }).then(() => {
             console.log('logged');
@@ -24,8 +25,8 @@ router.post('/', authorize("POST_organizationProfile"), validateOrganizationProf
         log({
             userId: res.locals.organizationAdmin.id,
             userName: res.locals.organizationAdmin.name,
-            userType: 'admin',
-            type: 'failed',
+            userType: 'admin' as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
             request: 'Create Organization Profile'
         }).then(() => {
             console.log('logged');
@@ -42,10 +43,10 @@ router.delete('/:id', validateOrgId, authorize("DELETE_organizationProfile"), as
     deleteOrganizationProfile(id)
         .then(data => {
             log({
-                userId: res.locals.organizationAdmin.id,
-                userName: res.locals.organizationAdmin.name,
-                userType: 'admin',
-                type: 'success',
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
                 request: 'Delete Organization Profile'
             }).then(() => {
                 console.log('logged');
@@ -56,10 +57,10 @@ router.delete('/:id', validateOrgId, authorize("DELETE_organizationProfile"), as
         })
         .catch(err => {
             log({
-                userId: res.locals.organizationAdmin.id,
-                userName: res.locals.organizationAdmin.name,
-                userType: 'admin',
-                type: 'failed',
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
                 request: 'Delete Organization Profile'
             }).then(() => {
                 console.log('logged');
@@ -75,8 +76,8 @@ router.put("/:id", validateOrgId, authorize("PUT_organizationProfile"), async (r
         log({
             userId: res.locals.organizationAdmin.id,
             userName: res.locals.organizationAdmin.name,
-            userType: 'admin',
-            type: 'success',
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
             request: 'Edit Organization Profile'
         }).then(() => {
             console.log('logged');
@@ -88,8 +89,8 @@ router.put("/:id", validateOrgId, authorize("PUT_organizationProfile"), async (r
         log({
             userId: res.locals.organizationAdmin.id,
             userName: res.locals.organizationAdmin.name,
-            userType: 'admin',
-            type: 'failed',
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
             request: 'Edit Organization Profile'
         }).then(() => {
             console.log('logged');
@@ -112,10 +113,10 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
     getOrganizationProfile(payload)
         .then(data => {
             log({
-                userId: res.locals.organizationAdmin.id,
-                userName: res.locals.organizationAdmin.name,
-                userType: 'admin',
-                type: 'success',
+                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                userName: res.locals.organizationAdmin.name || res.locals.volunteer?.name,
+                userType: (res.locals.volunteer ? "volunteer" : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
                 request: 'Get Organization Profiles'
             }).then(() => {
                 console.log('logged');
@@ -126,10 +127,10 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
         })
         .catch(err => {
             log({
-                userId: res.locals.organizationAdmin.id,
-                userName: res.locals.organizationAdmin.name,
-                userType: 'admin',
-                type: 'failed',
+                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                userName: res.locals.organizationAdmin.name || res.locals.volunteer?.name,
+                userType: (res.locals.volunteer ? "volunteer" : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
                 request: 'Get Organization Profiles'
             }).then(() => {
                 console.log('logged');
