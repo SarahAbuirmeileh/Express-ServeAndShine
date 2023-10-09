@@ -4,6 +4,8 @@ import { isValidPassword } from '../../controllers/index.js';
 import { NSVolunteer } from '../../../types/volunteer.js';
 import { Volunteer } from '../../db/entities/Volunteer.js';
 import createError from 'http-errors'
+import { NSLogs } from '../../../types/logs.js';
+import { log } from '../../controllers/logs.js';
 
 
 const validateVolunteer = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -42,6 +44,18 @@ const validateVolunteer = (req: express.Request, res: express.Response, next: ex
     errorList.push(...isValidPassword(volunteer.password));
 
     if (errorList.length) {
+        log({
+            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Bad Volunteer Request'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
+        next(createError(400));
         res.status(400).send({ errors: errorList });
     } else {
         next();
@@ -55,7 +69,17 @@ const validateEditedVolunteer = async (req: express.Request, res: express.Respon
     const id = req.params.id.toString();
     const v = await Volunteer.findOne({ where: { id } });
     if (!v) {
-        //res.status(400).send("Id not valid");
+        log({
+            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Invalid Volunteer id'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         next(createError(404));
     }
 
@@ -91,6 +115,17 @@ const validateEditedVolunteer = async (req: express.Request, res: express.Respon
     }
 
     if (errorList.length) {
+        log({
+            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Bad Volunteer Request'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         res.status(400).send({ errors: errorList });
     } else {
         next();
@@ -104,7 +139,17 @@ const validateVolunteerId = async (req: express.Request,
     const id = (req.params.id.toString());
     const p = await Volunteer.findOne({ where: { id } });
     if (!p) {
-        //res.status(400).send("Id not valid");
+        log({
+            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Invalid Volunteer id'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         next(createError(404));
     } else {
         next();
