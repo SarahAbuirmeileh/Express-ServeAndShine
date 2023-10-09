@@ -54,7 +54,7 @@ const authenticate = async (
                 userName: "",
                 userType: "" as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Authorization failed'
+                request: 'Authentication failed'
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -68,7 +68,7 @@ const authenticate = async (
             userName: "",
             userType: "" as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Authorization failed'
+            request: 'Authentication failed'
         }).then(() => {
             console.log('logged');
         }).catch(err => {
