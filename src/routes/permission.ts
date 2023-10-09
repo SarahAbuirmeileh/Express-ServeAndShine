@@ -7,8 +7,9 @@ import { NSLogs } from '../../types/logs.js';
 
 var router = express.Router();
 
-router.post('/', authorize("POST_permissions"), validatePermission, (req, res, next) => {
-    createPermission(req.body).then(() => {
+router.post('/', authorize("POST_permission"), validatePermission, (req, res, next) => {
+    createPermission(req.body).then((data) => {
+         
         log({
             userId: res.locals.organizationAdmin?.id,
             userName: res.locals.organizationAdmin?.name,
@@ -19,7 +20,7 @@ router.post('/', authorize("POST_permissions"), validatePermission, (req, res, n
             console.log('logged');
         }).catch(err => {
             console.log('NOT logged');
-        })
+        })        
         res.status(201).send("Permission created successfully!!")
     }).catch(err => {
         log({
