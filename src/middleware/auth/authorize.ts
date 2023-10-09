@@ -2,9 +2,7 @@ import express from 'express';
 import { NSPermission } from '../../../types/permission.js';
 import { OrganizationAdmin } from '../../db/entities/OrganizationAdmin.js';
 import { Volunteer } from '../../db/entities/Volunteer.js';
-import { OrganizationProfile } from '../../db/entities/OrganizationProfile.js';
 import { VoluntaryWork } from '../../db/entities/VoluntaryWork.js';
-import { VolunteerProfile } from '../../db/entities/VolunteerProfile.js';
 import createError from 'http-errors';
 
 const authorize = (api: string) => {

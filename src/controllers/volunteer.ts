@@ -43,6 +43,7 @@ const createVolunteer = async (payload: NSVolunteer.Item) => {
         }
 
         await transaction.save(newVolunteer);
+        return newVolunteer
     });
 };
 
