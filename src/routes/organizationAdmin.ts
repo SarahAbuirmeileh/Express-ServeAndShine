@@ -3,16 +3,17 @@ import { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin
 import { authorize, checkMe } from "../middleware/auth/authorize.js";
 import { validateAdminEdited, validateAdminId, validateOrganizationAdmin } from "../middleware/validation/organizationAdmin.js";
 import { log } from "../controllers/logs.js";
+import { NSLogs } from "../../types/logs.js";
 
 const router = express.Router();
 
 router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
     createOrganizationAdmin(req.body).then(() => {
         log({
-            userId: res.locals.organizationAdmin.id,
-            userName: res.locals.organizationAdmin.name,
-            userType: 'admin',
-            type: 'success',
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: 'root' as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
             request: 'Create Organization Admin'
         }).then(() => {
             console.log('logged');
@@ -23,10 +24,10 @@ router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin,
         res.status(201).send("Organization Admin created successfully!!")
     }).catch(err => {
         log({
-            userId: res.locals.organizationAdmin.id,
-            userName: res.locals.organizationAdmin.name,
-            userType: 'admin',
-            type: 'failed',
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: 'root' as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
             request: 'Create Organization Admin'
         }).then(() => {
             console.log('logged');
@@ -43,10 +44,10 @@ router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), as
     deleteOrganizationAdmin(id)
         .then(data => {
             log({
-                userId: res.locals.organizationAdmin.id,
-                userName: res.locals.organizationAdmin.name,
-                userType: 'admin',
-                type: 'success',
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
                 request: 'Delete Organization Admin'
             }).then(() => {
                 console.log('logged');
@@ -57,10 +58,10 @@ router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), as
         })
         .catch(err => {
             log({
-                userId: res.locals.organizationAdmin.id,
-                userName: res.locals.organizationAdmin.name,
-                userType: 'admin',
-                type: 'failed',
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
                 request: 'Delete Organization Admin'
             }).then(() => {
                 console.log('logged');
@@ -74,10 +75,10 @@ router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), as
 router.put("/:id", authorize("PUT_organizationAdmin"), validateAdminEdited, async (req, res, next) => {
     editOrganizationAdmin({ ...req.body, id: req.params.id }).then(() => {
         log({
-            userId: res.locals.organizationAdmin.id,
-            userName: res.locals.organizationAdmin.name,
-            userType: 'admin',
-            type: 'success',
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
             request: 'Edit Organization Admin'
         }).then(() => {
             console.log('logged');
@@ -87,10 +88,10 @@ router.put("/:id", authorize("PUT_organizationAdmin"), validateAdminEdited, asyn
         res.status(201).send("Organization Admin edited successfully!!")
     }).catch(err => {
         log({
-            userId: res.locals.organizationAdmin.id,
-            userName: res.locals.organizationAdmin.name,
-            userType: 'admin',
-            type: 'failed',
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
             request: 'Edit Organization Admin'
         }).then(() => {
             console.log('logged');
@@ -114,10 +115,10 @@ router.get('/', authorize("GET_organizationAdmins"), async (req, res, next) => {
     getOrganizationAdmins(payload)
         .then(data => {
             log({
-                userId: res.locals.organizationAdmin.id,
-                userName: res.locals.organizationAdmin.name,
-                userType: 'admin',
-                type: 'success',
+                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                userName: res.locals.organizationAdmin.name || res.locals.volunteer?.name,
+                userType: (res.locals.volunteer ? "volunteer" : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
                 request: 'Get all Organization Admins'
             }).then(() => {
                 console.log('logged');
@@ -128,10 +129,10 @@ router.get('/', authorize("GET_organizationAdmins"), async (req, res, next) => {
         })
         .catch(err => {
             log({
-                userId: res.locals.organizationAdmin.id,
-                userName: res.locals.organizationAdmin.name,
-                userType: 'admin',
-                type: 'failed',
+                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                userName: res.locals.organizationAdmin.name || res.locals.volunteer?.name,
+                userType: (res.locals.volunteer ? "volunteer" : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
                 request: 'Get all Organization Admins'
             }).then(() => {
                 console.log('logged');
