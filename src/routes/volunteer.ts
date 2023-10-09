@@ -16,7 +16,7 @@ router.post('/register', validateVolunteer, (req, res, next) => {
             userName: req.body.name,
             userType: req.body.type as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Register volunteer'
+            request: 'Register volunteer ' + req.body.name
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -29,7 +29,7 @@ router.post('/register', validateVolunteer, (req, res, next) => {
             userName: req.body.name,
             userType: req.body.type as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Register volunteer'
+            request: 'Register volunteer' + req.body.name
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -55,7 +55,7 @@ router.post('/login', (req, res, next) => {
                 userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Login'
+                request: 'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -69,7 +69,7 @@ router.post('/login', (req, res, next) => {
                 userName: req.body.name,
                 userType: 'volunteer' as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Login'
+                request: 'Login' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -89,7 +89,7 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), async (req, r
                 userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Delete Volunteer'
+                request: 'Delete Volunteer with id: ' + id
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -103,7 +103,7 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), async (req, r
                 userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Delete Volunteer'
+                request: 'Delete Volunteer with id: ' + id
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -120,7 +120,7 @@ router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolun
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Edit Volunteer'
+            request: 'Edit Volunteer with id: ' + req.params.id?.toString()
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -133,7 +133,7 @@ router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolun
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Edit Volunteer'
+            request: 'Edit Volunteer with id: ' + req.params.id?.toString()
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -201,7 +201,7 @@ router.get("/logout", authenticate, (req, res, next) => {
         userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
         userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
         type: 'success' as NSLogs.Type,
-        request: 'Logout'
+        request: 'Logout ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
     }).then(() => {
         console.log('logged');
     }).catch(err => {

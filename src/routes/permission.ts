@@ -9,26 +9,26 @@ var router = express.Router();
 
 router.post('/', authorize("POST_permission"), validatePermission, (req, res, next) => {
     createPermission(req.body).then((data) => {
-         
+
         log({
             userId: res.locals.organizationAdmin?.id,
             userName: res.locals.organizationAdmin?.name,
             userType: 'root' as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Create Permission'
+            request: 'Create Permission ' + req.body.name
         }).then(() => {
             console.log('logged');
         }).catch(err => {
             console.log('NOT logged');
-        })        
+        })
         res.status(201).send("Permission created successfully!!")
     }).catch(err => {
         log({
-            userId: res.locals.organizationAdmin.id,
-            userName: res.locals.organizationAdmin.name,
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
             userType: 'root' as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Create Permission'
+            request: 'Create Permission ' + req.body.name
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -48,7 +48,7 @@ router.delete('/:id', validatePermissionId, authorize("DELETE_permission"), asyn
                 userName: res.locals.organizationAdmin?.name,
                 userType: 'root' as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Delete Permission'
+                request: 'Delete Permission with id: ' + id
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -62,7 +62,7 @@ router.delete('/:id', validatePermissionId, authorize("DELETE_permission"), asyn
                 userName: res.locals.organizationAdmin?.name,
                 userType: 'root' as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Delete Permission'
+                request: 'Delete Permission with id: ' + id
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -79,7 +79,7 @@ router.put("/:id", authorize("PUT_permission"), validatePermissionId, async (req
             userName: res.locals.organizationAdmin?.name,
             userType: 'root' as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Edit Permission'
+            request: 'Edit Permission with id: ' + req.params.id
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -92,7 +92,7 @@ router.put("/:id", authorize("PUT_permission"), validatePermissionId, async (req
             userName: res.locals.organizationAdmin?.name,
             userType: 'root' as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Edit Permission'
+            request: 'Edit Permission with id: ' + req.params.id
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -117,7 +117,7 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
                 userName: res.locals.organizationAdmin?.name,
                 userType: 'root' as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Get Permissions'
+                request: 'Get Permission/s'
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -131,7 +131,7 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
                 userName: res.locals.organizationAdmin?.name,
                 userType: 'root' as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Get Permissions'
+                request: 'Get Permission/s'
             }).then(() => {
                 console.log('logged');
             }).catch(err => {

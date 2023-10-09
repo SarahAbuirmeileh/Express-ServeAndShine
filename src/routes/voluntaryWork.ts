@@ -18,7 +18,7 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Create Voluntary Work'
+            request: 'Create Voluntary Work ' + req.body.name
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -30,7 +30,7 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Create Voluntary Work'
+            request: 'Create Voluntary Work ' + req.body.name
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -50,7 +50,7 @@ router.delete('/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork")
                 userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Delete Voluntary Work'
+                request: 'Delete Voluntary Work with id: ' + id
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -64,7 +64,7 @@ router.delete('/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork")
                 userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Delete Voluntary Work'
+                request: 'Delete Voluntary Work with id: ' + id
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -81,7 +81,7 @@ router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, 
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Edit Voluntary Work'
+            request: 'Edit Voluntary Work with id: ' + req.params.id
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -94,7 +94,7 @@ router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, 
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Edit Voluntary Work'
+            request: 'Edit Voluntary Work with id: ' + req.params.id
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -147,7 +147,7 @@ router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
         .catch(err => {
             log({
                 userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin.name,
+                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Get Voluntary Work/s'
@@ -192,7 +192,7 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
                 userName: res.locals.organizationAdmin?.name,
                 userType: 'root' as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Analysis Voluntary Works'
+                request: 'Analysis Voluntary Work/s'
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -206,7 +206,7 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
                 userName: res.locals.organizationAdmin?.name,
                 userType: "root" as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Analysis Voluntary Works'
+                request: 'Analysis Voluntary Work/s'
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -237,7 +237,7 @@ router.get('/recommendation', authorize("GET_recommendation"), async (req, res, 
             log({
                 userId: res.locals.volunteer?.id,
                 userName: res.locals.volunteer?.name,
-                userType:  res.locals.volunteer?.type as NSLogs.userType,
+                userType: res.locals.volunteer?.type as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Get recommendation'
             }).then(() => {
@@ -256,7 +256,7 @@ router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), chec
             userName: res.locals.volunteer?.name,
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Add Rating'
+            request: 'Add Rating to voluntary work with id' + req.params.id
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -269,7 +269,7 @@ router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), chec
             userName: res.locals.volunteer?.name,
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Add Rating'
+            request: 'Add Rating to voluntary work with id' + req.params.id
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -286,7 +286,7 @@ router.put("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_feedback"), 
             userName: res.locals.volunteer?.name,
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Add feedback'
+            request: 'Add feedback to voluntary work with id' + req.params.id
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -299,7 +299,7 @@ router.put("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_feedback"), 
             userName: res.locals.organizationAdmin?.name,
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Add feedback'
+            request: 'Add feedback to voluntary work with id' + req.params.id
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -314,9 +314,9 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type  : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Add images'
+            request: 'Add images to voluntary work with id' + req.params.id
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -327,9 +327,9 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type  : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Add images'
+            request: 'Add images to voluntary work with id' + req.params.id
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -341,13 +341,13 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
 
 router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
     if (res.locals.volunteer) {
-        registerByVolunteer(Number(req.params.id), res.locals.volunteer.volunteerProfile).then(() => {
+        registerByVolunteer(Number(req.params.id), res.locals.volunteer?.volunteerProfile).then(() => {
             log({
                 userId: res.locals.volunteer?.id,
                 userName: res.locals.volunteer?.name,
-                userType: res.locals.volunteer?.type  as NSLogs.userType,
+                userType: res.locals.volunteer?.type as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Register  voluntary work'
+                request: 'Register to voluntary work with id' + req.params.id
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -358,9 +358,9 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
             log({
                 userId: res.locals.volunteer?.id,
                 userName: res.locals.volunteer?.name,
-                userType: res.locals.volunteer?.type  as NSLogs.userType,
+                userType: res.locals.volunteer?.type as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Register  voluntary work'
+                request: 'Register to voluntary work with id' + req.params.id
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -378,7 +378,7 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
                 userName: res.locals.organizationAdmin?.name,
                 userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Register By Organization Admin'
+                request: 'Register By Organization Admin to voluntary work with id' + req.params.id + " volunteer id: " + req.body.volunteerId.toString()
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -391,7 +391,7 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
                 userName: res.locals.organizationAdmin?.name,
                 userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Register By Organization Admin'
+                request: 'Register By Organization Admin to voluntary work with id' + req.params.id + " volunteer id: " + req.body.volunteerId.toString()
             }).then(() => {
                 console.log('logged');
             }).catch(err => {
@@ -407,9 +407,9 @@ router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_vol
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type  : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Deregister voluntary work'
+            request: 'Deregister to voluntary work with id' + req.params.id + " volunteer id: " + res.locals.volunteer?.id || req.body.volunteerId.toString()
         }).then(() => {
             console.log('logged');
         }).catch(err => {
@@ -419,10 +419,10 @@ router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_vol
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            userName: res.locals.organizationAdmin.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type  : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Deregister voluntary work'
+            request: 'Deregister to voluntary work with id' + req.params.id + " volunteer id: " + res.locals.volunteer?.id || req.body.volunteerId.toString()
         }).then(() => {
             console.log('logged');
         }).catch(err => {
