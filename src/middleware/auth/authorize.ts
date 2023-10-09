@@ -4,6 +4,8 @@ import { OrganizationAdmin } from '../../db/entities/OrganizationAdmin.js';
 import { Volunteer } from '../../db/entities/Volunteer.js';
 import { VoluntaryWork } from '../../db/entities/VoluntaryWork.js';
 import createError from 'http-errors';
+import { log } from '../../controllers/logs.js';
+import { NSLogs } from '../../../types/logs.js';
 
 const authorize = (api: string) => {
     return async (
@@ -33,13 +35,33 @@ const authorize = (api: string) => {
                 checkMe(req, res, next);
             } else if ((/voluntaryWork$/.test(api)) || ((/images/.test(api)))) {
                 checkCreator(req, res, next);
-            }else {
-                res.status(403).send("You don't have the permission to access this resource!");
+            } else {
+                log({
+                    userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                    userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+                    userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                    type: 'failed' as NSLogs.Type,
+                    request: 'Authorization failed to ' + api
+                }).then(() => {
+                    console.log('logged');
+                }).catch(err => {
+                    console.log('NOT logged');
+                })
+                next(createError(401));
             }
         } else {
-
-           
-            res.status(403).send("You don't have the permission to access this resource!");
+            log({
+                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Authorization failed to ' + api
+            }).then(() => {
+                console.log('logged');
+            }).catch(err => {
+                console.log('NOT logged');
+            })
+            next(createError(401));
         }
     }
 }
@@ -50,11 +72,35 @@ const checkMe = (req: express.Request, res: express.Response, next: express.Next
     if (res.locals.volunteer) {
         if (res.locals.volunteer.id == id) {
             next();
+        } else {
+            log({
+                userId: res.locals.volunteer?.id,
+                userName: res.locals.volunteer?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Authorization failed'
+            }).then(() => {
+                console.log('logged');
+            }).catch(err => {
+                console.log('NOT logged');
+            })
+            next(createError(401));
         }
     } else if (res.locals.organizationAdmin) {
         if (res.locals.organizationAdmin.id == id) {
             next();
         } else {
+            log({
+                userId: res.locals.volunteer?.id,
+                userName: res.locals.volunteer?.name,
+                userType: (res.locals.volunteer?.type) as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Authorization failed'
+            }).then(() => {
+                console.log('logged');
+            }).catch(err => {
+                console.log('NOT logged');
+            })
             next(createError(401));
         }
     }
@@ -69,9 +115,31 @@ const checkAdmin = async (req: express.Request, res: express.Response, next: exp
         if (res.locals.organizationAdmin.id == admin?.id) {
             next();
         } else {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Authorization failed'
+            }).then(() => {
+                console.log('logged');
+            }).catch(err => {
+                console.log('NOT logged');
+            })
             next(createError(401));
         }
     } else {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Authorization failed'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         next(createError(401));
     }
 }
@@ -85,16 +153,37 @@ const checkCreator = async (req: express.Request, res: express.Response, next: e
         if (res.locals.organizationAdmin.id == voluntaryWork?.creatorId) {
             next();
         } else {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Authorization failed'
+            }).then(() => {
+                console.log('logged');
+            }).catch(err => {
+                console.log('NOT logged');
+            })
             next(createError(401));
         }
     } else if (res.locals.volunteer) {
         if (res.locals.volunteer?.id == voluntaryWork?.creatorId) {
             next();
         } else {
+            log({
+                userId: res.locals.volunteer?.id,
+                userName: res.locals.volunteer?.name,
+                userType: (res.locals.volunteer?.type) as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Authorization failed'
+            }).then(() => {
+                console.log('logged');
+            }).catch(err => {
+                console.log('NOT logged');
+            })
             next(createError(401));
         }
     } else {
-
         next(createError(401));
     }
 }
@@ -119,6 +208,17 @@ const checkParticipation = async (req: express.Request, res: express.Response, n
                 if (isParticipating) {
                     next();
                 } else {
+                    log({
+                        userId: res.locals.volunteer?.id,
+                        userName: res.locals.volunteer?.name,
+                        userType: (res.locals.volunteer?.type) as NSLogs.userType,
+                        type: 'failed' as NSLogs.Type,
+                        request: 'Authorization failed'
+                    }).then(() => {
+                        console.log('logged');
+                    }).catch(err => {
+                        console.log('NOT logged');
+                    })
                     next(createError(401));
                 }
             } else {
@@ -128,6 +228,17 @@ const checkParticipation = async (req: express.Request, res: express.Response, n
             next(createError(401)); // Handle the case when volunteerProfile is not defined
         }
     } else {
+        log({
+            userId: res.locals.organizationAdmin?.id ||res.locals.volunteer?.id,
+            userName:res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Authorization failed'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         next(createError(401)); // Handle the case when res.locals.volunteer is not defined
     }
 };

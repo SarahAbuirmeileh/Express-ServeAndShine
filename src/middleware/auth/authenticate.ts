@@ -3,6 +3,8 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { OrganizationAdmin } from '../../db/entities/OrganizationAdmin.js';
 import { Volunteer } from '../../db/entities/Volunteer.js';
 import createError from 'http-errors';
+import { NSLogs } from '../../../types/logs.js';
+import { log } from '../../controllers/logs.js';
 
 const authenticate = async (
     req: express.Request,
@@ -42,16 +44,36 @@ const authenticate = async (
             res.locals.volunteer = volunteer;
             res.cookie('name', res.locals.volunteer.name, {
                 httpOnly: true,
-                maxAge: 60 * 24* 60 * 1000,
+                maxAge: 60 * 24 * 60 * 1000,
                 sameSite: "lax"       // Protect against CSRF attacks
             });
             next();
         } else {
-            //res.status(401).send("You are Unauthorized!");
+            log({
+                userId: "",
+                userName: "",
+                userType: "" as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Authentication failed'
+            }).then(() => {
+                console.log('logged');
+            }).catch(err => {
+                console.log('NOT logged');
+            })
             next(createError(401));
         }
     } else {
-        //res.status(401).send("You are Unauthorized!");
+        log({
+            userId: "",
+            userName: "",
+            userType: "" as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Authentication failed'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         next(createError(401));
     }
 }

@@ -3,6 +3,8 @@ import * as EmailValidator from 'email-validator';
 import { isValidPassword } from '../../controllers/index.js';
 import { OrganizationAdmin } from '../../db/entities/OrganizationAdmin.js';
 import createError from 'http-errors';
+import { NSLogs } from '../../../types/logs.js';
+import { log } from '../../controllers/logs.js';
 
 
 const validateOrganizationAdmin = (req: express.Request,
@@ -20,6 +22,17 @@ const validateOrganizationAdmin = (req: express.Request,
     errorList.push(...isValidPassword(organizationAdmin.password));
 
     if (errorList.length) {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Bad Organization Admin Request'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         res.status(400).send(errorList);
     } else {
         next();
@@ -36,7 +49,17 @@ const validateAdminEdited = async (req: express.Request,
     const id = req.params.id.toString();
     const v = await OrganizationAdmin.findOne({ where: { id } });
     if (!v) {
-        //res.status(400).send("Id not valid");
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Bad Organization Admin Request'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         next(createError(404));
     }
 
@@ -49,6 +72,17 @@ const validateAdminEdited = async (req: express.Request,
         errorList.push(...isValidPassword(organizationAdmin.password));
 
     if (errorList.length) {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Bad Organization Admin Request'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         res.status(400).send(errorList);
     } else {
         next();
@@ -62,7 +96,17 @@ const validateAdminId = async (req: express.Request,
     const id = req.params.id.toString();
     const p = await OrganizationAdmin.findOne({ where: { id } });
     if (!p) {
-        //res.status(400).send("Id not valid");
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Bad Organization Admin Request'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         next(createError(404));
     } else {
         next();

@@ -4,6 +4,8 @@ import { NSVolunteer } from '../../../types/volunteer.js';
 import { getDate, isValidDate } from '../../controllers/index.js';
 import { VoluntaryWork } from '../../db/entities/VoluntaryWork.js';
 import createError from 'http-errors';
+import { NSLogs } from '../../../types/logs.js';
+import { log } from '../../controllers/logs.js';
 
 const validateVoluntaryWork = (req: express.Request,
     res: express.Response,
@@ -39,6 +41,17 @@ const validateVoluntaryWork = (req: express.Request,
     }
 
     if (errorList.length > 0) {
+        log({
+            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Bad Voluntary Work Request'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         res.status(400).send(errorList);
     } else {
         next();
@@ -55,7 +68,17 @@ const validateEditedVoluntaryWork = async (req: express.Request,
     const id = Number(req.params.id.toString());
     const vw = await VoluntaryWork.findOne({ where: { id } });
     if (!vw) {
-        //res.status(400).send("Id not valid");
+        log({
+            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Invalid Voluntary Work id'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         next(createError(404));
     }
 
@@ -105,6 +128,17 @@ const validateEditedVoluntaryWork = async (req: express.Request,
     }
 
     if (errorList.length) {
+        log({
+            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Bad Voluntary Work Request'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         res.status(400).send(errorList);
     } else {
         next();
@@ -118,7 +152,17 @@ const validateVoluntaryWorkId = async (req: express.Request,
     const id = Number(req.params.id.toString());
     const p = await VoluntaryWork.findOne({ where: { id } });
     if (!p) {
-        //res.status(400).send("Id not valid");
+        log({
+            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Invalid Voluntary Work id'
+        }).then(() => {
+            console.log('logged');
+        }).catch(err => {
+            console.log('NOT logged');
+        })
         next(createError(404));
     } else {
         next();
