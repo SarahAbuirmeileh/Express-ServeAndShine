@@ -115,7 +115,7 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
             log({
                 userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 userName: res.locals.organizationAdmin.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer ? "volunteer" : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type  : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Get Organization Profiles'
             }).then(() => {
@@ -129,7 +129,7 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
             log({
                 userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 userName: res.locals.organizationAdmin.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer ? "volunteer" : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                userType: (res.locals.volunteer?.type ? res.locals.volunteer?.type  : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Get Organization Profiles'
             }).then(() => {
