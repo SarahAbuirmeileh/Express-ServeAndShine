@@ -309,8 +309,47 @@ router.put("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_feedback"), 
     });
 });
 
+// router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
+//     putImages(Number(req.params.id), ((Array.isArray(req.files?.image) ? req.files?.image : [req.files?.image]).filter(Boolean)) as UploadedFile[]).then(() => {
+//         log({
+//             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+//             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+//             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+//             type: 'success' as NSLogs.Type,
+//             request: 'Add images to voluntary work with id' + req.params.id
+//         }).then(() => {
+//             console.log('logged');
+//         }).catch(err => {
+//             console.log('NOT logged');
+//         })
+//         res.status(201).send("Images added successfully!!")
+//     }).catch(err => {
+//         log({
+//             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+//             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+//             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+//             type: 'failed' as NSLogs.Type,
+//             request: 'Add images to voluntary work with id' + req.params.id
+//         }).then(() => {
+//             console.log('logged');
+//         }).catch(err => {
+//             console.log('NOT logged');
+//         })
+//         next(err);
+//     });
+// });
 router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
-    putImages(Number(req.params.id), ((Array.isArray(req.files?.image) ? req.files?.image : [req.files?.image]).filter(Boolean)) as UploadedFile[]).then(() => {
+    const images = req.files?.image;
+    if (!images) {
+        // Handle the case when 'images' is undefined
+        return res.status(400).send("No images provided.");
+    }
+
+    try {
+        const uploadedFiles = Array.isArray(images) ? images : [images];
+
+        await putImages(Number(req.params.id), uploadedFiles);
+
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
@@ -321,9 +360,10 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
             console.log('logged');
         }).catch(err => {
             console.log('NOT logged');
-        })
-        res.status(201).send("Images added successfully!!")
-    }).catch(err => {
+        });
+
+        res.status(201).send("Images added successfully!!");
+    } catch (err) {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
@@ -334,11 +374,10 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
             console.log('logged');
         }).catch(err => {
             console.log('NOT logged');
-        })
+        });
         next(err);
-    });
+    }
 });
-
 router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
     if (res.locals.volunteer) {
         registerByVolunteer(Number(req.params.id), res.locals.volunteer?.volunteerProfile).then(() => {
