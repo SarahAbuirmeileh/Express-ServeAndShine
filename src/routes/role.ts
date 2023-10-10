@@ -3,7 +3,7 @@ import { createRole, deleteRole, editRole, getRoles } from '../controllers/role.
 import { NSRole } from '../../types/role.js';
 import { authorize } from '../middleware/auth/authorize.js';
 import { validateEditedRole, validateRole, validateRoleId } from '../middleware/validation/role.js';
-import { log } from '../controllers/logs.js';
+import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 
 var router = express.Router();

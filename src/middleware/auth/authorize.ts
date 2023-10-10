@@ -4,7 +4,7 @@ import { OrganizationAdmin } from '../../db/entities/OrganizationAdmin.js';
 import { Volunteer } from '../../db/entities/Volunteer.js';
 import { VoluntaryWork } from '../../db/entities/VoluntaryWork.js';
 import createError from 'http-errors';
-import { log } from '../../controllers/logs.js';
+import { log } from '../../controllers/dataBase-logger.js';
 import { NSLogs } from '../../../types/logs.js';
 
 const authorize = (api: string) => {

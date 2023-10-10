@@ -2,7 +2,7 @@ import express from "express";
 import { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins } from "../controllers/organizationAdmin.js";
 import { authorize, checkMe } from "../middleware/auth/authorize.js";
 import { validateAdminEdited, validateAdminId, validateOrganizationAdmin } from "../middleware/validation/organizationAdmin.js";
-import { log } from "../controllers/logs.js";
+import { log } from "../controllers/dataBase-logger.js";
 import { NSLogs } from "../../types/logs.js";
 
 const router = express.Router();

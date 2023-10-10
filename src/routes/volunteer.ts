@@ -4,7 +4,7 @@ import { authenticate } from '../middleware/auth/authenticate.js';
 import { validateEditedVolunteer, validateVolunteer } from '../middleware/validation/volunteer.js';
 import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login } from '../controllers/volunteer.js';
 import { NSVolunteer } from '../../types/volunteer.js';
-import { log } from '../controllers/logs.js';
+import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 
 var router = express.Router();

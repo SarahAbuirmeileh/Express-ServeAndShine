@@ -5,7 +5,7 @@ import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
 import { validateEditedVoluntaryWork, validateVoluntaryWork, validateVoluntaryWorkId } from '../middleware/validation/voluntaryWork.js';
 import { UploadedFile } from 'express-fileupload';
-import { log } from '../controllers/logs.js';
+import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 
 var router = express.Router();

@@ -2,7 +2,7 @@ import express from 'express';
 import { createPermission, deletePermission, editPermission, getPermissions } from '../controllers/permission.js';
 import { authorize } from '../middleware/auth/authorize.js';
 import { validatePermission, validatePermissionId } from '../middleware/validation/permission.js';
-import { log } from '../controllers/logs.js';
+import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 
 var router = express.Router();
