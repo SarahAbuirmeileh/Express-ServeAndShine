@@ -17,7 +17,7 @@ services:
     restart: always
 
   app:
-    image: ghcr.io/sarahabuirmeileh/express-docker:$GIT_VERSISON
+    image: ghcr.io/sarahabuirmeileh/serve-and-shine:$GIT_VERSISON
     restart: always #like sysd service
     environment:
       - PORT=80
