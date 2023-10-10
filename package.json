@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "build-tsc": "tsc -w",
-    "run-watch": "nodemon ./dist/app.js",
+    "run-watch": "nodemon --loader ts-node/esm ./dist/app.js",
     "dev": "concurrently \"npm:build-tsc\"  \"npm:run-watch\"",
     "test": "tsc && jest",
     "build": "tsc --project ."
