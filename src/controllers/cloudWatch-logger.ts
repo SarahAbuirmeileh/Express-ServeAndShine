@@ -25,3 +25,20 @@ export const logToCloudWatch = async (logGroupName:string, logStreamName:string,
         console.error('Error sending log event:', error);
     }
 };
+
+ logToCloudWatch(
+    'failed',
+    '', 
+    'Volunteer registered successfully!',
+    '',
+    ''
+).then().catch()
+
+ logToCloudWatch(
+    'success',
+    '', 
+    'Volunteer registered successfully!',
+    '',
+    ''
+).then().catch()
+
