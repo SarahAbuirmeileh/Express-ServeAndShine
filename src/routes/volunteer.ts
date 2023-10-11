@@ -6,6 +6,7 @@ import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login }
 import { NSVolunteer } from '../../types/volunteer.js';
 import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
+import { logToCloudWatch } from '../controllers/cloudWatch-logger.js';
 
 var router = express.Router();
 
@@ -17,11 +18,16 @@ router.post('/register', validateVolunteer, (req, res, next) => {
             userType: req.body.type as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Register volunteer ' + req.body.name
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'volunteer',
+            'Register volunteer ' + req.body.name,
+            req.body.id,
+            req.body.name
+        ).then().catch()
+
         res.status(201).send("Volunteer created successfully!!")
     }).catch(err => {
         log({
@@ -30,11 +36,16 @@ router.post('/register', validateVolunteer, (req, res, next) => {
             userType: req.body.type as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Register volunteer' + req.body.name
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'volunteer',
+            'Register volunteer ' + req.body.name,
+            req.body.id,
+            req.body.name
+        ).then().catch()
+
         next(err);
     });
 });
@@ -56,11 +67,16 @@ router.post('/login', (req, res, next) => {
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'volunteer',
+                'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             res.status(201).send("You logged in successfully !");
         })
         .catch(err => {
@@ -70,11 +86,16 @@ router.post('/login', (req, res, next) => {
                 userType: 'volunteer' as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Login' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'volunteer',
+                'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             res.status(401).send(err);
         })
 });
@@ -90,11 +111,16 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), async (req, r
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Delete Volunteer with id: ' + id
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'volunteer',
+                'Delete Volunteer with id: ' + id,
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             res.send(data);
         })
         .catch(error => {
@@ -104,11 +130,16 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), async (req, r
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Delete Volunteer with id: ' + id
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'volunteer',
+                'Delete Volunteer with id: ' + id,
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             next(error);
         });
 })
@@ -121,11 +152,16 @@ router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolun
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Edit Volunteer with id: ' + req.params.id?.toString()
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'volunteer',
+            'Edit Volunteer with id: ' + req.params.id?.toString(),
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
         res.status(201).send("Volunteer edited successfully!!")
     }).catch(err => {
         log({
@@ -134,11 +170,16 @@ router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolun
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Edit Volunteer with id: ' + req.params.id?.toString()
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'volunteer',
+            'Edit Volunteer with id: ' + req.params.id?.toString(),
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
         next(err);
     });
 });
@@ -166,11 +207,16 @@ router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'get Volunteer/s'
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'volunteer',
+                'get Volunteer/s',
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             res.send(data);
         })
         .catch(err => {
@@ -180,11 +226,16 @@ router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Get Volunteer/s'
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'volunteer',
+                'get Volunteer/s',
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             next(err);
         });
 });
@@ -202,11 +253,16 @@ router.get("/logout", authenticate, (req, res, next) => {
         userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
         type: 'success' as NSLogs.Type,
         request: 'Logout ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-    }).then(() => {
-        console.log('logged');
-    }).catch(err => {
-        console.log('NOT logged');
-    })
+    }).then().catch()
+
+    logToCloudWatch(
+        'success',
+        'volunteer',
+        'Logout ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+        res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+        res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+    ).then().catch()
+
     res.send("You logged out successfully !");
 })
 
@@ -218,11 +274,16 @@ router.get('/me', authenticate, authorize("GET_me"), async (req, res, next) => {
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Get my information'
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'volunteer',
+            'Get my information',
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
         res.send(res.locals.volunteer);
     } else if (res.locals.organizationAdmin) {
         log({
@@ -231,11 +292,16 @@ router.get('/me', authenticate, authorize("GET_me"), async (req, res, next) => {
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Get my information'
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'volunteer',
+            'Get my information',
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
         res.send(res.locals.organizationAdmin);
     }
 });
