@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CreatePermissions1696962955556 implements MigrationInterface {
-
-    // creat permaissions
+export class CreatePermissions1697004288562 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
@@ -80,6 +78,5 @@ export class CreatePermissions1696962955556 implements MigrationInterface {
         )
     `);
     }
+
 }
-
-
