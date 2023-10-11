@@ -47,7 +47,7 @@ jobs:
         DB_PASSWORD: ${{ secrets.DB_PASSWORD}}
         GIT_VERSISON: ${{steps.image_version.outputs.gitsha}}
         SECRET_KEY: ${{ secrets.SECRET_KEY}}
-        DB_HOST: ${{ secrets. DB_HOST}}
+        DB_HOST: ${{ secrets.DB_HOST}}
         DB_PORT:  ${{ secrets.DB_PORT}}
         DB_USERNAME:  ${{ secrets.DB_USERNAME}}
         DB_NAME: ${{ secrets.DB_NAME}}
@@ -59,3 +59,12 @@ jobs:
     - name: print logs
       if: always()
       run: docker compose logs
+
+    - name: Run Migrations
+      run: |
+        docker compose -f docker-compose-prod.yml exec app npx typeorm-ts-node-esm migration:run -d ./src/db/dataSource.ts &&
+        docker compose -f docker-compose-prod.yml exec app mv ./src/db/migrations/1697005494066-CreateRoles.ts ./src/db/migration &&
+        docker compose -f docker-compose-prod.yml exec app npx typeorm-ts-node-esm migration:run -d ./src/db/dataSource.ts &&
+        docker compose -f docker-compose-prod.yml exec app mv ./src/db/migrations/1697005554406-RootUser.ts  ./src/db/migration &&
+        docker compose -f docker-compose-prod.yml exec app npx typeorm-ts-node-esm migration:run -d ./src/db/dataSource.ts 
+    
