@@ -6,7 +6,7 @@ import { getDate } from "./index.js";
 import { Volunteer } from "../db/entities/Volunteer.js";
 import createError from 'http-errors';
 import { UploadedFile } from "express-fileupload";
-import { configureS3Bucket } from "../utilites/AWS_configure_S3.js";
+import { configureS3Bucket } from "../utilities/AWS_configure_S3.js";
 import baseLogger from "../../logger.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {

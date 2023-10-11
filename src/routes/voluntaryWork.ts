@@ -5,25 +5,31 @@ import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
 import { validateEditedVoluntaryWork, validateVoluntaryWork, validateVoluntaryWorkId } from '../middleware/validation/voluntaryWork.js';
 import { UploadedFile } from 'express-fileupload';
-import { log } from '../controllers/logs.js';
+import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
+import { logToCloudWatch } from '../controllers/cloudWatch-logger.js';
 
 var router = express.Router();
 
 router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, res, next) => {
     createVoluntaryWork({ ...req.body, creatorId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id }).then(() => {
-        res.status(201).send("Voluntary work created successfully!!")
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Create Voluntary Work ' + req.body.name
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Create Voluntary Work ' + req.body.name,
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
+        res.status(201).send("Voluntary work created successfully!!")
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
@@ -31,11 +37,16 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Create Voluntary Work ' + req.body.name
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Create Voluntary Work ' + req.body.name,
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
         next(err);
     });
 });
@@ -51,11 +62,16 @@ router.delete('/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork")
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Delete Voluntary Work with id: ' + id
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Delete Voluntary Work with id: ' + id,
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             res.send(data);
         })
         .catch(err => {
@@ -65,11 +81,16 @@ router.delete('/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork")
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Delete Voluntary Work with id: ' + id
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Delete Voluntary Work with id: ' + id,
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             next(err);
         });
 })
@@ -82,11 +103,16 @@ router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, 
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Edit Voluntary Work with id: ' + req.params.id
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Edit Voluntary Work with id: ' + req.params.id,
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
         res.status(201).send("Voluntary Work edited successfully!!")
     }).catch(err => {
         log({
@@ -95,11 +121,16 @@ router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, 
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Edit Voluntary Work with id: ' + req.params.id
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Edit Voluntary Work with id: ' + req.params.id,
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
         next(err);
     });
 });
@@ -137,11 +168,16 @@ router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Get Voluntary Work/s'
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Get Voluntary Work/s',
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             res.send(data);
         })
         .catch(err => {
@@ -151,11 +187,16 @@ router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Get Voluntary Work/s'
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Get Voluntary Work/s',
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             next(err);
         });
 });
@@ -193,11 +234,16 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
                 userType: 'root' as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Analysis Voluntary Work/s'
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Analysis Voluntary Work/s',
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
             res.send(data);
         })
         .catch(err => {
@@ -207,11 +253,16 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
                 userType: "root" as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Analysis Voluntary Work/s'
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Analysis Voluntary Work/s',
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
             next(err);
         });
 });
@@ -226,11 +277,16 @@ router.get('/recommendation', authorize("GET_recommendation"), async (req, res, 
                 userType: res.locals.volunteer?.type as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Get recommendation'
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Get recommendation',
+                res.locals.volunteer?.id,
+                res.locals.volunteer?.name
+            ).then().catch()
+
             res.send(data);
         })
         .catch(err => {
@@ -240,11 +296,16 @@ router.get('/recommendation', authorize("GET_recommendation"), async (req, res, 
                 userType: res.locals.volunteer?.type as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Get recommendation'
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Get recommendation',
+                res.locals.volunteer?.id,
+                res.locals.volunteer?.name
+            ).then().catch()
+
             next(err);
         });
 });
@@ -257,11 +318,16 @@ router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), chec
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Add Rating to voluntary work with id' + req.params.id
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Add Rating to voluntary work with id' + req.params.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
         res.status(201).send("Rating added successfully!!")
     }).catch(err => {
         log({
@@ -270,11 +336,16 @@ router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), chec
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Add Rating to voluntary work with id' + req.params.id
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Add Rating to voluntary work with id' + req.params.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
         next(err);
     });
 });
@@ -287,11 +358,16 @@ router.put("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_feedback"), 
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Add feedback to voluntary work with id' + req.params.id
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Add feedback to voluntary work with id' + req.params.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
         res.status(201).send("Feedback added successfully!!")
     }).catch(err => {
         log({
@@ -300,48 +376,23 @@ router.put("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_feedback"), 
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Add feedback to voluntary work with id' + req.params.id
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Add feedback to voluntary work with id' + req.params.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
         next(err);
     });
 });
 
-// router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
-//     putImages(Number(req.params.id), ((Array.isArray(req.files?.image) ? req.files?.image : [req.files?.image]).filter(Boolean)) as UploadedFile[]).then(() => {
-//         log({
-//             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-//             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-//             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-//             type: 'success' as NSLogs.Type,
-//             request: 'Add images to voluntary work with id' + req.params.id
-//         }).then(() => {
-//             console.log('logged');
-//         }).catch(err => {
-//             console.log('NOT logged');
-//         })
-//         res.status(201).send("Images added successfully!!")
-//     }).catch(err => {
-//         log({
-//             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-//             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-//             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-//             type: 'failed' as NSLogs.Type,
-//             request: 'Add images to voluntary work with id' + req.params.id
-//         }).then(() => {
-//             console.log('logged');
-//         }).catch(err => {
-//             console.log('NOT logged');
-//         })
-//         next(err);
-//     });
-// });
 router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
     const images = req.files?.image;
     if (!images) {
-        // Handle the case when 'images' is undefined
         return res.status(400).send("No images provided.");
     }
 
@@ -356,11 +407,15 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Add images to voluntary work with id' + req.params.id
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        });
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Add images to voluntary work with id' + req.params.id,
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
 
         res.status(201).send("Images added successfully!!");
     } catch (err) {
@@ -370,11 +425,16 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Add images to voluntary work with id' + req.params.id
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        });
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Add images to voluntary work with id' + req.params.id,
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
         next(err);
     }
 });
@@ -387,11 +447,16 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
                 userType: res.locals.volunteer?.type as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Register to voluntary work with id' + req.params.id
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Register to voluntary work with id' + req.params.id,
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             res.status(201).send("Registration done successfully!!")
         }).catch(err => {
             log({
@@ -400,11 +465,16 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
                 userType: res.locals.volunteer?.type as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Register to voluntary work with id' + req.params.id
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Register to voluntary work with id' + req.params.id,
+                res.locals.volunteer?.id,
+                res.locals.volunteer?.name
+            ).then().catch()
+
             next(err);
         });
     } else if (res.locals.organizationAdmin) {
@@ -418,11 +488,16 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
                 userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Register By Organization Admin to voluntary work with id' + req.params.id + " volunteer id: " + req.body.volunteerId.toString()
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Register By Organization Admin to voluntary work with id' + req.params.id + " volunteer id: " + req.body.volunteerId.toString(),
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
             res.status(201).send("Registration done successfully!!")
         }).catch(err => {
             log({
@@ -431,11 +506,16 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
                 userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Register By Organization Admin to voluntary work with id' + req.params.id + " volunteer id: " + req.body.volunteerId.toString()
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Register By Organization Admin to voluntary work with id' + req.params.id + " volunteer id: " + req.body.volunteerId.toString(),
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
             next(err);
         });
     }
@@ -449,11 +529,16 @@ router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_vol
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Deregister to voluntary work with id' + req.params.id + " volunteer id: " + res.locals.volunteer?.id || req.body.volunteerId.toString()
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Deregister to voluntary work with id' + req.params.id + " volunteer id: " + res.locals.volunteer?.id || req.body.volunteerId.toString(),
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
         res.status(201).send("Deregistration done successfully!!")
     }).catch(err => {
         log({
@@ -462,11 +547,16 @@ router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_vol
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Deregister to voluntary work with id' + req.params.id + " volunteer id: " + res.locals.volunteer?.id || req.body.volunteerId.toString()
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Deregister to voluntary work with id' + req.params.id + " volunteer id: " + res.locals.volunteer?.id || req.body.volunteerId.toString(),
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
         next(err);
     });
 });

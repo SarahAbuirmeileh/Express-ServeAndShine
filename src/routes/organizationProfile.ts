@@ -2,8 +2,9 @@ import express from "express";
 import { createOrganizationProfile, deleteOrganizationProfile, editOrganizationProfile, getOrganizationProfile } from "../controllers/OrganizationProfile .js";
 import { authorize, checkAdmin } from "../middleware/auth/authorize.js";
 import { validateOrgId, validateOrganizationProfile } from "../middleware/validation/organizationProfile.js";
-import { log } from "../controllers/logs.js";
+import { log } from "../controllers/dataBase-logger.js";
 import { NSLogs } from "../../types/logs.js";
+import { logToCloudWatch } from "../controllers/cloudWatch-logger.js";
 
 const router = express.Router();
 
@@ -15,11 +16,16 @@ router.post('/', authorize("POST_organizationProfile"), validateOrganizationProf
             userType: 'root' as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Create Organization Profile ' + data.name
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'organization profile',
+            'Create Organization Profile ' + data.name,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
         res.status(201).send("Organization Profile created successfully!!")
     }).catch(err => {
         log({
@@ -28,11 +34,16 @@ router.post('/', authorize("POST_organizationProfile"), validateOrganizationProf
             userType: 'root' as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Create Organization Profile ' + req.body.name
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'organization profile',
+            'Create Organization Profile ' + req.body.name,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
         next(err);
     });
 });
@@ -48,11 +59,16 @@ router.delete('/:id', validateOrgId, authorize("DELETE_organizationProfile"), as
                 userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Delete Organization Profile with id: ' + id
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'organization profile',
+                'Volunteer registered successfully!',
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
             res.send(data);
         })
         .catch(err => {
@@ -62,11 +78,16 @@ router.delete('/:id', validateOrgId, authorize("DELETE_organizationProfile"), as
                 userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Delete Organization Profile with id: ' + id
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'organization profile',
+                'Volunteer registered successfully!',
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
             next(err);
         });
 });
@@ -79,11 +100,16 @@ router.put("/:id", validateOrgId, authorize("PUT_organizationProfile"), async (r
             userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Edit Organization Profile with id: ' + req.params.id
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'organization profile',
+            'Volunteer registered successfully!',
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
         res.status(201).send("Organization Profile edited successfully!!")
     }).catch(err => {
         log({
@@ -92,11 +118,16 @@ router.put("/:id", validateOrgId, authorize("PUT_organizationProfile"), async (r
             userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Edit Organization Profile with id: ' + req.params.id
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'organization profile',
+            'Volunteer registered successfully!',
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
         next(err);
     });
 });
@@ -118,11 +149,16 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Get Organization Profiles'
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'organization profile',
+                'Volunteer registered successfully!',
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             res.send(data);
         })
         .catch(err => {
@@ -132,11 +168,16 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
                 userType: (res.locals.volunteer?.type ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Get Organization Profiles'
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'organization profile',
+                'Volunteer registered successfully!',
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
             next(err);
         });
 });

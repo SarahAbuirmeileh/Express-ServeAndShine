@@ -2,7 +2,7 @@ import express from 'express';
 import { OrganizationProfile } from '../../db/entities/OrganizationProfile.js';
 import createError from 'http-errors';
 import { NSLogs } from '../../../types/logs.js';
-import { log } from '../../controllers/logs.js';
+import { log } from '../../controllers/dataBase-logger.js';
 
 const validateOrganizationProfile = (req: express.Request,
     res: express.Response,
