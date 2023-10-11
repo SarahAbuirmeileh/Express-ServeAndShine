@@ -10,37 +10,40 @@ const router = express.Router();
 
 router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
     createOrganizationAdmin(req.body).then(async (data) => {
-        await log({
+        log({
             userId: res.locals.organizationAdmin?.id,
             userName: res.locals.organizationAdmin?.name,
             userType: 'root' as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Create Organization Admin ' + data.name
-        })
+        }).then().catch()
 
-        await logToCloudWatch(
+        logToCloudWatch(
             'success',
             'organization admin',
             'Create Organization Admin ' + data.name,
             res.locals.organizationAdmin?.id,
             res.locals.organizationAdmin?.name
-        );
+        ).then().catch()
+
         res.status(201).send("Organization Admin created successfully!!")
     }).catch(async err => {
-        await log({
+        log({
             userId: res.locals.organizationAdmin?.id,
             userName: res.locals.organizationAdmin?.name,
             userType: 'root' as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Create Organization Admin ' + req.body.name
-        })
-        await logToCloudWatch(
+        }).then().catch()
+
+        logToCloudWatch(
             'failed',
             'organization admin',
             'Create Organization Admin ' + req.body.name,
             res.locals.organizationAdmin?.id,
             res.locals.organizationAdmin?.name
-        );
+        ).then().catch()
+
         next(err);
     });
 });
@@ -50,75 +53,81 @@ router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), as
 
     deleteOrganizationAdmin(id)
         .then(async data => {
-            await log({
+            log({
                 userId: res.locals.organizationAdmin?.id,
                 userName: res.locals.organizationAdmin?.name,
                 userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Delete Organization Admin with id: ' + id
-            })
+            }).then().catch()
 
-            await logToCloudWatch(
+            logToCloudWatch(
                 'success',
                 'organization admin',
                 'Delete Organization Admin with id: ' + id,
                 res.locals.organizationAdmin?.id,
                 res.locals.organizationAdmin?.name
-            );
+            ).then().catch()
+
             res.send(data);
         })
         .catch(async err => {
-            await log({
+            log({
                 userId: res.locals.organizationAdmin?.id,
                 userName: res.locals.organizationAdmin?.name,
                 userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Delete Organization Admin with id: ' + id
-            })
-            await logToCloudWatch(
+            }).then().catch()
+
+            logToCloudWatch(
                 'failed',
                 'organization admin',
                 'Delete Organization Admin with id: ' + id,
                 res.locals.organizationAdmin?.id,
                 res.locals.organizationAdmin?.name
-            );
+            ).then().catch()
+
             next(err);
         });
 });
 
 router.put("/:id", authorize("PUT_organizationAdmin"), validateAdminEdited, async (req, res, next) => {
     editOrganizationAdmin({ ...req.body, id: req.params.id }).then(async () => {
-        await log({
+        log({
             userId: res.locals.organizationAdmin?.id,
             userName: res.locals.organizationAdmin?.name,
             userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Edit Organization Admin with id: ' + req.params.id
-        })
+        }).then().catch()
 
-        await logToCloudWatch(
+        logToCloudWatch(
             'success',
             'organization admin',
             'Edit Organization Admin with id: ' + req.params.id,
             res.locals.organizationAdmin?.id,
             res.locals.organizationAdmin?.name
-        );
+        ).then().catch()
+
         res.status(201).send("Organization Admin edited successfully!!")
     }).catch(async err => {
-        await log({
+        log({
             userId: res.locals.organizationAdmin?.id,
             userName: res.locals.organizationAdmin?.name,
             userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Edit Organization Admin with id: ' + req.params.id
         })
-        await logToCloudWatch(
+
+        logToCloudWatch(
             'failed',
             'organization admin',
             'Edit Organization Admin with id: ' + req.params.id,
             res.locals.organizationAdmin?.id,
             res.locals.organizationAdmin?.name
-        );
+        ).then().catch()
+
         next(err);
     });
 });
@@ -135,38 +144,41 @@ router.get('/', authorize("GET_organizationAdmins"), async (req, res, next) => {
 
     getOrganizationAdmins(payload)
         .then(async data => {
-            await log({
+            log({
                 userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer?.type ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Get Organization Admin/s'
-            })
+            }).then().catch()
 
-            await logToCloudWatch(
+            logToCloudWatch(
                 'success',
                 'organization admin',
                 'Get Organization Admin/s',
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-            );
+            ).then().catch()
+
             res.send(data);
         })
         .catch(async err => {
-            await log({
+            log({
                 userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer?.type ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Get Organization Admin/s'
-            })
-            await logToCloudWatch(
+            }).then().catch()
+
+            logToCloudWatch(
                 'failed',
                 'organization admin',
                 'Get Organization Admin/s',
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-            );
+            ).then().catch()
+            
             next(err);
         });
 });
