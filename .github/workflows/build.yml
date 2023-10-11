@@ -34,15 +34,15 @@ jobs:
       run: docker build . --file Dockerfile --tag ghcr.io/sarahabuirmeileh/serve-and-shine:${{ steps.image_version.outputs.gitsha }}
     - name: Puplish docker image
       run: docker push ghcr.io/sarahabuirmeileh/serve-and-shine:${{ steps.image_version.outputs.gitsha }}
-    - name: configer docker host
-      uses: khaledez/configure-docker-host@v1
-      with: 
-        host: 52.56.237.63
-        user: github
-        ssh-private-key: ${{ secrets.DEPLOYMENT_KEY }}
+    # - name: configer docker host
+    #   uses: khaledez/configure-docker-host@v1
+    #   with: 
+    #     host: 52.56.237.63
+    #     user: github
+    #     ssh-private-key: ${{ secrets.DEPLOYMENT_KEY }}
 
-    # - name: deploy
-    #   run: docker compose -f docker-compose-prod.yml up -d
+    - name: deploy
+      run: docker compose -f docker-compose-prod.yml up -d
     #   env: 
     #     DB_PASSWORD: ${{ secrets.DB_PASSWORD}}
     #     GIT_VERSISON: ${{steps.image_version.outputs.gitsha}}
