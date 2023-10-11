@@ -1,4 +1,4 @@
-import { configureCloudWatch } from '../utilites/AWS_configure_CloudWatch.js';
+import { configureCloudWatch } from '../utilities/AWS_configure_CloudWatch.js';
 
 const cloudWatchLogs = await configureCloudWatch();
 
@@ -25,16 +25,3 @@ export const logToCloudWatch = async (logGroupName:string, logStreamName:string,
         console.error('Error sending log event:', error);
     }
 };
-
-// await logToCloudWatch(
-//     'failed',
-//     '', 
-//     'Volunteer registered successfully!'
-// );
-//
-// await logToCloudWatch(
-//     'success',
-//     '', 
-//     'Volunteer registered successfully!'
-// );
-//
