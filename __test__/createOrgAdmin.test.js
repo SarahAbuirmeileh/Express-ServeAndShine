@@ -26,4 +26,3 @@ describe("create an organization admin", () => {
         expect(data.name).toBe('Sarah Abu Irmaileh');
     })
 })
-//////

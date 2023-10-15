@@ -48,7 +48,7 @@ const createVolunteer = async (payload: NSVolunteer.Item) => {
         });
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404);
+        throw ", when trying to create volunteer";
     }
 };
 
@@ -57,7 +57,7 @@ const deleteVolunteer = async (volunteerId: string) => {
         return Volunteer.delete(volunteerId);
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404);
+        throw createError({status: 404, message: "Volunteer"});
     }
 }
 
@@ -88,7 +88,7 @@ const editVolunteer = async (payload: { name: string, id: string, email: string,
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404);
+        throw createError({status: 404, message: "Volunteer"});
     }
 }
 
@@ -127,7 +127,7 @@ const login = async (email: string, name: string, id: string) => {
         }
     } catch (err) {
         baseLogger.error(err);
-        throw err;
+        throw createError({status: 404, message: "Something"});
     }
 
 }
@@ -217,7 +217,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
         };
     } catch (err) {
         baseLogger.error(err);
-        throw err;
+        throw createError({status: 404, message: "Volunteer"});
     }
 }
 

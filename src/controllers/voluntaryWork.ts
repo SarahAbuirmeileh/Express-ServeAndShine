@@ -23,7 +23,7 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
         return newVoluntaryWork.save();
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404,);
+        throw ", when trying to create Voluntary work";
     }
 }
 
@@ -33,7 +33,7 @@ const deleteVoluntaryWork = async (voluntaryWorkId: number) => {
         return VoluntaryWork.delete(voluntaryWorkId);
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404,);
+        throw createError({status: 404, message: "Voluntary work"});
     }
 }
 
@@ -70,7 +70,7 @@ const editVoluntaryWork = async (payload: NSVoluntaryWork.Edit) => {
         }
     } catch (error) {
         baseLogger.error(error);
-        throw createError(404,);
+        throw createError({status: 404, message: "Voluntary work"});
     }
 }
 
@@ -79,7 +79,7 @@ const getVoluntaryWork = (payload: { id: number }) => {
         return VoluntaryWork.findOne({ where: { id: payload.id } })
     } catch (err) {
         baseLogger.error(err);
-        throw err;
+        throw createError({status: 404, message: "Voluntary work"});
     }
 }
 
@@ -201,7 +201,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404,);
+        throw createError({status: 404, message: "Voluntary work"});
     }
 }
 
@@ -230,11 +230,11 @@ const putFeedback = async (id: number, feedback: string) => {
             voluntaryWork.feedback.push(feedback);
             await voluntaryWork.save();
         } else {
-            throw "Voluntary work not found"
+            throw createError({status: 404, message: "Voluntary work"});
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404,);
+        throw ", when trying to add Feedback";
     }
 }
 
@@ -264,7 +264,7 @@ const putImages = async (id: number, uploadedFiles: UploadedFile[]) => {
         }
     } catch (err) {
         baseLogger.error(err);
-        throw (err);
+        throw ", when trying to add Image";
     }
 }
 
@@ -273,7 +273,7 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
 
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
         if (!voluntaryWork) {
-            throw createError(404);
+            throw createError({status: 404, message: "Voluntary work"});
         }
 
         if (
@@ -299,7 +299,7 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
         return "Registration successful!";
     } catch (err) {
         baseLogger.error(err);
-        throw createError(400);
+        throw ", when trying to register by Volunteer";
     }
 }
 
@@ -329,7 +329,7 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
         return "Registration successful!";
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404,);
+        throw ", when trying to register by organization admin";
     }
 }
 
@@ -341,11 +341,11 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
         const volunteer = await Volunteer.findOne({ where: { id: volunteerId }, relations: ["volunteerProfile"] });
 
         if (!voluntaryWork) {
-            throw "Voluntary work not found";
+            throw createError({status: 404, message: "Voluntary work"});
         }
 
         if (!volunteer) {
-            throw "Volunteer not found"
+            throw createError({status: 404, message: "Volunteer"});
         }
         const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
         if (index !== -1) {
@@ -357,7 +357,7 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404);
+        throw ", when trying to deregister voluntary work";
     }
 }
 

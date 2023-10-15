@@ -17,7 +17,7 @@ const createRole = async (payload: NSRole.Item) => {
   }
   catch (error) {
     baseLogger.error(error);
-    throw error;
+    throw ", when trying to create Role";
   }
 }
 
@@ -26,7 +26,7 @@ const deleteRole = async (roleId: number) => {
     return Role.delete(roleId);
   } catch (err) {
     baseLogger.error(err);
-    throw createError(404);
+    throw createError({status: 404, message: "Role"});
   }
 }
 
@@ -40,7 +40,7 @@ const editRole = async (payload: { name: NSRole.Type, id: number }) => {
     }
   } catch (err) {
     baseLogger.error(err);
-    throw createError(404);
+    throw createError({status: 404, message: "Role"});
   }
 }
 
@@ -78,7 +78,7 @@ const getRoles = async (payload: {
     };
   } catch (err) {
     baseLogger.error(err);
-    throw err;
+    throw createError({status: 404, message: "Role"});
   }
 }
 
