@@ -56,18 +56,20 @@ router.post('/login', (req, res, next) => {
     const id = req.body.id;
     login(email, name, id)
         .then(data => {
-            res.cookie('myApp', data, {
+            res.cookie('myApp', data.token, {
                 httpOnly: true,
                 maxAge: 60 * 24 * 60 * 1000,
                 sameSite: "lax"       // Protect against CSRF attacks
             });
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-            }).then().catch()
+            if (data.volunteer) res.locals.volunteer = data.volunteer;
+            if (data.organizationAdmin) res.locals.organizationAdmin = data.organizationAdmin;
+            // log({
+            //     userId: id,
+            //     userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            //     userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            //     type: 'success' as NSLogs.Type,
+            //     request: 'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            // }).then().catch()
 
             logToCloudWatch(
                 'success',
@@ -81,19 +83,19 @@ router.post('/login', (req, res, next) => {
         })
         .catch(err => {
             log({
-                userId: req.body.id,
-                userName: req.body.name,
+                userId: id,
+                userName: name,
                 userType: 'volunteer' as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Login' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+                request: 'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             }).then().catch()
 
             logToCloudWatch(
                 'failed',
                 'volunteer',
-                'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+                'Login ' + name,
+                id,
+                name
             ).then().catch()
 
             res.status(401).send(err);

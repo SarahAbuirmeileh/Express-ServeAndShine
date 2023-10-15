@@ -57,7 +57,7 @@ const deleteVolunteer = async (volunteerId: string) => {
         return Volunteer.delete(volunteerId);
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Volunteer"});
+        throw createError({ status: 404, message: "Volunteer" });
     }
 }
 
@@ -88,7 +88,7 @@ const editVolunteer = async (payload: { name: string, id: string, email: string,
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Volunteer"});
+        throw createError({ status: 404, message: "Volunteer" });
     }
 }
 
@@ -112,7 +112,7 @@ const login = async (email: string, name: string, id: string) => {
                     expiresIn: "1d"
                 }
             );
-            return token;
+            return { token, volunteer, organizationAdmin: null };
         } else if (organizationAdmin) {
             const token = jwt.sign(
                 { email, name, id },
@@ -121,13 +121,13 @@ const login = async (email: string, name: string, id: string) => {
                     expiresIn: "1d"
                 }
             );
-            return token;
+            return { token, organizationAdmin, volunteer: null };
         } else {
             throw ("Invalid email or name or id !");
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Something"});
+        throw createError({ status: 404, message: "Something" });
     }
 
 }
@@ -217,7 +217,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Volunteer"});
+        throw createError({ status: 404, message: "Volunteer" });
     }
 }
 
