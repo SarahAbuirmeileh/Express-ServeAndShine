@@ -10,7 +10,7 @@ const createOrganizationProfile = async (payload: NSOrganizationProfile.Item) =>
         return newOrganizationProfile.save();
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404,);
+        throw ", when trying to create Organization profile";
     }
 }
 
@@ -25,7 +25,7 @@ const editOrganizationProfile = async (payload: { id: string, name: string, desc
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404);
+        throw createError({status: 404, message: "Organization"});
     }
 }
 
@@ -34,7 +34,7 @@ const deleteOrganizationProfile = async (profileId: string) => {
         return OrganizationProfile.delete(profileId);
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404);
+        throw createError({status: 404, message: "Organization"});
     }
 }
 
@@ -63,7 +63,7 @@ const getOrganizationProfile = async (payload: {
             if (admin) {
                 return admin;
             } else {
-                throw "Admin not found"
+                throw createError({status: 404, message: "Admin"});
             }
         }
 
@@ -84,7 +84,7 @@ const getOrganizationProfile = async (payload: {
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404);
+        throw createError({status: 404, message: "Organization"});
     }
 }
 

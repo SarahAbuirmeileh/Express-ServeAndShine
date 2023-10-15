@@ -10,7 +10,7 @@ const createPermission = async (payload: NSPermission.Item) => {
   }
   catch (error) {
     baseLogger.error(error);
-    throw createError(404);
+    throw ", when trying to create Permission";
   }
 }
 
@@ -19,7 +19,7 @@ const deletePermission = async (permissionId: number) => {
     return Permission.delete(permissionId);
   } catch (err) {
     baseLogger.error(err);
-    throw createError(404);
+    throw createError({status: 404, message: "Permission"});
   }
 }
 
@@ -34,7 +34,7 @@ const editPermission = async (payload: { name: string, id: number }) => {
     }
   } catch (err) {
     baseLogger.error(err);
-    throw createError(404);
+    throw createError({status: 404, message: "Permission"});
   }
 }
 
@@ -73,7 +73,7 @@ const getPermissions = async (payload: {
     };
   } catch (err) {
     baseLogger.error(err);
-    throw err;
+    throw createError({status: 404, message: "Permission"});
   }
 }
 

@@ -12,7 +12,7 @@ afterAll(async () => {
 const tmpData = {
     "name": "Sarah Abu Irmaileh",
     "email": "tamimitarteel27@gamil.com",
-    "password": "toto2003",
+    "password": "123456",
     "organizationId": "e4b41a72-2abe-459c-8657-7a09956f1243"
 };
 

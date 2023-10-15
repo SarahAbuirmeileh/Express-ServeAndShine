@@ -23,11 +23,11 @@ const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
             newOrganizationAdmin.orgProfile = organization;
             return newOrganizationAdmin.save();
         } else {
-            throw "Organization not found";
+            throw createError({status: 404, message: "Organization"});
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404);
+        throw ", when trying to create Organization admin";
     }
 }
 
@@ -68,7 +68,7 @@ const getOrganizationAdmins = async (payload: {
                 const admin = await OrganizationAdmin.findOne({ where: { orgProfile: { id: organization.id } } });
                 return { name: admin?.name, createdAt: admin?.createdAt, email: admin?.email };
             } else {
-                throw "Organization name not found";
+                throw createError({status: 404, message: "Organization"});
             }
         }
 
@@ -92,7 +92,7 @@ const getOrganizationAdmins = async (payload: {
         };
     } catch (err) {
         baseLogger.error(err)
-        throw createError(404);
+        throw createError({status: 404, message: "Organization admin"});
     }
 }
 
@@ -101,7 +101,7 @@ const deleteOrganizationAdmin = async (adminId: string) => {
         return OrganizationAdmin.delete(adminId);
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404);
+        throw createError({status: 404, message: "Organization admin"});
     }
 }
 
@@ -138,7 +138,7 @@ const editOrganizationAdmin = async (payload: { id: string, name: string, email:
 
 
         } else {
-            throw "Organization admin not found";
+            throw createError({status: 404, message: "Organization admin"});
         }
     } catch (err) {
         baseLogger.error(err)
