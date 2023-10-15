@@ -63,13 +63,13 @@ router.post('/login', (req, res, next) => {
             });
             if (data.volunteer) res.locals.volunteer = data.volunteer;
             if (data.organizationAdmin) res.locals.organizationAdmin = data.organizationAdmin;
-            // log({
-            //     userId: id,
-            //     userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            //     userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            //     type: 'success' as NSLogs.Type,
-            //     request: 'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-            // }).then().catch()
+            log({
+                userId: id,
+                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            }).then().catch()
 
             logToCloudWatch(
                 'success',
