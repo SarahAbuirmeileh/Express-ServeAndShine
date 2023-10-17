@@ -23,6 +23,8 @@ const dataSource = new DataSource({
   logging: false
 });
 
+console.log(dataSource.options);
+
 export const initDB = async () =>
   await dataSource.initialize().then(() => {
     console.log("Connected to DB!");
