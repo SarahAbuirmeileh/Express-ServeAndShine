@@ -61,10 +61,6 @@ jobs:
       if: always()
       run: docker compose logs
 
-    - name: Print Environment Variables
-      run: echo "DB_PASSWORD:"+ ${{ secrets.DB_PASSWORD }} +"   DB_HOST:" +${{ secrets.DB_HOST }}
-
-
     - name: Run Migrations
       run: |
         docker compose  exec app npx typeorm-ts-node-esm migration:run -d ./src/db/dataSource.ts &&
@@ -72,4 +68,13 @@ jobs:
         docker compose  exec app npx typeorm-ts-node-esm migration:run -d ./src/db/dataSource.ts &&
         docker compose  exec app mv ./src/db/migrations/1697005554406-RootUser.ts  ./src/db/migration &&
         docker compose  exec app npx typeorm-ts-node-esm migration:run -d ./src/db/dataSource.ts
+      env: 
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD}}
+        DB_HOST: ${{ secrets.DB_HOST}}
+        DB_PORT:  ${{ secrets.DB_PORT}}
+        DB_USERNAME:  ${{ secrets.DB_USERNAME}}
+        DB_NAME: ${{ secrets.DB_NAME}}
+        GIT_VERSISON: ${{steps.image_version.outputs.gitsha}}
+
+
     
