@@ -1,4 +1,4 @@
-#!/bin/bin/bash
+#!/bin/bash
 
 until mysqladmin ping -hmysql --silent; do
     echo "Waiting for MySQL to be ready..."
