@@ -26,7 +26,7 @@ const createSendEmailCommand = (recEmail: string, name: string, subject: string,
         Data: subject
       },
     },
-    Source: "serve.and.shine.st@gmail.com",
+    Source: "tamimitarteel@gmail.com",
     ReplyToAddresses: []
   });
 };
