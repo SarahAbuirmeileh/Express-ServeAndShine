@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch": "^3.427.0",
+    "@aws-sdk/client-ses": "^3.429.0",
     "@types/express-fileupload": "^1.4.2",
     "aws-sdk": "^2.1472.0",
     "bcrypt": "^5.1.1",
