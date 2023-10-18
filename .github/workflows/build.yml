@@ -57,22 +57,22 @@ jobs:
         AWS_CERTIFICATES_BUCKET_NAME: ${{ secrets.AWS_CERTIFICATES_BUCKET_NAME}}
         PORT:  ${{ secrets.PORT}}
 
-    - name: print logs
-      if: always()
-      run: docker compose logs
+    # - name: print logs
+    #   if: always()
+    #   run: docker compose logs
 
-    - name: Run Migrations
-      run: docker compose -f docker-compose-prod.yml exec app npx typeorm-ts-node-esm migration:run -d ./src/db/dataSource.ts 
-      env: 
-        DB_PASSWORD: ${{ secrets.DB_PASSWORD}}
-        DB_HOST: ${{ secrets.DB_HOST}}
-        DB_PORT:  ${{ secrets.DB_PORT}}
-        DB_USERNAME:  ${{ secrets.DB_USERNAME}}
-        DB_NAME: ${{ secrets.DB_NAME}}
-        GIT_VERSISON: ${{steps.image_version.outputs.gitsha}}
-        PORT:  ${{ secrets.PORT}}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+    # - name: Run Migrations
+    #   run: docker compose -f docker-compose-prod.yml exec app npx typeorm-ts-node-esm migration:run -d ./src/db/dataSource.ts 
+    #   env: 
+    #     DB_PASSWORD: ${{ secrets.DB_PASSWORD}}
+    #     DB_HOST: ${{ secrets.DB_HOST}}
+    #     DB_PORT:  ${{ secrets.DB_PORT}}
+    #     DB_USERNAME:  ${{ secrets.DB_USERNAME}}
+    #     DB_NAME: ${{ secrets.DB_NAME}}
+    #     GIT_VERSISON: ${{steps.image_version.outputs.gitsha}}
+    #     PORT:  ${{ secrets.PORT}}
+    #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
+    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
 
 
     
