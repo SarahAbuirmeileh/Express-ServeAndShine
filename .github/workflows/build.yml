@@ -43,7 +43,7 @@ jobs:
     - name: Deploy and Run Migrations
       run: |
         docker compose -f docker-compose-prod.yml up -d
-        ./run-migrations.sh
+        ./migrations.sh
       env: 
         DB_PASSWORD: ${{ secrets.DB_PASSWORD}}
         GIT_VERSISON: ${{steps.image_version.outputs.gitsha}}
