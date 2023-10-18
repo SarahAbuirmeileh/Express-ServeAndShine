@@ -62,13 +62,8 @@ jobs:
       run: docker compose logs
 
     - name: Print Environment Variables
-      run: printenv
-      env:
-        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        DB_NAME: ${{ secrets.DB_NAME }}
-        PORT: ${{ secrets.PORT }}
-        DB_USERNAME: ${{ secrets.DB_USERNAME }}
-        DB_PORT: ${{ secrets.DB_PORT }}
+      run: echo "DB_PASSWORD:"+ ${{ secrets.DB_PASSWORD }} +"   DB_HOST:" +${{ secrets.DB_HOST }}
+
 
     - name: Run Migrations
       run: |
