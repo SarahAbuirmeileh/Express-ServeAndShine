@@ -56,6 +56,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
         AWS_REGION: ${{ secrets.AWS_REGION}}
         AWS_CERTIFICATES_BUCKET_NAME: ${{ secrets.AWS_CERTIFICATES_BUCKET_NAME}}
+        PORT:  ${{ secrets.PORT}}
 
     - name: print logs
       if: always()
@@ -75,6 +76,7 @@ jobs:
         DB_USERNAME:  ${{ secrets.DB_USERNAME}}
         DB_NAME: ${{ secrets.DB_NAME}}
         GIT_VERSISON: ${{steps.image_version.outputs.gitsha}}
+        PORT:  ${{ secrets.PORT}}
 
 
     
