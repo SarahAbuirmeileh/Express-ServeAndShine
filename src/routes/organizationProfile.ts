@@ -2,9 +2,9 @@ import express from "express";
 import { createOrganizationProfile, deleteOrganizationProfile, editOrganizationProfile, getOrganizationProfile } from "../controllers/OrganizationProfile .js";
 import { authorize, checkAdmin } from "../middleware/auth/authorize.js";
 import { validateOrgId, validateOrganizationProfile } from "../middleware/validation/organizationProfile.js";
-import { log } from "../controllers/dataBase-logger.js";
+import { log } from "../controllers/AWS-services/dataBase-logger.js";
 import { NSLogs } from "../../types/logs.js";
-import { logToCloudWatch } from "../controllers/cloudWatch-logger.js";
+import { logToCloudWatch } from "../controllers/AWS-services/cloudWatch-logger.js";
 
 const router = express.Router();
 

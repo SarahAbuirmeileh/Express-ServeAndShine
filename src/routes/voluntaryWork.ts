@@ -1,13 +1,14 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putImages, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
 import { validateEditedVoluntaryWork, validateVoluntaryWork, validateVoluntaryWorkId } from '../middleware/validation/voluntaryWork.js';
 import { UploadedFile } from 'express-fileupload';
-import { log } from '../controllers/dataBase-logger.js';
+import { log } from '../controllers/AWS-services/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
-import { logToCloudWatch } from '../controllers/cloudWatch-logger.js';
+import { logToCloudWatch } from '../controllers/AWS-services/cloudWatch-logger.js';
+import { putImages } from '../controllers/AWS-services/AWS-S3.js';
 
 var router = express.Router();
 

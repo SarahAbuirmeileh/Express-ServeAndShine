@@ -238,36 +238,6 @@ const putFeedback = async (id: number, feedback: string) => {
     }
 }
 
-const putImages = async (id: number, uploadedFiles: UploadedFile[]) => {
-    try {
-
-        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
-        if (voluntaryWork) {
-
-            const S3 = await configureS3Bucket();
-            const imageUrls = [];
-
-            for (const file of uploadedFiles) {
-                const uploadParams = {
-                    Bucket: process.env.AWS_BUCKET_NAME || '',
-                    Body: Buffer.from(file.data),
-                    Key: `${Date.now().toString()}.png`,
-                    ACL: 'public-read',
-                };
-
-                const data = await S3.upload(uploadParams).promise();
-                imageUrls.push(data.Location);
-            }
-
-            voluntaryWork.images.push(...imageUrls);
-            await voluntaryWork.save();
-        }
-    } catch (err) {
-        baseLogger.error(err);
-        throw ", when trying to add Image";
-    }
-}
-
 const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["volunteerProfile"]) => {
     try {
 
@@ -363,7 +333,7 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
 
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
-    registerByVolunteer, putImages, createVoluntaryWork,
+    registerByVolunteer, createVoluntaryWork,
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
     getVoluntaryWorks, deleteVoluntaryWork
 }
