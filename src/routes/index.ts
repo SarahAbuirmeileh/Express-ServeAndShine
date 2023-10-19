@@ -1,5 +1,6 @@
 import express from "express";
 import { putCertificateTemplate } from "../controllers/AWS-services/AWS-S3.js";
+import { invokeLambdaFunction } from "../controllers/AWS-services/AWS-Lambda.js";
 const router = express.Router();
 
 /* GET home page. */
@@ -8,22 +9,13 @@ router.get("/", function (req, res, next) {
 });
 
 
-router.post("/:id",  async (req, res, next) => {
-  const images = req.files?.image;
-  if (!images) {
-      return res.status(400).send("No images provided.");
-  }
-
-  try {
-      const uploadedFiles = Array.isArray(images) ? images : [images];
-
-      await putCertificateTemplate(Number(req.params.id), uploadedFiles);
-
-      res.status(201).send("Images added successfully!!");
-  } catch (err) {
-
-      next(err);
-  }
+router.post("/",  async (req, res, next) => {
+  // 
+  invokeLambdaFunction("generateCertificate",{ volunteerName:"Sarah", date:"12 october 2023", voluntaryWorkName:"Hello word",
+   imageUrl:"https://volunteers-certificates.s3.eu-west-2.amazonaws.com/templates/general/certificate-template.jpeg"})
+   .then(d=>console.log(d))
+   .catch(r=>console.log(r))
+  
 });
 
 export default router;
