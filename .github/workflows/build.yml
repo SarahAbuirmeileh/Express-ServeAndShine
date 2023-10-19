@@ -40,7 +40,7 @@ jobs:
         user: github
         ssh-private-key: ${{ secrets.DEPLOYMENT_KEY }}
 
-    - name: Deploy and Run Migrations
+    - name: Deploy
       run: docker compose -f docker-compose-prod.yml up -d
       env: 
         DB_PASSWORD: ${{ secrets.DB_PASSWORD}}
