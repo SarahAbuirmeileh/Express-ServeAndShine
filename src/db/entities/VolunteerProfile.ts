@@ -1,7 +1,8 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { SkillTag } from "./SkillTag.js";
 import { VoluntaryWork } from "./VoluntaryWork.js";
 import { NSVolunteer } from "../../../types/volunteer.js";
+import { Volunteer } from "./Volunteer.js";
 
 @Entity()
 export class VolunteerProfile extends BaseEntity {
@@ -33,6 +34,10 @@ export class VolunteerProfile extends BaseEntity {
     @ManyToMany(() => VoluntaryWork)
     @JoinTable()
     roles: VoluntaryWork[];
+
+    @OneToOne(() => Volunteer, (volunteer) => volunteer.volunteerProfile, { onDelete: 'SET NULL' })
+    @JoinColumn()
+    volunteer: Volunteer;
 
     @CreateDateColumn({
         type: 'timestamp',

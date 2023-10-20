@@ -5,9 +5,8 @@ import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
 import { getDate } from "./index.js";
 import { Volunteer } from "../db/entities/Volunteer.js";
 import createError from 'http-errors';
-import { UploadedFile } from "express-fileupload";
-import { configureS3Bucket } from "../utilities/AWS_configure_S3.js";
 import baseLogger from "../../logger.js";
+import { invokeLambdaFunction } from "./AWS-services/AWS-Lambda.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
     try {
@@ -33,7 +32,7 @@ const deleteVoluntaryWork = async (voluntaryWorkId: number) => {
         return VoluntaryWork.delete(voluntaryWorkId);
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Voluntary work"});
+        throw createError({ status: 404, message: "Voluntary work" });
     }
 }
 
@@ -70,7 +69,7 @@ const editVoluntaryWork = async (payload: NSVoluntaryWork.Edit) => {
         }
     } catch (error) {
         baseLogger.error(error);
-        throw createError({status: 404, message: "Voluntary work"});
+        throw createError({ status: 404, message: "Voluntary work" });
     }
 }
 
@@ -79,7 +78,7 @@ const getVoluntaryWork = (payload: { id: number }) => {
         return VoluntaryWork.findOne({ where: { id: payload.id } })
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Voluntary work"});
+        throw createError({ status: 404, message: "Voluntary work" });
     }
 }
 
@@ -201,7 +200,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Voluntary work"});
+        throw createError({ status: 404, message: "Voluntary work" });
     }
 }
 
@@ -230,7 +229,7 @@ const putFeedback = async (id: number, feedback: string) => {
             voluntaryWork.feedback.push(feedback);
             await voluntaryWork.save();
         } else {
-            throw createError({status: 404, message: "Voluntary work"});
+            throw createError({ status: 404, message: "Voluntary work" });
         }
     } catch (err) {
         baseLogger.error(err);
@@ -243,7 +242,7 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
 
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
         if (!voluntaryWork) {
-            throw createError({status: 404, message: "Voluntary work"});
+            throw createError({ status: 404, message: "Voluntary work" });
         }
 
         if (
@@ -311,11 +310,11 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
         const volunteer = await Volunteer.findOne({ where: { id: volunteerId }, relations: ["volunteerProfile"] });
 
         if (!voluntaryWork) {
-            throw createError({status: 404, message: "Voluntary work"});
+            throw createError({ status: 404, message: "Voluntary work" });
         }
 
         if (!volunteer) {
-            throw createError({status: 404, message: "Volunteer"});
+            throw createError({ status: 404, message: "Volunteer" });
         }
         const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
         if (index !== -1) {
@@ -331,9 +330,35 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     }
 }
 
+const generateCertificate = async (voluntaryWorkId: number,organizationName:string, date:string) => {
+    const voluntaryWork = await VoluntaryWork.findOne({
+        where: { id: voluntaryWorkId },
+        relations: ["volunteerProfiles", "volunteerProfiles.volunteer"]
+    });
+
+    if (!voluntaryWork) {
+        throw new Error(`Voluntary work with id ${voluntaryWorkId} not found.`);
+    }
+
+    const volunteerNames = voluntaryWork.volunteerProfiles.map(
+        (volunteerProfile) => volunteerProfile.volunteer.name
+    );
+
+    const volunteerEmails = voluntaryWork.volunteerProfiles.map(
+        (volunteerProfile) => volunteerProfile.volunteer.email
+    );
+    
+    const payload = {
+        volunteerName:volunteerNames[0], date, voluntaryWorkName:voluntaryWork.name, organizationName
+    }
+    const certificatePdf = invokeLambdaFunction("generateCertificate",payload);
+}
+
+
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
     registerByVolunteer, createVoluntaryWork,
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
-    getVoluntaryWorks, deleteVoluntaryWork
+    getVoluntaryWorks, deleteVoluntaryWork,
+    generateCertificate
 }

@@ -4,7 +4,6 @@ import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
 import { validateEditedVoluntaryWork, validateVoluntaryWork, validateVoluntaryWorkId } from '../middleware/validation/voluntaryWork.js';
-import { UploadedFile } from 'express-fileupload';
 import { log } from '../controllers/AWS-services/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWS-services/cloudWatch-logger.js';
@@ -563,7 +562,7 @@ router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_vol
     });
 });
 
-router.put("/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
+router.put("/template/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
     const templates = req.files?.template;
     if (!templates) {
         return res.status(400).send("No Template provided.");
