@@ -36,8 +36,8 @@ const putImages = async (id: number, uploadedFiles: UploadedFile[]) => {
 const putCertificateTemplate = async (id: number, uploadedFiles: UploadedFile[]) => {
     try {
 
-        // let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
-        // if (voluntaryWork) {
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+        if (voluntaryWork) {
 
             const S3 = await configureS3Bucket();
             const imageUrls = [];
@@ -46,13 +46,13 @@ const putCertificateTemplate = async (id: number, uploadedFiles: UploadedFile[])
                 const uploadParams = {
                     Bucket: process.env.AWS_CERTIFICATES_BUCKET_NAME || '',
                     Body: Buffer.from(file.data),
-                    Key: `templates/general/${file.name}`,
+                    Key: `templates/${voluntaryWork.name}/${file.name}`,
                     ACL: 'public-read',
                 };
 
                 const data = await S3.upload(uploadParams).promise();
                 imageUrls.push(data.Location);
- //           }
+           }
         }
     } catch (err) {
         baseLogger.error(err);

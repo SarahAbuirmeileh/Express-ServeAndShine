@@ -8,7 +8,7 @@ import { UploadedFile } from 'express-fileupload';
 import { log } from '../controllers/AWS-services/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWS-services/cloudWatch-logger.js';
-import { putImages } from '../controllers/AWS-services/AWS-S3.js';
+import { putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
 
 var router = express.Router();
 
@@ -561,6 +561,22 @@ router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_vol
 
         next(err);
     });
+});
+
+router.put("/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
+    const templates = req.files?.template;
+    if (!templates) {
+        return res.status(400).send("No Template provided.");
+    }
+
+    try {
+        const uploadedFiles = Array.isArray(templates) ? templates : [templates];
+        await putCertificateTemplate(Number(req.params.id), uploadedFiles);
+
+        res.status(201).send("Template added successfully!!");
+    } catch (err) {
+        next(err);
+    }
 });
 
 export default router;
