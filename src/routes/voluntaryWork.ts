@@ -439,6 +439,7 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
         next(err);
     }
 });
+
 router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
     if (res.locals.volunteer) {
         registerByVolunteer(Number(req.params.id), res.locals.volunteer?.volunteerProfile).then(() => {
