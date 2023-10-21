@@ -39,6 +39,10 @@ export class VolunteerProfile extends BaseEntity {
     @JoinColumn()
     volunteer: NSVolunteer.IVolunteer;
 
+    @ManyToMany(() => VoluntaryWork)
+    @JoinTable()
+    voluntaryWorks: VoluntaryWork[];
+
     @CreateDateColumn({
         type: 'timestamp',
         default: () => "CURRENT_TIMESTAMP(6)"

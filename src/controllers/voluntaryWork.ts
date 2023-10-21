@@ -362,10 +362,28 @@ const getImages = async (voluntaryWorkId: number) => {
     return voluntaryWork?.images;
 }
 
+const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
+    try {
+        const volunteer = await Volunteer.findOne({
+            where: { id: volunteerId },
+            relations: ["volunteerProfile"]
+        });
+        
+        if (!volunteer) {
+            throw createError({ status: 404, message: 'Volunteer not found' });
+        }
+
+        return volunteer.volunteerProfile.voluntaryWorks;
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError({ status: 404, message: 'Voluntary Works not found' });
+    }
+};
+
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
     registerByVolunteer, createVoluntaryWork,
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
     getVoluntaryWorks, deleteVoluntaryWork,
-    generateCertificate, getImages
+    generateCertificate, getImages, getVoluntaryWorksForVolunteer
 }

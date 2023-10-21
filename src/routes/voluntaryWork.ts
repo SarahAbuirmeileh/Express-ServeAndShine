@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getImages, getVoluntaryWorks, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getImages, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -9,6 +9,7 @@ import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
 import { putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
 import { searchOrganizationProfile } from '../controllers/OrganizationProfile .js';
+import { validateVolunteerId } from '../middleware/validation/volunteer.js';
 
 var router = express.Router();
 
@@ -312,7 +313,6 @@ router.get('/recommendation', authorize("GET_recommendation"), async (req, res, 
 });
 
 router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
-    const payload = { ...res.locals.volunteer };
     getImages(Number(req.params.id))
         .then(data => {
             log({
@@ -346,6 +346,48 @@ router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
                 'failed',
                 'voluntary work',
                 'Get image/s',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+});
+
+router.get('/volunteer/:id', validateVolunteerId, async (req, res, next) => {
+    getVoluntaryWorksForVolunteer(req.params.id)
+        .then(data => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: res.locals.volunteer?.type as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Get voluntary works for volunteer with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Get voluntary works for volunteer',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: res.locals.volunteer?.type as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Get voluntary works for volunteer with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Get voluntary works for volunteer',
                 res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
                 res.locals.volunteer?.name || res.locals.organizationAdmin?.name
             ).then().catch()

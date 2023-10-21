@@ -7,8 +7,7 @@ import { NSVolunteer } from '../../types/volunteer.js';
 import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
-import { logToCloudWatch } from '../controllers/cloudWatch-logger.js';
-import { sendEmail } from '../controllers/sendEmail.js';
+import { sendEmail } from '../controllers/AWS-services/AWS-SES.js';
 
 var router = express.Router();
 
