@@ -588,27 +588,27 @@ router.put("/template/:id", validateVoluntaryWorkId, authorize("PUT_images"), as
             'success',
             'voluntary work',
             'Template added successfully for organization: ' + organizationName,
-            res.locals.organizationAdmin?.id ,
-            res.locals.organizationAdmin?.name 
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
         ).then().catch()
 
         res.status(201).send("Template added successfully!!")
 
-    }).catch((err)=>{
+    }).catch((err) => {
         log({
             userId: res.locals.organizationAdmin?.id,
             userName: res.locals.organizationAdmin?.name,
             userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Template added successfully for organization: ' + organizationName
+            request: 'Adding template for organization: ' + organizationName
         }).then().catch()
 
         logToCloudWatch(
             'failed',
             'voluntary work',
             'Adding template for organization: ' + organizationName,
-            res.locals.organizationAdmin?.id ,
-            res.locals.organizationAdmin?.name 
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
         ).then().catch()
 
         next(err);
@@ -616,7 +616,7 @@ router.put("/template/:id", validateVoluntaryWorkId, authorize("PUT_images"), as
 
 });
 
-router.post("/generate-certificate/:id", async (req, res, next) => {
+router.post("/generate-certificate/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
     const currentDate = new Date();
     const date = `${currentDate.getDate()} ${currentDate.getMonth() + 1} ${currentDate.getFullYear()}`
 
@@ -624,9 +624,45 @@ router.post("/generate-certificate/:id", async (req, res, next) => {
     const organization = await getOrganizationProfile(payload);
     const organizationName = organization?.name || '';
 
-    generateCertificate(Number(req.params.id), organizationName, req.body.date || date)
-        .then((d) => res.status(200).send(d))
-        .catch(err => res.send(err))
+    generateCertificate(Number(req.params.id), organizationName, req.body.date || date).then(() => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Certifications generated successfully for organization: ' + organizationName
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Certifications generated successfully for organization: ' + organizationName,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.status(201).send("Template added successfully!!")
+
+    }).catch((err) => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Generating certifications for organization: ' + organizationName
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Generating certifications for organization: ' + organizationName,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        next(err);
+    })
+
 
 });
 
