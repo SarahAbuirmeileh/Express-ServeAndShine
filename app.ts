@@ -16,6 +16,7 @@ import organizationProfileRouter from "./src/routes/organizationProfile.js"
 import volunteerRouter from "./src/routes/volunteer.js"
 import { authenticate } from "./src/middleware/auth/authenticate.js"
 import { errorHandler } from "./src/middleware/errorHandler/errorHandler.js"
+import { sendEmail } from "./src/controllers/sendEmail.js"
 
 const app = express();
 dotenv.config();
@@ -39,6 +40,13 @@ app.use(function (req, res, next) {
   next(createError(404));
 });
 app.use(errorHandler);
+
+// for testing
+// sendEmail(
+// 'tamimitarteel@gmail.com',
+// 'Tarteel',
+// 'greeting!',
+// 'You have registered in bla bla bla voluntary work');
 
 app.listen(PORT, () => {
   logger(`App is listening on port ${PORT}`);

@@ -7,6 +7,8 @@ import { NSVolunteer } from '../../types/volunteer.js';
 import { log } from '../controllers/AWS-services/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWS-services/cloudWatch-logger.js';
+import { logToCloudWatch } from '../controllers/cloudWatch-logger.js';
+import { sendEmail } from '../controllers/sendEmail.js';
 
 var router = express.Router();
 
@@ -27,6 +29,12 @@ router.post('/register', validateVolunteer, (req, res, next) => {
             req.body.id,
             req.body.name
         ).then().catch()
+
+        sendEmail(
+            req.body.email,
+            req.body.name,
+            'Registration in Serve And Shine',
+            'You have successfully registered in Serve And Shine. You can now view voluntary organizations and works');
 
         res.status(201).send("Volunteer created successfully!!")
     }).catch(err => {

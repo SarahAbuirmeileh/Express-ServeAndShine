@@ -18,6 +18,7 @@ services:
 
   app:
     image: ghcr.io/sarahabuirmeileh/serve-and-shine:$GIT_VERSISON
+    mem_limit: 5g
     restart: always #like sysd service
     environment:
       - PORT=80
@@ -25,6 +26,9 @@ services:
       - DB_USERNAME=$DB_USERNAME
       - DB_PASSWORD=$DB_PASSWORD
       - DB_NAME=$DB_NAME
+      - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+      
     ports:
       - "80:80"
     depends_on:

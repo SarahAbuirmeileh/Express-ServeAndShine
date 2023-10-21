@@ -16,7 +16,6 @@ jobs:
       contents: read
       packages: write
 
-
     steps:
     - uses: actions/checkout@v3
 
@@ -37,11 +36,11 @@ jobs:
     - name: configer docker host
       uses: khaledez/configure-docker-host@v1
       with: 
-        host:  3.8.96.92
+        host: 13.40.223.68
         user: github
         ssh-private-key: ${{ secrets.DEPLOYMENT_KEY }}
 
-    - name: deploy
+    - name: Deploy
       run: docker compose -f docker-compose-prod.yml up -d
       env: 
         DB_PASSWORD: ${{ secrets.DB_PASSWORD}}
@@ -55,16 +54,9 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
         AWS_REGION: ${{ secrets.AWS_REGION}}
+        AWS_CERTIFICATES_BUCKET_NAME: ${{ secrets.AWS_CERTIFICATES_BUCKET_NAME}}
+        PORT:  ${{ secrets.PORT}}
 
-    - name: print logs
-      if: always()
-      run: docker compose logs
 
-    - name: Run Migrations
-      run: |
-        docker compose -f docker-compose-prod.yml exec app npx typeorm-ts-node-esm migration:run -d ./src/db/dataSource.ts &&
-        docker compose -f docker-compose-prod.yml exec app mv ./src/db/migrations/1697005494066-CreateRoles.ts ./src/db/migration &&
-        docker compose -f docker-compose-prod.yml exec app npx typeorm-ts-node-esm migration:run -d ./src/db/dataSource.ts &&
-        docker compose -f docker-compose-prod.yml exec app mv ./src/db/migrations/1697005554406-RootUser.ts  ./src/db/migration &&
-        docker compose -f docker-compose-prod.yml exec app npx typeorm-ts-node-esm migration:run -d ./src/db/dataSource.ts 
+
     
