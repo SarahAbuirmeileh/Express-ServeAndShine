@@ -37,7 +37,7 @@ export class VolunteerProfile extends BaseEntity {
 
     @OneToOne(() => Volunteer, (volunteer) => volunteer.volunteerProfile, { onDelete: 'SET NULL' })
     @JoinColumn()
-    volunteer: Volunteer;
+    volunteer: NSVolunteer.IVolunteer;
 
     @CreateDateColumn({
         type: 'timestamp',

@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getVoluntaryWork, getVoluntaryWorks, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -8,6 +8,7 @@ import { log } from '../controllers/AWS-services/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWS-services/cloudWatch-logger.js';
 import { putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
+import { getOrganizationProfile } from '../controllers/OrganizationProfile .js';
 
 var router = express.Router();
 
@@ -562,7 +563,7 @@ router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_vol
     });
 });
 
-router.put("/template/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
+router.put("/template/:id", /*validateVoluntaryWorkId, authorize("PUT_images"), */async (req, res, next) => {
     const templates = req.files?.template;
     if (!templates) {
         return res.status(400).send("No Template provided.");
@@ -570,12 +571,31 @@ router.put("/template/:id", validateVoluntaryWorkId, authorize("PUT_images"), as
 
     try {
         const uploadedFiles = Array.isArray(templates) ? templates : [templates];
-        await putCertificateTemplate(Number(req.params.id), uploadedFiles);
+
+        const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
+        const organization = await getOrganizationProfile(payload);
+        const organizationName = organization?.name || '';
+
+        await putCertificateTemplate(organizationName, uploadedFiles);
 
         res.status(201).send("Template added successfully!!");
     } catch (err) {
         next(err);
     }
+});
+
+router.post("/generate-certificate/:id", async (req, res, next) => {
+    const currentDate = new Date();
+    const date = `${currentDate.getDate()} ${currentDate.getMonth() + 1} ${currentDate.getFullYear()}`
+
+    const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
+    const organization = await getOrganizationProfile(payload);
+    const organizationName = organization?.name || '';
+
+    generateCertificate(Number(req.params.id), organizationName, req.body.date || date)
+        .then((d) => res.status(200).send(d))
+        .catch(err => res.send(err))
+
 });
 
 export default router;

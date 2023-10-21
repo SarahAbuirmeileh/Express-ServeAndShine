@@ -61,27 +61,27 @@ const getOrganizationProfile = async (payload: {
             const admin = await OrganizationAdmin.findOne({ where: { name: payload.adminName } });
 
             if (admin) {
-                return admin;
+                return admin.orgProfile;
             } else {
                 throw createError({status: 404, message: "Admin"});
             }
         }
 
-        const [orgs, total] = await OrganizationProfile.findAndCount({
-            skip: pageSize * (page - 1),
-            take: pageSize,
-            order: {
-                createdAt: 'ASC'
-            },
-            select: ["name", "description", "createdAt"]
-        })
+        // const [orgs, total] = await OrganizationProfile.findAndCount({
+        //     skip: pageSize * (page - 1),
+        //     take: pageSize,
+        //     order: {
+        //         createdAt: 'ASC'
+        //     },
+        //     select: ["name", "description", "createdAt"]
+        // })
 
-        return {
-            page,
-            pageSize: orgs.length,
-            total,
-            orgs
-        };
+        // return {
+        //     page,
+        //     pageSize: orgs.length,
+        //     total,
+        //     orgs
+        // };
     } catch (err) {
         baseLogger.error(err);
         throw createError({status: 404, message: "Organization"});

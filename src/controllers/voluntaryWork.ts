@@ -330,7 +330,7 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     }
 }
 
-const generateCertificate = async (voluntaryWorkId: number,organizationName:string, date:string) => {
+const generateCertificate = async (voluntaryWorkId: number, organizationName: string, date: string) => {
     const voluntaryWork = await VoluntaryWork.findOne({
         where: { id: voluntaryWorkId },
         relations: ["volunteerProfiles", "volunteerProfiles.volunteer"]
@@ -340,20 +340,20 @@ const generateCertificate = async (voluntaryWorkId: number,organizationName:stri
         throw new Error(`Voluntary work with id ${voluntaryWorkId} not found.`);
     }
 
-    const volunteerNames = voluntaryWork.volunteerProfiles.map(
-        (volunteerProfile) => volunteerProfile.volunteer.name
-    );
+    const volunteerData = voluntaryWork.volunteerProfiles.map(({ volunteer }) => ({ name: volunteer.name, email: volunteer.email }));
+    for (const volunteer of volunteerData) {
 
-    const volunteerEmails = voluntaryWork.volunteerProfiles.map(
-        (volunteerProfile) => volunteerProfile.volunteer.email
-    );
-    
-    const payload = {
-        volunteerName:volunteerNames[0], date, voluntaryWorkName:voluntaryWork.name, organizationName
+        const payload = {
+            volunteerName: volunteer.name,
+            date,
+            voluntaryWorkName: voluntaryWork.name,
+            organizationName,
+            volunteerEmail: volunteer.email
+        }
+
+        invokeLambdaFunction("generateCertificate", payload);
     }
-    const certificatePdf = invokeLambdaFunction("generateCertificate",payload);
 }
-
 
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,

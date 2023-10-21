@@ -7,7 +7,7 @@ const invokeLambdaFunction = async (functionName: string, eventPayload: Record<s
         FunctionName: functionName,
         InvocationType: 'RequestResponse',
         Payload: JSON.stringify(eventPayload),
-    };
+    };     
     try {
         const data = await lambda.invoke(params).promise();
 

@@ -2,9 +2,10 @@ import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn,
 import bcrypt from 'bcrypt';
 import { Role } from "./Role.js";
 import { VolunteerProfile } from "./VolunteerProfile.js";
+import { NSVolunteer } from "../../../types/volunteer.js";
 
 @Entity()
-export class Volunteer extends BaseEntity {
+export class Volunteer extends BaseEntity implements NSVolunteer.IVolunteer {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
