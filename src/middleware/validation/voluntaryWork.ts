@@ -5,7 +5,7 @@ import { getDate, isValidDate } from '../../controllers/index.js';
 import { VoluntaryWork } from '../../db/entities/VoluntaryWork.js';
 import createError from 'http-errors';
 import { NSLogs } from '../../../types/logs.js';
-import { log } from '../../controllers/AWS-services/dataBase-logger.js';
+import { log } from '../../controllers/dataBase-logger.js';
 
 const validateVoluntaryWork = (req: express.Request,
     res: express.Response,

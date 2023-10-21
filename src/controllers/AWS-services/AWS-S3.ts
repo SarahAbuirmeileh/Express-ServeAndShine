@@ -3,7 +3,7 @@ import baseLogger from "../../../logger.js";
 import { VoluntaryWork } from "../../db/entities/VoluntaryWork.js";
 import { configureS3Bucket } from "../../utilities/AWS_configure_S3.js";
 
-const putImages = async (id: number, uploadedFiles: UploadedFile[]) => {
+const putImages = async (id: number, uploadedFiles: UploadedFile[], organizationName:string) => {
     try {
 
         let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
@@ -16,7 +16,7 @@ const putImages = async (id: number, uploadedFiles: UploadedFile[]) => {
                 const uploadParams = {
                     Bucket: process.env.AWS_BUCKET_NAME || '',
                     Body: Buffer.from(file.data),
-                    Key: `${voluntaryWork.name}/${Date.now().toString()}.png`,
+                    Key: `${organizationName}/${voluntaryWork.name}/${Date.now().toString()}.png`,
                     ACL: 'public-read',
                 };
 

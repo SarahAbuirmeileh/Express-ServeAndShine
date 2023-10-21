@@ -4,9 +4,9 @@ import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
 import { validateEditedVoluntaryWork, validateVoluntaryWork, validateVoluntaryWorkId } from '../middleware/validation/voluntaryWork.js';
-import { log } from '../controllers/AWS-services/dataBase-logger.js';
+import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
-import { logToCloudWatch } from '../controllers/AWS-services/cloudWatch-logger.js';
+import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
 import { putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
 import {  searchOrganizationProfile } from '../controllers/OrganizationProfile .js';
 
@@ -400,40 +400,44 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
     try {
         const uploadedFiles = Array.isArray(images) ? images : [images];
 
-        await putImages(Number(req.params.id), uploadedFiles);
+        const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
+        const organization = await searchOrganizationProfile(payload);
+        const organizationName = organization?.name || '';
+
+        await putImages(Number(req.params.id), uploadedFiles, organizationName);
 
         log({
-            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userId: res.locals.organizationAdmin?.id ,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Add images to voluntary work with id' + req.params.id
+            request: 'Add images to voluntary work with id ' + req.params.id
         }).then().catch()
 
         logToCloudWatch(
             'success',
             'voluntary work',
-            'Add images to voluntary work with id' + req.params.id,
-            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            'Add images to voluntary work with id ' + req.params.id,
+            res.locals.organizationAdmin?.id ,
+            res.locals.organizationAdmin?.name
         ).then().catch()
 
         res.status(201).send("Images added successfully!!");
     } catch (err) {
         log({
-            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userId: res.locals.organizationAdmin?.id ,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Add images to voluntary work with id' + req.params.id
+            request: 'Add images to voluntary work with id ' + req.params.id
         }).then().catch()
 
         logToCloudWatch(
             'failed',
             'voluntary work',
-            'Add images to voluntary work with id' + req.params.id,
-            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            'Add images to voluntary work with id ' + req.params.id,
+            res.locals.organizationAdmin?.id ,
+            res.locals.organizationAdmin?.name
         ).then().catch()
 
         next(err);
