@@ -25,7 +25,7 @@ const editOrganizationProfile = async (payload: { id: string, name: string, desc
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Organization"});
+        throw createError({ status: 404, message: "Organization" });
     }
 }
 
@@ -34,11 +34,11 @@ const deleteOrganizationProfile = async (profileId: string) => {
         return OrganizationProfile.delete(profileId);
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Organization"});
+        throw createError({ status: 404, message: "Organization" });
     }
 }
 
-const getOrganizationProfile = async (payload: {
+const searchOrganizationProfile = async (payload: {
     page: string,
     pageSize: string,
     id: string,
@@ -63,30 +63,43 @@ const getOrganizationProfile = async (payload: {
             if (admin) {
                 return admin.orgProfile;
             } else {
-                throw createError({status: 404, message: "Admin"});
+                throw createError({ status: 404, message: "Admin" });
             }
         }
 
-        // const [orgs, total] = await OrganizationProfile.findAndCount({
-        //     skip: pageSize * (page - 1),
-        //     take: pageSize,
-        //     order: {
-        //         createdAt: 'ASC'
-        //     },
-        //     select: ["name", "description", "createdAt"]
-        // })
-
-        // return {
-        //     page,
-        //     pageSize: orgs.length,
-        //     total,
-        //     orgs
-        // };
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Organization"});
+        throw createError({ status: 404, message: "Organization" });
     }
 }
 
+const getOrganizationProfile = async (payload: {
+    page: string,
+    pageSize: string
+}) => {
+    try {
+        const page = parseInt(payload.page);
+        const pageSize = parseInt(payload.pageSize);
 
-export { createOrganizationProfile, editOrganizationProfile, deleteOrganizationProfile, getOrganizationProfile }
+        const [orgs, total] = await OrganizationProfile.findAndCount({
+            skip: pageSize * (page - 1),
+            take: pageSize,
+            order: {
+                createdAt: 'ASC'
+            },
+            select: ["name", "description", "createdAt"]
+        })
+
+        return {
+            page,
+            pageSize: orgs.length,
+            total,
+            orgs
+        };
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError({ status: 404, message: "Organization" });
+    }
+}
+
+export { getOrganizationProfile, createOrganizationProfile, editOrganizationProfile, deleteOrganizationProfile, searchOrganizationProfile }

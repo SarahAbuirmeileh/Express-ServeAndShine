@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getVoluntaryWork, getVoluntaryWorks, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate,  getVoluntaryWorks, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -8,7 +8,7 @@ import { log } from '../controllers/AWS-services/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWS-services/cloudWatch-logger.js';
 import { putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
-import { getOrganizationProfile } from '../controllers/OrganizationProfile .js';
+import {  searchOrganizationProfile } from '../controllers/OrganizationProfile .js';
 
 var router = express.Router();
 
@@ -572,7 +572,7 @@ router.put("/template/:id", validateVoluntaryWorkId, authorize("PUT_images"), as
     const uploadedFiles = Array.isArray(templates) ? templates : [templates];
 
     const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
-    const organization = await getOrganizationProfile(payload);
+    const organization = await searchOrganizationProfile(payload);
     const organizationName = organization?.name || '';
 
     await putCertificateTemplate(organizationName, uploadedFiles).then(() => {
@@ -621,7 +621,7 @@ router.post("/generate-certificate/:id", validateVoluntaryWorkId, authorize("PUT
     const date = `${currentDate.getDate()} ${currentDate.getMonth() + 1} ${currentDate.getFullYear()}`
 
     const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
-    const organization = await getOrganizationProfile(payload);
+    const organization = await searchOrganizationProfile(payload);
     const organizationName = organization?.name || '';
 
     generateCertificate(Number(req.params.id), organizationName, req.body.date || date).then(() => {
