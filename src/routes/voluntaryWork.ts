@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate,  getVoluntaryWorks, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getImages, getVoluntaryWorks, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -8,7 +8,7 @@ import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
 import { putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
-import {  searchOrganizationProfile } from '../controllers/OrganizationProfile .js';
+import { searchOrganizationProfile } from '../controllers/OrganizationProfile .js';
 
 var router = express.Router();
 
@@ -311,6 +311,49 @@ router.get('/recommendation', authorize("GET_recommendation"), async (req, res, 
         });
 });
 
+router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
+    const payload = { ...res.locals.volunteer };
+    getImages(Number(req.params.id))
+        .then(data => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: res.locals.volunteer?.type as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Get image/s for voluntary work with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Get image/s',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: res.locals.volunteer?.type as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Get image/s for voluntary work with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Get image/s',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+});
+
 router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), checkParticipation, async (req, res, next) => {
     putRating(Number(req.params.id), Number(req.body.rating)).then(() => {
         log({
@@ -407,7 +450,7 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
         await putImages(Number(req.params.id), uploadedFiles, organizationName);
 
         log({
-            userId: res.locals.organizationAdmin?.id ,
+            userId: res.locals.organizationAdmin?.id,
             userName: res.locals.organizationAdmin?.name,
             userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
@@ -418,14 +461,14 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
             'success',
             'voluntary work',
             'Add images to voluntary work with id ' + req.params.id,
-            res.locals.organizationAdmin?.id ,
+            res.locals.organizationAdmin?.id,
             res.locals.organizationAdmin?.name
         ).then().catch()
 
         res.status(201).send("Images added successfully!!");
     } catch (err) {
         log({
-            userId: res.locals.organizationAdmin?.id ,
+            userId: res.locals.organizationAdmin?.id,
             userName: res.locals.organizationAdmin?.name,
             userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
@@ -436,7 +479,7 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
             'failed',
             'voluntary work',
             'Add images to voluntary work with id ' + req.params.id,
-            res.locals.organizationAdmin?.id ,
+            res.locals.organizationAdmin?.id,
             res.locals.organizationAdmin?.name
         ).then().catch()
 
@@ -667,7 +710,8 @@ router.post("/generate-certificate/:id", validateVoluntaryWorkId, authorize("PUT
         next(err);
     })
 
-
 });
+
+
 
 export default router;

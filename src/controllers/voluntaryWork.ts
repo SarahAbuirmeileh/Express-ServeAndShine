@@ -354,10 +354,18 @@ const generateCertificate = async (voluntaryWorkId: number, organizationName: st
     }
 }
 
+const getImages = async (voluntaryWorkId: number) => {
+    const voluntaryWork = await VoluntaryWork.findOne({
+        where: { id: voluntaryWorkId }
+    });
+
+    return voluntaryWork?.images;
+}
+
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
     registerByVolunteer, createVoluntaryWork,
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
     getVoluntaryWorks, deleteVoluntaryWork,
-    generateCertificate
+    generateCertificate, getImages
 }
