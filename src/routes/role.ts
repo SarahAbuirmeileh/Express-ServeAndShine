@@ -183,4 +183,3 @@ router.get('/', authorize("GET_roles"), async (req, res, next) => {
 });
 
 export default router;
-

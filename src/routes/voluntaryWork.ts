@@ -563,25 +563,57 @@ router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_vol
     });
 });
 
-router.put("/template/:id", /*validateVoluntaryWorkId, authorize("PUT_images"), */async (req, res, next) => {
+router.put("/template/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
     const templates = req.files?.template;
     if (!templates) {
         return res.status(400).send("No Template provided.");
     }
 
-    try {
-        const uploadedFiles = Array.isArray(templates) ? templates : [templates];
+    const uploadedFiles = Array.isArray(templates) ? templates : [templates];
 
-        const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
-        const organization = await getOrganizationProfile(payload);
-        const organizationName = organization?.name || '';
+    const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
+    const organization = await getOrganizationProfile(payload);
+    const organizationName = organization?.name || '';
 
-        await putCertificateTemplate(organizationName, uploadedFiles);
+    await putCertificateTemplate(organizationName, uploadedFiles).then(() => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Template added successfully for organization: ' + organizationName
+        }).then().catch()
 
-        res.status(201).send("Template added successfully!!");
-    } catch (err) {
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Template added successfully for organization: ' + organizationName,
+            res.locals.organizationAdmin?.id ,
+            res.locals.organizationAdmin?.name 
+        ).then().catch()
+
+        res.status(201).send("Template added successfully!!")
+
+    }).catch((err)=>{
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Template added successfully for organization: ' + organizationName
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Adding template for organization: ' + organizationName,
+            res.locals.organizationAdmin?.id ,
+            res.locals.organizationAdmin?.name 
+        ).then().catch()
+
         next(err);
-    }
+    })
+
 });
 
 router.post("/generate-certificate/:id", async (req, res, next) => {
