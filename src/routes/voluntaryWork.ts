@@ -136,7 +136,7 @@ router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, 
     });
 });
 
-router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
+router.get('/search', authorize("GET_voluntaryWorks"), async (req, res, next) => {
 
     const payload = {
         page: req.query.page?.toString() || '1',
@@ -168,13 +168,13 @@ router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
                 userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Get Voluntary Work/s'
+                request: 'Search Voluntary Work/s'
             }).then().catch()
 
             logToCloudWatch(
                 'success',
                 'voluntary work',
-                'Get Voluntary Work/s',
+                'Search Voluntary Work/s',
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             ).then().catch()
@@ -187,13 +187,13 @@ router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
                 userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Get Voluntary Work/s'
+                request: 'Search Voluntary Work/s'
             }).then().catch()
 
             logToCloudWatch(
                 'failed',
                 'voluntary work',
-                'Get Voluntary Work/s',
+                'Search Voluntary Work/s',
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             ).then().catch()

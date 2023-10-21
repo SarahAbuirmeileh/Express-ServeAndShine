@@ -26,7 +26,6 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
     }
 }
 
-
 const deleteVoluntaryWork = async (voluntaryWorkId: number) => {
     try {
         return VoluntaryWork.delete(voluntaryWorkId);
