@@ -4,8 +4,9 @@ import { authenticate } from '../middleware/auth/authenticate.js';
 import { validateEditedVolunteer, validateVolunteer } from '../middleware/validation/volunteer.js';
 import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login } from '../controllers/volunteer.js';
 import { NSVolunteer } from '../../types/volunteer.js';
-import { log } from '../controllers/dataBase-logger.js';
+import { log } from '../controllers/AWS-services/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
+import { logToCloudWatch } from '../controllers/AWS-services/cloudWatch-logger.js';
 import { logToCloudWatch } from '../controllers/cloudWatch-logger.js';
 import { sendEmail } from '../controllers/sendEmail.js';
 
@@ -193,7 +194,7 @@ router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolun
     });
 });
 
-router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next) => {
+router.get('/search', authenticate, authorize("GET_volunteers"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',

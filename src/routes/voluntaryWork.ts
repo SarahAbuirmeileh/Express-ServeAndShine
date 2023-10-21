@@ -1,13 +1,14 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, getVoluntaryWork, getVoluntaryWorks, putFeedback, putImages, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate,  getVoluntaryWorks, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
 import { validateEditedVoluntaryWork, validateVoluntaryWork, validateVoluntaryWorkId } from '../middleware/validation/voluntaryWork.js';
-import { UploadedFile } from 'express-fileupload';
-import { log } from '../controllers/dataBase-logger.js';
+import { log } from '../controllers/AWS-services/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
-import { logToCloudWatch } from '../controllers/cloudWatch-logger.js';
+import { logToCloudWatch } from '../controllers/AWS-services/cloudWatch-logger.js';
+import { putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
+import {  searchOrganizationProfile } from '../controllers/OrganizationProfile .js';
 
 var router = express.Router();
 
@@ -135,7 +136,7 @@ router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, 
     });
 });
 
-router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
+router.get('/search', authorize("GET_voluntaryWorks"), async (req, res, next) => {
 
     const payload = {
         page: req.query.page?.toString() || '1',
@@ -167,13 +168,13 @@ router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
                 userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Get Voluntary Work/s'
+                request: 'Search Voluntary Work/s'
             }).then().catch()
 
             logToCloudWatch(
                 'success',
                 'voluntary work',
-                'Get Voluntary Work/s',
+                'Search Voluntary Work/s',
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             ).then().catch()
@@ -186,13 +187,13 @@ router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
                 userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Get Voluntary Work/s'
+                request: 'Search Voluntary Work/s'
             }).then().catch()
 
             logToCloudWatch(
                 'failed',
                 'voluntary work',
-                'Get Voluntary Work/s',
+                'Search Voluntary Work/s',
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             ).then().catch()
@@ -438,6 +439,7 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
         next(err);
     }
 });
+
 router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
     if (res.locals.volunteer) {
         registerByVolunteer(Number(req.params.id), res.locals.volunteer?.volunteerProfile).then(() => {
@@ -559,6 +561,109 @@ router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_vol
 
         next(err);
     });
+});
+
+router.put("/template/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
+    const templates = req.files?.template;
+    if (!templates) {
+        return res.status(400).send("No Template provided.");
+    }
+
+    const uploadedFiles = Array.isArray(templates) ? templates : [templates];
+
+    const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
+    const organization = await searchOrganizationProfile(payload);
+    const organizationName = organization?.name || '';
+
+    await putCertificateTemplate(organizationName, uploadedFiles).then(() => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Template added successfully for organization: ' + organizationName
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Template added successfully for organization: ' + organizationName,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.status(201).send("Template added successfully!!")
+
+    }).catch((err) => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Adding template for organization: ' + organizationName
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Adding template for organization: ' + organizationName,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        next(err);
+    })
+
+});
+
+router.post("/generate-certificate/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
+    const currentDate = new Date();
+    const date = `${currentDate.getDate()} ${currentDate.getMonth() + 1} ${currentDate.getFullYear()}`
+
+    const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
+    const organization = await searchOrganizationProfile(payload);
+    const organizationName = organization?.name || '';
+
+    generateCertificate(Number(req.params.id), organizationName, req.body.date || date).then(() => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Certifications generated successfully for organization: ' + organizationName
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Certifications generated successfully for organization: ' + organizationName,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.status(201).send("Template added successfully!!")
+
+    }).catch((err) => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Generating certifications for organization: ' + organizationName
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Generating certifications for organization: ' + organizationName,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        next(err);
+    })
+
+
 });
 
 export default router;

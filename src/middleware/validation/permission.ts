@@ -2,7 +2,7 @@ import express from 'express';
 import { Permission } from '../../db/entities/Permission.js';
 import createError from 'http-errors';
 import { NSLogs } from '../../../types/logs.js';
-import { log } from '../../controllers/dataBase-logger.js';
+import { log } from '../../controllers/AWS-services/dataBase-logger.js';
 
 const validatePermission = (req: express.Request,
   res: express.Response,

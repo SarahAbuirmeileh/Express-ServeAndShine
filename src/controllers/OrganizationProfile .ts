@@ -25,7 +25,7 @@ const editOrganizationProfile = async (payload: { id: string, name: string, desc
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Organization"});
+        throw createError({ status: 404, message: "Organization" });
     }
 }
 
@@ -34,11 +34,11 @@ const deleteOrganizationProfile = async (profileId: string) => {
         return OrganizationProfile.delete(profileId);
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Organization"});
+        throw createError({ status: 404, message: "Organization" });
     }
 }
 
-const getOrganizationProfile = async (payload: {
+const searchOrganizationProfile = async (payload: {
     page: string,
     pageSize: string,
     id: string,
@@ -61,11 +61,25 @@ const getOrganizationProfile = async (payload: {
             const admin = await OrganizationAdmin.findOne({ where: { name: payload.adminName } });
 
             if (admin) {
-                return admin;
+                return admin.orgProfile;
             } else {
-                throw createError({status: 404, message: "Admin"});
+                throw createError({ status: 404, message: "Admin" });
             }
         }
+
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError({ status: 404, message: "Organization" });
+    }
+}
+
+const getOrganizationProfile = async (payload: {
+    page: string,
+    pageSize: string
+}) => {
+    try {
+        const page = parseInt(payload.page);
+        const pageSize = parseInt(payload.pageSize);
 
         const [orgs, total] = await OrganizationProfile.findAndCount({
             skip: pageSize * (page - 1),
@@ -84,9 +98,8 @@ const getOrganizationProfile = async (payload: {
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Organization"});
+        throw createError({ status: 404, message: "Organization" });
     }
 }
 
-
-export { createOrganizationProfile, editOrganizationProfile, deleteOrganizationProfile, getOrganizationProfile }
+export { getOrganizationProfile, createOrganizationProfile, editOrganizationProfile, deleteOrganizationProfile, searchOrganizationProfile }

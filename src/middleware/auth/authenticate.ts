@@ -4,7 +4,7 @@ import { OrganizationAdmin } from '../../db/entities/OrganizationAdmin.js';
 import { Volunteer } from '../../db/entities/Volunteer.js';
 import createError from 'http-errors';
 import { NSLogs } from '../../../types/logs.js';
-import { log } from '../../controllers/dataBase-logger.js';
+import { log } from '../../controllers/AWS-services/dataBase-logger.js';
 
 const authenticate = async (
     req: express.Request,
