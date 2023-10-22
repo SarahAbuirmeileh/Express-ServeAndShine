@@ -7,6 +7,7 @@ import { Volunteer } from "../db/entities/Volunteer.js";
 import createError from 'http-errors';
 import baseLogger from "../../logger.js";
 import { invokeLambdaFunction } from "./AWS-services/AWS-Lambda.js";
+import { sendEmail } from "./AWS-services/AWS-SES.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
     try {
@@ -354,10 +355,58 @@ const generateCertificate = async (voluntaryWorkId: number, organizationName: st
     }
 }
 
+const getImages = async (voluntaryWorkId: number) => {
+    const voluntaryWork = await VoluntaryWork.findOne({
+        where: { id: voluntaryWorkId }
+    });
+
+    return voluntaryWork?.images;
+}
+
+const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
+    try {
+        const volunteer = await Volunteer.findOne({
+            where: { id: volunteerId },
+            relations: ["volunteerProfile"]
+        });
+
+        if (!volunteer) {
+            throw createError({ status: 404, message: 'Volunteer not found' });
+        }
+
+        return volunteer.volunteerProfile.voluntaryWorks;
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError({ status: 404, message: 'Voluntary Works not found' });
+    }
+};
+
+const volunteerReminder = async (id: number) => {
+    try {
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+        if (!voluntaryWork) {
+            throw new Error(`Voluntary work with id ${id} not found.`);
+        }
+
+        const volunteerData = voluntaryWork.volunteerProfiles.map(({ volunteer }) => ({ name: volunteer.name, email: volunteer.email }));
+        for (const volunteer of volunteerData) {
+            sendEmail(
+                volunteer.email,
+                volunteer.name,
+                'Reminder to rate and feedback Voluntary Work!',
+                `You have successfully finished ${voluntaryWork?.name}!\nWe encourage you to tell us your opinion and thoughts about our voluntary work, you can rate and create feedback for it!`)        }
+
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError(404,);
+    }
+}
+
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
     registerByVolunteer, createVoluntaryWork,
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
     getVoluntaryWorks, deleteVoluntaryWork,
-    generateCertificate
+    generateCertificate, getImages, getVoluntaryWorksForVolunteer,
+    volunteerReminder
 }

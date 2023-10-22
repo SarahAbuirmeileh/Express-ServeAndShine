@@ -28,7 +28,7 @@ export class Volunteer extends BaseEntity implements NSVolunteer.IVolunteer {
         type: 'enum',
         enum: ['volunteer', 'premium'],
         default: 'volunteer',
-        nullable:true
+        nullable: true
     })
     type: 'volunteer' | 'premium';
 
@@ -36,7 +36,7 @@ export class Volunteer extends BaseEntity implements NSVolunteer.IVolunteer {
     @JoinTable()
     roles: Role[];
 
-    @OneToOne(() => VolunteerProfile, {cascade: true, onDelete:"SET NULL"})
+    @OneToOne(() => VolunteerProfile, { cascade: true, onDelete: "SET NULL" })
     @JoinColumn()
     volunteerProfile: VolunteerProfile
 

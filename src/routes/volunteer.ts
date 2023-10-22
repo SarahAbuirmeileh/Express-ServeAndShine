@@ -4,11 +4,10 @@ import { authenticate } from '../middleware/auth/authenticate.js';
 import { validateEditedVolunteer, validateVolunteer } from '../middleware/validation/volunteer.js';
 import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login } from '../controllers/volunteer.js';
 import { NSVolunteer } from '../../types/volunteer.js';
-import { log } from '../controllers/AWS-services/dataBase-logger.js';
+import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
-import { logToCloudWatch } from '../controllers/AWS-services/cloudWatch-logger.js';
-import { logToCloudWatch } from '../controllers/cloudWatch-logger.js';
-import { sendEmail } from '../controllers/sendEmail.js';
+import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
+import { sendEmail } from '../controllers/AWS-services/AWS-SES.js';
 
 var router = express.Router();
 

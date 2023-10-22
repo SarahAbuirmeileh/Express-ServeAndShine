@@ -5,7 +5,7 @@ import { getDate, isValidDate } from '../../controllers/index.js';
 import { VoluntaryWork } from '../../db/entities/VoluntaryWork.js';
 import createError from 'http-errors';
 import { NSLogs } from '../../../types/logs.js';
-import { log } from '../../controllers/AWS-services/dataBase-logger.js';
+import { log } from '../../controllers/dataBase-logger.js';
 
 const validateVoluntaryWork = (req: express.Request,
     res: express.Response,
@@ -169,8 +169,31 @@ const validateVoluntaryWorkId = async (req: express.Request,
     }
 }
 
+const validateDeleteFromS3 = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const values = ["organizationName", "imageName"];
+    const voluntaryWork = req.body;
+    const errorList = values.map(key => !voluntaryWork[key] && `${key} is Required!`).filter(Boolean);
+
+    if (errorList.length > 0) {
+        log({
+            userId: res.locals.organizationAdmin?.id ,
+            userName: res.locals.organizationAdmin?.name ,
+            userType: ( res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Bad delete image from Voluntary Work Request'
+        }).then().catch()
+        res.status(400).send(errorList);
+    } else {
+        next();
+    }
+}
+
 export {
     validateVoluntaryWork,
     validateEditedVoluntaryWork,
-    validateVoluntaryWorkId
+    validateVoluntaryWorkId,
+    validateDeleteFromS3
 }
