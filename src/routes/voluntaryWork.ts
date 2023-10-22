@@ -10,6 +10,9 @@ import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs
 import { deleteFromS3, loadFromS3, putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
 import { searchOrganizationProfile } from '../controllers/OrganizationProfile .js';
 import { validateVolunteerId } from '../middleware/validation/volunteer.js';
+import { sendEmail } from '../controllers/AWS-services/AWS-SES.js';
+import { VoluntaryWork } from '../db/entities/VoluntaryWork.js';
+import { Volunteer } from '../db/entities/Volunteer.js';
 
 var router = express.Router();
 
@@ -714,8 +717,9 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
 });
 
 router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
+    const voluntaryWork = await VoluntaryWork.findOne({ where: { id: Number(req.params.id) } })
     if (res.locals.volunteer) {
-        registerByVolunteer(Number(req.params.id), res.locals.volunteer?.volunteerProfile).then(() => {
+        registerByVolunteer(Number(req.params.id), res.locals.volunteer?.volunteerProfile).then(async () => {
             log({
                 userId: res.locals.volunteer?.id,
                 userName: res.locals.volunteer?.name,
@@ -731,6 +735,12 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             ).then().catch()
+
+            sendEmail(
+                res.locals.volunteer.email,
+                res.locals.volunteer.name,
+                'Registration in Voluntary Work!',
+                `You have successfully registered in ${voluntaryWork?.name}!`)
 
             res.status(201).send("Registration done successfully!!")
         }).catch(err => {
@@ -756,6 +766,7 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
         if (!req.body.volunteerId.toString()) {
             res.status(400).send("volunteer id is required!");
         }
+        const volunteer = await Volunteer.findOne({ where: { id: (req.body.volunteerId.toString()) } })
         registerByOrganizationAdmin(Number(req.params.id), req.body.volunteerId.toString()).then(() => {
             log({
                 userId: res.locals.organizationAdmin?.id,
@@ -772,6 +783,14 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
                 res.locals.organizationAdmin?.id,
                 res.locals.organizationAdmin?.name
             ).then().catch()
+
+            if (volunteer) {
+                sendEmail(
+                    volunteer.email,
+                    volunteer.name,
+                    'Registration in Voluntary Work!',
+                    `You have successfully registered in ${voluntaryWork?.name}!`)
+            }
 
             res.status(201).send("Registration done successfully!!")
         }).catch(err => {
@@ -797,6 +816,9 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
 });
 
 router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_voluntaryWork"), async (req, res, next) => {
+    const voluntaryWork = await VoluntaryWork.findOne({ where: { id: Number(req.params.id) } })
+    const volunteer = await Volunteer.findOne({ where: { id: (req.body.volunteerId.toString()) } })
+
     deregisterVoluntaryWork(Number(req.params.id), res.locals.volunteer.id || req.body.volunteerId.toString()).then(() => {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
@@ -813,6 +835,12 @@ router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_vol
             res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             res.locals.organizationAdmin?.name || res.locals.volunteer?.name
         ).then().catch()
+
+        sendEmail(
+            res.locals.volunteer.email || volunteer?.email,
+            res.locals.volunteer.name || volunteer?.name,
+            'Deregistration from Voluntary Work!',
+            `You have unfortunately deregistered from ${voluntaryWork?.name}. We hope to see you in other voluntary works!`)
 
         res.status(201).send("Deregistration done successfully!!")
     }).catch(err => {
