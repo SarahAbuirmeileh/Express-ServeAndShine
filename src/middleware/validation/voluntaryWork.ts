@@ -169,8 +169,31 @@ const validateVoluntaryWorkId = async (req: express.Request,
     }
 }
 
+const validateDeleteImage = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const values = ["organizationName", "imageName"];
+    const voluntaryWork = req.body;
+    const errorList = values.map(key => !voluntaryWork[key] && `${key} is Required!`).filter(Boolean);
+
+    if (errorList.length > 0) {
+        log({
+            userId: res.locals.organizationAdmin?.id ,
+            userName: res.locals.organizationAdmin?.name ,
+            userType: ( res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Bad delete image from Voluntary Work Request'
+        }).then().catch()
+        res.status(400).send(errorList);
+    } else {
+        next();
+    }
+}
+
 export {
     validateVoluntaryWork,
     validateEditedVoluntaryWork,
-    validateVoluntaryWorkId
+    validateVoluntaryWorkId,
+    validateDeleteImage
 }

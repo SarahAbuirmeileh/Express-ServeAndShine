@@ -51,4 +51,21 @@ const putCertificateTemplate = async (organizationName: string, uploadedFiles: U
     }
 }
 
-export { putImages, putCertificateTemplate }
+const deleteImage = async (key:string) => {
+    try {
+        const S3 = await configureS3Bucket();
+
+        const deleteParams = {
+            Bucket: process.env.AWS_BUCKET_NAME || '',
+            Key: key,
+        };
+
+        return S3.deleteObject(deleteParams).promise();
+
+    } catch (err) {
+        baseLogger.error("Error deleting image from S3:", err);
+        throw err;
+    }
+}
+
+export { putImages, putCertificateTemplate, deleteImage }
