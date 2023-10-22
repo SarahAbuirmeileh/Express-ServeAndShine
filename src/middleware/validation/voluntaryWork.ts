@@ -169,7 +169,7 @@ const validateVoluntaryWorkId = async (req: express.Request,
     }
 }
 
-const validateDeleteImage = async (req: express.Request,
+const validateDeleteFromS3 = async (req: express.Request,
     res: express.Response,
     next: express.NextFunction
 ) => {
@@ -195,5 +195,5 @@ export {
     validateVoluntaryWork,
     validateEditedVoluntaryWork,
     validateVoluntaryWorkId,
-    validateDeleteImage
+    validateDeleteFromS3
 }

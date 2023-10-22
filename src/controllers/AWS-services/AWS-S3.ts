@@ -51,12 +51,12 @@ const putCertificateTemplate = async (organizationName: string, uploadedFiles: U
     }
 }
 
-const deleteImage = async (key:string) => {
+const deleteFromS3 = async (key:string, type:string) => {
     try {
         const S3 = await configureS3Bucket();
 
         const deleteParams = {
-            Bucket: process.env.AWS_BUCKET_NAME || '',
+            Bucket: (type ==="image"? process.env.AWS_BUCKET_NAME  :process.env.AWS_CERTIFICATES_BUCKET_NAME) || '' ,
             Key: key,
         };
 
@@ -68,4 +68,4 @@ const deleteImage = async (key:string) => {
     }
 }
 
-export { putImages, putCertificateTemplate, deleteImage }
+export { putImages, putCertificateTemplate, deleteFromS3 }

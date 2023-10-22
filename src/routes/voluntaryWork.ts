@@ -3,11 +3,11 @@ import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, edit
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
-import { validateDeleteImage, validateEditedVoluntaryWork, validateVoluntaryWork, validateVoluntaryWorkId } from '../middleware/validation/voluntaryWork.js';
+import { validateDeleteFromS3, validateEditedVoluntaryWork, validateVoluntaryWork, validateVoluntaryWorkId } from '../middleware/validation/voluntaryWork.js';
 import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
-import { deleteImage, putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
+import { deleteFromS3, putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
 import { searchOrganizationProfile } from '../controllers/OrganizationProfile .js';
 import { validateVolunteerId } from '../middleware/validation/volunteer.js';
 
@@ -97,13 +97,13 @@ router.delete('/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork")
         });
 })
 
-router.delete('/image/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), validateDeleteImage, async (req, res, next) => {
+router.delete('/image/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
 
     const id = Number(req.params.id?.toString());
     const voluntaryWork = await getVoluntaryWork({ id });
     const key = `${req.body.organizationName}/${voluntaryWork?.name}/${req.body.imageName}.png`
 
-    deleteImage(key)
+    deleteFromS3(key, 'image')
         .then(data => {
             log({
                 userId: res.locals.organizationAdmin?.id,
@@ -136,6 +136,53 @@ router.delete('/image/:id', validateVoluntaryWorkId, authorize("DELETE_voluntary
                 'failed',
                 'voluntary work',
                 'Delete image from Voluntary Work with id: ' + id,
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+})
+
+router.delete('/certificate/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
+
+    const id = Number(req.params.id?.toString());
+    const voluntaryWork = await getVoluntaryWork({ id });
+    const key = `certificates/${req.body.organizationName}/${voluntaryWork?.name}/${req.body.volunteerName}.pdf`
+
+    deleteFromS3(key, "certificate")
+        .then(data => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Delete certificate for volunteer: ' + req.body.volunteerName
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Delete certificate for volunteer: ' + req.body.volunteerName,
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Delete image for volunteer: ' + req.body.volunteerName
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Delete image for volunteer: ' + req.body.volunteerName,
                 res.locals.organizationAdmin?.id,
                 res.locals.organizationAdmin?.name
             ).then().catch()
