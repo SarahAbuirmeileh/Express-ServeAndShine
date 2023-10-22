@@ -7,7 +7,7 @@ import { validateDeleteFromS3, validateEditedVoluntaryWork, validateVoluntaryWor
 import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
-import { deleteFromS3, putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
+import { deleteFromS3, loadFromS3, putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
 import { searchOrganizationProfile } from '../controllers/OrganizationProfile .js';
 import { validateVolunteerId } from '../middleware/validation/volunteer.js';
 
@@ -459,7 +459,7 @@ router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
             log({
                 userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
                 userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
-                userType: res.locals.volunteer?.type as NSLogs.userType,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Get image/s for voluntary work with id: ' + req.params.id
             }).then().catch()
@@ -487,6 +487,49 @@ router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
                 'failed',
                 'voluntary work',
                 'Get image/s',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+});
+
+router.get('/template', authorize("DELETE_voluntaryWork"), async (req, res, next) => {
+    const prefix = `templates/${req.body.organizationName}`
+    loadFromS3(process.env.AWS_CERTIFICATES_BUCKET_NAME || '', prefix)
+        .then(data => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Get template/s for organization: ' + req.body.organizationName
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Get template/s',
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Get template/s for organization: ' + req.body.organizationName
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Get template/s',
                 res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
                 res.locals.volunteer?.name || res.locals.organizationAdmin?.name
             ).then().catch()

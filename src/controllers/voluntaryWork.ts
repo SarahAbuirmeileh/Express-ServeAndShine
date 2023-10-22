@@ -368,7 +368,7 @@ const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
             where: { id: volunteerId },
             relations: ["volunteerProfile"]
         });
-        
+
         if (!volunteer) {
             throw createError({ status: 404, message: 'Volunteer not found' });
         }
@@ -379,6 +379,8 @@ const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
         throw createError({ status: 404, message: 'Voluntary Works not found' });
     }
 };
+
+
 
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
