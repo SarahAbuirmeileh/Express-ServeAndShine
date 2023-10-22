@@ -191,6 +191,53 @@ router.delete('/certificate/:id', validateVoluntaryWorkId, authorize("DELETE_vol
         });
 })
 
+router.delete('/template/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
+
+    const id = Number(req.params.id?.toString());
+    const voluntaryWork = await getVoluntaryWork({ id });
+    const key = `templates/${req.body.organizationName}/certificate_template.html`
+
+    deleteFromS3(key, "template")
+        .then(data => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Delete template for organization :' + req.body.organizationName
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Delete template for organization :' + req.body.organizationName,
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Delete template for organization :' + req.body.organizationName
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Delete template for organization :' + req.body.organizationName,
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+})
+
 router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, async (req, res, next) => {
     editVoluntaryWork({ ...req.body, id: req.params.id?.toString() }).then(() => {
         log({
