@@ -27,7 +27,7 @@ router.post('/', authorize("POST_permission"), validatePermission, (req, res, ne
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Permission created successfully!!\nYour data:\n"+data)
+        res.status(201).send({message:"Permission created successfully!!",data})
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id,

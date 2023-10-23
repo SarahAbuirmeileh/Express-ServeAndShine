@@ -33,8 +33,8 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
             res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             res.locals.organizationAdmin?.name || res.locals.volunteer?.name
         ).then().catch()
-
-        res.status(201).send("Voluntary work created successfully\nYour data:\n" + data)
+        
+        res.status(201).send({message:"Voluntary work created successfully!!",data})
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,

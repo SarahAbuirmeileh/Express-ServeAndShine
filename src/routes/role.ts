@@ -27,7 +27,7 @@ router.post('/', authorize("POST_role"), validateRole, (req, res, next) => {
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Role created successfully!!\nYour data:\n"+data)
+        res.status(201).send({message:"Role created successfully!!",data})
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id,

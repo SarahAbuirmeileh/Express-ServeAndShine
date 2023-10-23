@@ -34,8 +34,8 @@ router.post('/signup', validateVolunteer, (req, res, next) => {
             req.body.name,
             'Registration in Serve And Shine',
             'You have successfully registered in Serve And Shine. You can now view voluntary organizations and works');
-
-        res.status(201).send("Volunteer created successfully!!\nYour data:\n"+data)
+            
+        res.status(201).send({message: "Volunteer created successfully!!", data})
     }).catch(err => {
         log({
             userId: "",
