@@ -6,8 +6,8 @@ import { getDate } from "./index.js";
 import { Volunteer } from "../db/entities/Volunteer.js";
 import createError from 'http-errors';
 import baseLogger from "../../logger.js";
-import { invokeLambdaFunction } from "./AWS-services/AWS-Lambda.js";
-import { sendEmail } from "./AWS-services/AWS-SES.js";
+import { invokeLambdaFunction } from "./AWSServices/LambdaFunction.js";
+import { sendEmail } from "./AWSServices/SES.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
     try {

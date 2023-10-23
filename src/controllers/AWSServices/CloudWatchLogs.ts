@@ -1,4 +1,4 @@
-import { configureCloudWatch } from '../../utilities/AWS_configure_CloudWatch.js';
+import { configureCloudWatch } from '../../utilities/AWSConfigureCloudWatch.js';
 
 const cloudWatchLogs = await configureCloudWatch();
 

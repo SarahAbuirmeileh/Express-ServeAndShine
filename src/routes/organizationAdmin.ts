@@ -2,9 +2,9 @@ import express from "express";
 import { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins } from "../controllers/organizationAdmin.js";
 import { authorize, checkMe } from "../middleware/auth/authorize.js";
 import { validateAdminEdited, validateAdminId, validateOrganizationAdmin } from "../middleware/validation/organizationAdmin.js";
-import { log } from "../controllers/dataBase-logger.js";
+import { log } from "../controllers/dataBaseLogger.js";
 import { NSLogs } from "../../types/logs.js";
-import { logToCloudWatch } from "../controllers/AWS-services/AWS-CloudWatch-logs.js";
+import { logToCloudWatch } from "../controllers/AWSServices/CloudWatchLogs.js";
 
 const router = express.Router();
 

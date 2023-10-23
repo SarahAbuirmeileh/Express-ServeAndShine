@@ -2,9 +2,9 @@ import express from 'express';
 import { createPermission, deletePermission, editPermission, getPermissions } from '../controllers/permission.js';
 import { authorize } from '../middleware/auth/authorize.js';
 import { validatePermission, validatePermissionId } from '../middleware/validation/permission.js';
-import { log } from '../controllers/dataBase-logger.js';
+import { log } from '../controllers/dataBaseLogger.js';
 import { NSLogs } from '../../types/logs.js';
-import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
+import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
 
 var router = express.Router();
 

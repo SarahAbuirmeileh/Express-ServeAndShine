@@ -5,7 +5,7 @@ import { NSVolunteer } from '../../../types/volunteer.js';
 import { Volunteer } from '../../db/entities/Volunteer.js';
 import createError from 'http-errors'
 import { NSLogs } from '../../../types/logs.js';
-import { log } from '../../controllers/dataBase-logger.js';
+import { log } from '../../controllers/dataBaseLogger.js';
 
 
 const validateVolunteer = (req: express.Request, res: express.Response, next: express.NextFunction) => {

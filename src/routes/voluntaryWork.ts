@@ -4,13 +4,13 @@ import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
 import { validateDeleteFromS3, validateEditedVoluntaryWork, validateVoluntaryWork, validateVoluntaryWorkId } from '../middleware/validation/voluntaryWork.js';
-import { log } from '../controllers/dataBase-logger.js';
+import { log } from '../controllers/dataBaseLogger.js';
 import { NSLogs } from '../../types/logs.js';
-import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
-import { deleteFromS3, loadFromS3, putCertificateTemplate, putImages } from '../controllers/AWS-services/AWS-S3.js';
+import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
+import { deleteFromS3, loadFromS3, putCertificateTemplate, putImages } from '../controllers/AWSServices/S3.js';
 import { searchOrganizationProfile } from '../controllers/OrganizationProfile .js';
 import { validateVolunteerId } from '../middleware/validation/volunteer.js';
-import { sendEmail } from '../controllers/AWS-services/AWS-SES.js';
+import { sendEmail } from '../controllers/AWSServices/SES.js';
 import { VoluntaryWork } from '../db/entities/VoluntaryWork.js';
 import { Volunteer } from '../db/entities/Volunteer.js';
 

@@ -4,19 +4,19 @@ import { authenticate } from '../middleware/auth/authenticate.js';
 import { validateEditedVolunteer, validateVolunteer } from '../middleware/validation/volunteer.js';
 import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login } from '../controllers/volunteer.js';
 import { NSVolunteer } from '../../types/volunteer.js';
-import { log } from '../controllers/dataBase-logger.js';
+import { log } from '../controllers/dataBaseLogger.js';
 import { NSLogs } from '../../types/logs.js';
-import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
-import { sendEmail } from '../controllers/AWS-services/AWS-SES.js';
+import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
+import { sendEmail } from '../controllers/AWSServices/SES.js';
 
 var router = express.Router();
 
-router.post('/register', validateVolunteer, (req, res, next) => {
+router.post('/signup', validateVolunteer, (req, res, next) => {
     createVolunteer({ ...req.body, type: "volunteer" }).then((data) => {
         log({
-            userId: req.body.id,
+            userId: data.id,
             userName: req.body.name,
-            userType: req.body.type as NSLogs.userType,
+            userType: data.type as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Register volunteer ' + req.body.name
         }).then().catch()
@@ -25,7 +25,7 @@ router.post('/register', validateVolunteer, (req, res, next) => {
             'success',
             'volunteer',
             'Register volunteer ' + req.body.name,
-            req.body.id,
+            data.id,
             req.body.name
         ).then().catch()
 

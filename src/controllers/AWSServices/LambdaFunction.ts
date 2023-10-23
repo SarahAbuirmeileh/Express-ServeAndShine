@@ -1,4 +1,4 @@
-import { configureLambda } from "../../utilities/AWS_configure_Lambda.js";
+import { configureLambda } from "../../utilities/AWSConfigureLambdaFunction.js";
 
 const lambda = await configureLambda(); 
 
