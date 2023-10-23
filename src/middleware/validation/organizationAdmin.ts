@@ -28,11 +28,7 @@ const validateOrganizationAdmin = (req: express.Request,
             userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Bad Organization Admin Request'
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
         res.status(400).send(errorList);
     } else {
         next();
@@ -55,11 +51,7 @@ const validateAdminEdited = async (req: express.Request,
             userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Bad Organization Admin Request'
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
         next(createError(404));
     }
 
@@ -78,11 +70,7 @@ const validateAdminEdited = async (req: express.Request,
             userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Bad Organization Admin Request'
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
         res.status(400).send(errorList);
     } else {
         next();
@@ -102,11 +90,7 @@ const validateAdminId = async (req: express.Request,
             userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Bad Organization Admin Request'
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
         next(createError(404));
     } else {
         next();

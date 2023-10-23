@@ -11,8 +11,8 @@ const router = express.Router();
 router.post('/signup', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
     createOrganizationAdmin(req.body).then(async (data) => {
         log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
+            userId: data.id,
+            userName: req.body.name,
             userType: 'root' as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Create Organization Admin ' + data.name
@@ -22,15 +22,15 @@ router.post('/signup', authorize("POST_organizationAdmin"), validateOrganization
             'success',
             'organization admin',
             'Create Organization Admin ' + data.name,
-            res.locals.organizationAdmin?.id,
-            res.locals.organizationAdmin?.name
+            data.id,
+            req.body.name
         ).then().catch()
 
         res.status(201).send("Organization Admin created successfully!!")
     }).catch(async err => {
         log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
+            userId: "",
+            userName: req.body.name,
             userType: 'root' as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Create Organization Admin ' + req.body.name
@@ -40,8 +40,8 @@ router.post('/signup', authorize("POST_organizationAdmin"), validateOrganization
             'failed',
             'organization admin',
             'Create Organization Admin ' + req.body.name,
-            res.locals.organizationAdmin?.id,
-            res.locals.organizationAdmin?.name
+            "",
+            req.body.name
         ).then().catch()
 
         next(err);

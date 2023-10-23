@@ -38,7 +38,7 @@ router.post('/signup', validateVolunteer, (req, res, next) => {
         res.status(201).send("Volunteer created successfully!!")
     }).catch(err => {
         log({
-            userId: req.body.id,
+            userId: "",
             userName: req.body.name,
             userType: req.body.type as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
@@ -49,7 +49,7 @@ router.post('/signup', validateVolunteer, (req, res, next) => {
             'failed',
             'volunteer',
             'Register volunteer ' + req.body.name,
-            req.body.id,
+            "",
             req.body.name
         ).then().catch()
 
