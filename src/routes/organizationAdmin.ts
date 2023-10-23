@@ -5,6 +5,7 @@ import { validateAdminEdited, validateAdminId, validateOrganizationAdmin } from 
 import { log } from "../controllers/dataBaseLogger.js";
 import { NSLogs } from "../../types/logs.js";
 import { logToCloudWatch } from "../controllers/AWSServices/CloudWatchLogs.js";
+import { login } from "../controllers/volunteer.js";
 
 const router = express.Router();
 
@@ -49,8 +50,54 @@ router.post('/signup', authorize("POST_organizationAdmin"), validateOrganization
 });
 
 router.post('/login', (req, res, next) => {
-    res.locals.stream = 'organization admin'
-    res.redirect('/volunteer/login');
+    const email = req.body.email;
+    const name = req.body.name;
+    const id = req.body.id;
+    login(email, name, id)
+        .then(data => {
+            res.cookie('myApp', data.token, {
+                httpOnly: true,
+                maxAge: 60 * 24 * 60 * 1000,
+                sameSite: "lax"       // Protect against CSRF attacks
+            });
+
+            log({
+                userId: id,
+                userName: name,
+                userType: (data.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Login ' + (name)
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'organization admin',
+                'Login ' + (name),
+                id,
+                name
+            ).then().catch()
+
+            res.status(201).send("You logged in successfully !");
+        })
+        .catch(err => {
+            log({
+                userId: id,
+                userName: name,
+                userType: 'volunteer' as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Login ' + (name)
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'organization admin',
+                'Login ' + name,
+                id,
+                name
+            ).then().catch()
+
+            res.status(401).send(err);
+        })
 });
 
 router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), async (req, res, next) => {
