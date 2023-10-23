@@ -17,7 +17,7 @@ import { Volunteer } from '../db/entities/Volunteer.js';
 var router = express.Router();
 
 router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, res, next) => {
-    createVoluntaryWork({ ...req.body, creatorId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id }).then(() => {
+    createVoluntaryWork({ ...req.body, creatorId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id }).then((data) => {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
@@ -34,7 +34,7 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
             res.locals.organizationAdmin?.name || res.locals.volunteer?.name
         ).then().catch()
 
-        res.status(201).send("Voluntary work created successfully!!")
+        res.status(201).send("Voluntary work created successfully\nYour data:\n" + data)
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,

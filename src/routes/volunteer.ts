@@ -35,7 +35,7 @@ router.post('/signup', validateVolunteer, (req, res, next) => {
             'Registration in Serve And Shine',
             'You have successfully registered in Serve And Shine. You can now view voluntary organizations and works');
 
-        res.status(201).send("Volunteer created successfully!!")
+        res.status(201).send("Volunteer created successfully!!\nYour data:\n"+data)
     }).catch(err => {
         log({
             userId: "",
@@ -275,12 +275,12 @@ router.get("/logout", authenticate, (req, res, next) => {
     res.send("You logged out successfully !");
 })
 
-router.get('/me', authenticate, authorize("GET_me"), async (req, res, next) => {
+router.get('/me', authenticate, async (req, res, next) => {
     if (res.locals.volunteer) {
         log({
-            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: (res.locals.volunteer?.type) as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Get my information'
         }).then().catch()
@@ -289,26 +289,26 @@ router.get('/me', authenticate, authorize("GET_me"), async (req, res, next) => {
             'success',
             'volunteer',
             'Get my information',
-            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
         ).then().catch()
 
         res.send(res.locals.volunteer);
     } else if (res.locals.organizationAdmin) {
         log({
-            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Get my information'
         }).then().catch()
 
         logToCloudWatch(
             'failed',
-            'volunteer',
+            'organization admin',
             'Get my information',
-            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
         ).then().catch()
 
         res.send(res.locals.organizationAdmin);

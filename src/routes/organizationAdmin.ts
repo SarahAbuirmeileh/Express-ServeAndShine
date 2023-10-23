@@ -26,7 +26,7 @@ router.post('/signup', authorize("POST_organizationAdmin"), validateOrganization
             req.body.name
         ).then().catch()
 
-        res.status(201).send("Organization Admin created successfully!!")
+        res.status(201).send("Organization Admin created successfully!!\nYour data:\n" + data)
     }).catch(async err => {
         log({
             userId: "",

@@ -10,7 +10,7 @@ import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
 var router = express.Router();
 
 router.post('/', authorize("POST_role"), validateRole, (req, res, next) => {
-    createRole(req.body).then(() => {
+    createRole(req.body).then((data) => {
         log({
             userId: res.locals.organizationAdmin?.id,
             userName: res.locals.organizationAdmin?.name,
@@ -27,7 +27,7 @@ router.post('/', authorize("POST_role"), validateRole, (req, res, next) => {
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Role created successfully!!")
+        res.status(201).send("Role created successfully!!\nYour data:\n"+data)
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id,

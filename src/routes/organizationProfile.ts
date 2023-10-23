@@ -26,7 +26,7 @@ router.post('/', authorize("POST_organizationProfile"), validateOrganizationProf
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Organization Profile created successfully!!")
+        res.status(201).send("Organization Profile created successfully!!\nYour data:\n" + data)
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id,
