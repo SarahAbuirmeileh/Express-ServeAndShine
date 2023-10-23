@@ -1,6 +1,6 @@
 import { configureCloudWatch } from '../utilities/AWS_configure_CloudWatch.js';
 
-const cloudWatchLogs = await configureCloudWatch();
+const cloudWatchLogs = configureCloudWatch();
 
 if (!cloudWatchLogs) {
     throw new Error('CloudWatch Logs initialization failed!');
