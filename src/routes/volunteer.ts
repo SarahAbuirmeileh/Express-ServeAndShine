@@ -35,7 +35,8 @@ router.post('/signup', validateVolunteer, (req, res, next) => {
             'Registration in Serve And Shine',
             'You have successfully registered in Serve And Shine. You can now view voluntary organizations and works');
 
-        res.status(201).send({ message: "Volunteer created successfully!!", data })
+        const { password, ...dataWithoutPassword } = data;
+        res.status(201).send({ message: "Volunteer created successfully!!", dataWithoutPassword })
     }).catch(err => {
         log({
             userId: "",
@@ -68,7 +69,7 @@ router.post('/login', (req, res, next) => {
                 maxAge: 60 * 24 * 60 * 1000,
                 sameSite: "lax"       // Protect against CSRF attacks
             });
-            
+
             log({
                 userId: id,
                 userName: name,
