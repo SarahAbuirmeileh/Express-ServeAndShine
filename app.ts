@@ -29,9 +29,6 @@ app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }))
 app.use('/', indexRouter);
 app.use('/permission', authenticate, permissionRouter);
 app.use('/role', authenticate, roleRouter);
-app.use('/voluntaryWork', authenticate, voluntaryWorkRouter);
-app.use('/organizationAdmin', authenticate, organizationAdminRouter);
-app.use('/organizationProfile', authenticate, organizationProfileRouter);
 app.use('/voluntaryWork', /*authenticate,*/ voluntaryWorkRouter);
 app.use('/organizationAdmin', /*authenticate,*/ organizationAdminRouter);
 app.use('/organizationProfile', /*authenticate,*/ organizationProfileRouter);
@@ -45,7 +42,7 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   logger(`App is listening on port ${PORT}`);
-  console.log(`App is listening on port ${PORT} and host http://localhost:${PORT}`);
+  console.log(`App is listening on port ${PORT}`);
   initDB();
 });
 

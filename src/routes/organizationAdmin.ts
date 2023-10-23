@@ -2,17 +2,17 @@ import express from "express";
 import { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins } from "../controllers/organizationAdmin.js";
 import { authorize, checkMe } from "../middleware/auth/authorize.js";
 import { validateAdminEdited, validateAdminId, validateOrganizationAdmin } from "../middleware/validation/organizationAdmin.js";
-import { log } from "../controllers/dataBase-logger.js";
+import { log } from "../controllers/dataBaseLogger.js";
 import { NSLogs } from "../../types/logs.js";
-import { logToCloudWatch } from "../controllers/AWS-services/AWS-CloudWatch-logs.js";
+import { logToCloudWatch } from "../controllers/AWSServices/CloudWatchLogs.js";
 
 const router = express.Router();
 
-router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
+router.post('/signup', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
     createOrganizationAdmin(req.body).then(async (data) => {
         log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
+            userId: data.id,
+            userName: req.body.name,
             userType: 'root' as NSLogs.userType,
             type: 'success' as NSLogs.Type,
             request: 'Create Organization Admin ' + data.name
@@ -22,15 +22,15 @@ router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin,
             'success',
             'organization admin',
             'Create Organization Admin ' + data.name,
-            res.locals.organizationAdmin?.id,
-            res.locals.organizationAdmin?.name
+            data.id,
+            req.body.name
         ).then().catch()
 
-        res.status(201).send("Organization Admin created successfully!!")
+        res.status(201).send({message:"Organization Admin created successfully!!" , data})
     }).catch(async err => {
         log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
+            userId: "",
+            userName: req.body.name,
             userType: 'root' as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Create Organization Admin ' + req.body.name
@@ -40,12 +40,17 @@ router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin,
             'failed',
             'organization admin',
             'Create Organization Admin ' + req.body.name,
-            res.locals.organizationAdmin?.id,
-            res.locals.organizationAdmin?.name
+            "",
+            req.body.name
         ).then().catch()
 
         next(err);
     });
+});
+
+router.post('/login', (req, res, next) => {
+    res.locals.stream = 'organization admin'
+    res.redirect('/volunteer/login');
 });
 
 router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), async (req, res, next) => {
@@ -178,7 +183,7 @@ router.get('/search', authorize("GET_organizationAdmins"), async (req, res, next
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             ).then().catch()
-            
+
             next(err);
         });
 });

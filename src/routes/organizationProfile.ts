@@ -2,9 +2,9 @@ import express from "express";
 import { createOrganizationProfile, deleteOrganizationProfile, editOrganizationProfile, getOrganizationProfile, searchOrganizationProfile } from "../controllers/OrganizationProfile .js";
 import { authorize, checkAdmin } from "../middleware/auth/authorize.js";
 import { validateOrgId, validateOrganizationProfile } from "../middleware/validation/organizationProfile.js";
-import { log } from "../controllers/dataBase-logger.js";
+import { log } from "../controllers/dataBaseLogger.js";
 import { NSLogs } from "../../types/logs.js";
-import { logToCloudWatch } from "../controllers/AWS-services/AWS-CloudWatch-logs.js";
+import { logToCloudWatch } from "../controllers/AWSServices/CloudWatchLogs.js";
 
 const router = express.Router();
 
@@ -26,7 +26,7 @@ router.post('/', authorize("POST_organizationProfile"), validateOrganizationProf
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Organization Profile created successfully!!")
+        res.status(201).send({message:"Organization Profile created successfully!!" , data})
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id,

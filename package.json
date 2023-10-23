@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch": "^3.427.0",
-    "@aws-sdk/client-ses": "^3.433.0",
     "@aws-sdk/client-ses": "^3.429.0",
     "@types/express-fileupload": "^1.4.2",
     "aws-sdk": "^2.1476.0",
@@ -39,11 +38,6 @@
     "winston": "^3.11.0"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.23.2",
-    "@types/bcrypt": "^5.0.0",
-    "@types/cookie-parser": "^1.4.4",
-    "@types/express": "^4.17.17",
-    "@types/jest": "^29.5.6",
     "@babel/preset-env": "^7.22.20",
     "@types/aws-lambda": "^8.10.124",
     "@types/bcrypt": "^5.0.0",

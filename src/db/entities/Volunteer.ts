@@ -12,7 +12,7 @@ export class Volunteer extends BaseEntity implements NSVolunteer.IVolunteer {
     @Column({ length: 255, nullable: false })
     name: string;
 
-    @Column({ nullable: false })
+    @Column({ nullable: false, unique:true })
     email: string;
 
     @BeforeInsert()

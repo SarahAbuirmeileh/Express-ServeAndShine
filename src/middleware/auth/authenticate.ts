@@ -4,7 +4,7 @@ import { OrganizationAdmin } from '../../db/entities/OrganizationAdmin.js';
 import { Volunteer } from '../../db/entities/Volunteer.js';
 import createError from 'http-errors';
 import { NSLogs } from '../../../types/logs.js';
-import { log } from '../../controllers/dataBase-logger.js';
+import { log } from '../../controllers/dataBaseLogger.js';
 
 const authenticate = async (
     req: express.Request,
@@ -55,11 +55,7 @@ const authenticate = async (
                 userType: "" as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Authentication failed'
-            }).then(() => {
-                console.log('logged');
-            }).catch(err => {
-                console.log('NOT logged');
-            })
+            }).then().catch()
             next(createError(401));
         }
     } else {
@@ -69,11 +65,7 @@ const authenticate = async (
             userType: "" as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Authentication failed'
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
         next(createError(401));
     }
 }

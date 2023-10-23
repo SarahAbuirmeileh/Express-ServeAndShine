@@ -3,14 +3,14 @@ import { createRole, deleteRole, editRole, getRoles } from '../controllers/role.
 import { NSRole } from '../../types/role.js';
 import { authorize } from '../middleware/auth/authorize.js';
 import { validateEditedRole, validateRole, validateRoleId } from '../middleware/validation/role.js';
-import { log } from '../controllers/dataBase-logger.js';
+import { log } from '../controllers/dataBaseLogger.js';
 import { NSLogs } from '../../types/logs.js';
-import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
+import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
 
 var router = express.Router();
 
 router.post('/', authorize("POST_role"), validateRole, (req, res, next) => {
-    createRole(req.body).then(() => {
+    createRole(req.body).then((data) => {
         log({
             userId: res.locals.organizationAdmin?.id,
             userName: res.locals.organizationAdmin?.name,
@@ -27,7 +27,7 @@ router.post('/', authorize("POST_role"), validateRole, (req, res, next) => {
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Role created successfully!!")
+        res.status(201).send({message:"Role created successfully!!",data})
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id,

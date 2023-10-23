@@ -2,9 +2,9 @@ import express from 'express';
 import { createPermission, deletePermission, editPermission, getPermissions } from '../controllers/permission.js';
 import { authorize } from '../middleware/auth/authorize.js';
 import { validatePermission, validatePermissionId } from '../middleware/validation/permission.js';
-import { log } from '../controllers/dataBase-logger.js';
+import { log } from '../controllers/dataBaseLogger.js';
 import { NSLogs } from '../../types/logs.js';
-import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
+import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
 
 var router = express.Router();
 
@@ -27,7 +27,7 @@ router.post('/', authorize("POST_permission"), validatePermission, (req, res, ne
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Permission created successfully!!")
+        res.status(201).send({message:"Permission created successfully!!",data})
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id,

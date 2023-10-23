@@ -1,7 +1,7 @@
 import { UploadedFile } from "express-fileupload";
 import baseLogger from "../../../logger.js";
 import { VoluntaryWork } from "../../db/entities/VoluntaryWork.js";
-import { configureS3Bucket } from "../../utilities/AWS_configure_S3.js";
+import { configureS3Bucket } from "../../utilities/AWSConfigureS3.js";
 
 const S3 = await configureS3Bucket();
 
