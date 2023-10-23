@@ -11,7 +11,7 @@ import { Logs } from "./entities/Logs.js";
 
 const dataSource = new DataSource({
   type: 'mysql',
-  host:  process.env.DB_HOST,
+  host: 'localhost'|| process.env.DB_HOST,
   port: 3306 || Number(process.env.DB_PORT),
   username: "root" || process.env.DB_USERNAME,
   password: "" || process.env.DB_PASSWORD,
@@ -22,8 +22,6 @@ const dataSource = new DataSource({
   synchronize: true,
   logging: false
 });
-
-console.log(dataSource.options);
 
 export const initDB = async () =>
   await dataSource.initialize().then(() => {

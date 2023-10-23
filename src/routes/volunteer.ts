@@ -6,8 +6,8 @@ import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login }
 import { NSVolunteer } from '../../types/volunteer.js';
 import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
-import { logToCloudWatch } from '../controllers/cloudWatch-logger.js';
-import { sendEmail } from '../controllers/sendEmail.js';
+import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
+import { sendEmail } from '../controllers/AWS-services/AWS-SES.js';
 
 var router = express.Router();
 
@@ -193,7 +193,7 @@ router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolun
     });
 });
 
-router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next) => {
+router.get('/search', authenticate, authorize("GET_volunteers"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',

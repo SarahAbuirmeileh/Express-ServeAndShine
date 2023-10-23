@@ -2,9 +2,10 @@ import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn,
 import bcrypt from 'bcrypt';
 import { Role } from "./Role.js";
 import { VolunteerProfile } from "./VolunteerProfile.js";
+import { NSVolunteer } from "../../../types/volunteer.js";
 
 @Entity()
-export class Volunteer extends BaseEntity {
+export class Volunteer extends BaseEntity implements NSVolunteer.IVolunteer {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -27,7 +28,7 @@ export class Volunteer extends BaseEntity {
         type: 'enum',
         enum: ['volunteer', 'premium'],
         default: 'volunteer',
-        nullable:true
+        nullable: true
     })
     type: 'volunteer' | 'premium';
 
@@ -35,7 +36,7 @@ export class Volunteer extends BaseEntity {
     @JoinTable()
     roles: Role[];
 
-    @OneToOne(() => VolunteerProfile, {cascade: true, onDelete:"SET NULL"})
+    @OneToOne(() => VolunteerProfile, { cascade: true, onDelete: "SET NULL" })
     @JoinColumn()
     volunteerProfile: VolunteerProfile
 

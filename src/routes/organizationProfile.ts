@@ -1,10 +1,10 @@
 import express from "express";
-import { createOrganizationProfile, deleteOrganizationProfile, editOrganizationProfile, getOrganizationProfile } from "../controllers/OrganizationProfile .js";
+import { createOrganizationProfile, deleteOrganizationProfile, editOrganizationProfile, getOrganizationProfile, searchOrganizationProfile } from "../controllers/OrganizationProfile .js";
 import { authorize, checkAdmin } from "../middleware/auth/authorize.js";
 import { validateOrgId, validateOrganizationProfile } from "../middleware/validation/organizationProfile.js";
 import { log } from "../controllers/dataBase-logger.js";
 import { NSLogs } from "../../types/logs.js";
-import { logToCloudWatch } from "../controllers/cloudWatch-logger.js";
+import { logToCloudWatch } from "../controllers/AWS-services/AWS-CloudWatch-logs.js";
 
 const router = express.Router();
 
@@ -132,13 +132,60 @@ router.put("/:id", validateOrgId, authorize("PUT_organizationProfile"), async (r
     });
 });
 
-router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) => {
+router.get('/search', authorize("GET_organizationProfiles"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
         id: req.query.id?.toString() || '',
         name: req.query.name?.toString() || '',
         adminName: req.query.adminName?.toString() || ''
+    };
+
+    searchOrganizationProfile(payload)
+        .then(data => {
+            log({
+                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Search Organization Profiles'
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'organization profile',
+                'Search Organization Profiles',
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+                userType: (res.locals.volunteer?.type ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Search Organization Profiles'
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'organization profile',
+                'Search Organization Profiles',
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+
+            next(err);
+        });
+});
+
+router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) => {
+    const payload = {
+        page: req.query.page?.toString() || '1',
+        pageSize: req.query.pageSize?.toString() || '10',
     };
 
     getOrganizationProfile(payload)
@@ -154,7 +201,7 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
             logToCloudWatch(
                 'success',
                 'organization profile',
-                'Volunteer registered successfully!',
+                'Get Organization Profiles',
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             ).then().catch()
@@ -173,7 +220,7 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
             logToCloudWatch(
                 'failed',
                 'organization profile',
-                'Volunteer registered successfully!',
+                'Get Organization Profiles',
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             ).then().catch()

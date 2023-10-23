@@ -5,9 +5,9 @@ import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
 import { getDate } from "./index.js";
 import { Volunteer } from "../db/entities/Volunteer.js";
 import createError from 'http-errors';
-import { UploadedFile } from "express-fileupload";
-import { configureS3Bucket } from "../utilities/AWS_configure_S3.js";
 import baseLogger from "../../logger.js";
+import { invokeLambdaFunction } from "./AWS-services/AWS-Lambda.js";
+import { sendEmail } from "./AWS-services/AWS-SES.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
     try {
@@ -27,13 +27,12 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
     }
 }
 
-
 const deleteVoluntaryWork = async (voluntaryWorkId: number) => {
     try {
         return VoluntaryWork.delete(voluntaryWorkId);
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Voluntary work"});
+        throw createError({ status: 404, message: "Voluntary work" });
     }
 }
 
@@ -70,7 +69,7 @@ const editVoluntaryWork = async (payload: NSVoluntaryWork.Edit) => {
         }
     } catch (error) {
         baseLogger.error(error);
-        throw createError({status: 404, message: "Voluntary work"});
+        throw createError({ status: 404, message: "Voluntary work" });
     }
 }
 
@@ -79,7 +78,7 @@ const getVoluntaryWork = (payload: { id: number }) => {
         return VoluntaryWork.findOne({ where: { id: payload.id } })
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Voluntary work"});
+        throw createError({ status: 404, message: "Voluntary work" });
     }
 }
 
@@ -201,7 +200,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Voluntary work"});
+        throw createError({ status: 404, message: "Voluntary work" });
     }
 }
 
@@ -230,41 +229,11 @@ const putFeedback = async (id: number, feedback: string) => {
             voluntaryWork.feedback.push(feedback);
             await voluntaryWork.save();
         } else {
-            throw createError({status: 404, message: "Voluntary work"});
+            throw createError({ status: 404, message: "Voluntary work" });
         }
     } catch (err) {
         baseLogger.error(err);
         throw ", when trying to add Feedback";
-    }
-}
-
-const putImages = async (id: number, uploadedFiles: UploadedFile[]) => {
-    try {
-
-        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
-        if (voluntaryWork) {
-
-            const S3 = await configureS3Bucket();
-            const imageUrls = [];
-
-            for (const file of uploadedFiles) {
-                const uploadParams = {
-                    Bucket: process.env.AWS_BUCKET_NAME || '',
-                    Body: Buffer.from(file.data),
-                    Key: `${Date.now().toString()}.png`,
-                    ACL: 'public-read',
-                };
-
-                const data = await S3.upload(uploadParams).promise();
-                imageUrls.push(data.Location);
-            }
-
-            voluntaryWork.images.push(...imageUrls);
-            await voluntaryWork.save();
-        }
-    } catch (err) {
-        baseLogger.error(err);
-        throw ", when trying to add Image";
     }
 }
 
@@ -273,7 +242,7 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
 
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
         if (!voluntaryWork) {
-            throw createError({status: 404, message: "Voluntary work"});
+            throw createError({ status: 404, message: "Voluntary work" });
         }
 
         if (
@@ -341,11 +310,11 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
         const volunteer = await Volunteer.findOne({ where: { id: volunteerId }, relations: ["volunteerProfile"] });
 
         if (!voluntaryWork) {
-            throw createError({status: 404, message: "Voluntary work"});
+            throw createError({ status: 404, message: "Voluntary work" });
         }
 
         if (!volunteer) {
-            throw createError({status: 404, message: "Volunteer"});
+            throw createError({ status: 404, message: "Volunteer" });
         }
         const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
         if (index !== -1) {
@@ -361,9 +330,83 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     }
 }
 
+const generateCertificate = async (voluntaryWorkId: number, organizationName: string, date: string) => {
+    const voluntaryWork = await VoluntaryWork.findOne({
+        where: { id: voluntaryWorkId },
+        relations: ["volunteerProfiles", "volunteerProfiles.volunteer"]
+    });
+
+    if (!voluntaryWork) {
+        throw new Error(`Voluntary work with id ${voluntaryWorkId} not found.`);
+    }
+
+    const volunteerData = voluntaryWork.volunteerProfiles.map(({ volunteer }) => ({ name: volunteer.name, email: volunteer.email }));
+    for (const volunteer of volunteerData) {
+
+        const payload = {
+            volunteerName: volunteer.name,
+            date,
+            voluntaryWorkName: voluntaryWork.name,
+            organizationName,
+            volunteerEmail: volunteer.email
+        }
+
+        invokeLambdaFunction("generateCertificate", payload);
+    }
+}
+
+const getImages = async (voluntaryWorkId: number) => {
+    const voluntaryWork = await VoluntaryWork.findOne({
+        where: { id: voluntaryWorkId }
+    });
+
+    return voluntaryWork?.images;
+}
+
+const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
+    try {
+        const volunteer = await Volunteer.findOne({
+            where: { id: volunteerId },
+            relations: ["volunteerProfile"]
+        });
+
+        if (!volunteer) {
+            throw createError({ status: 404, message: 'Volunteer not found' });
+        }
+
+        return volunteer.volunteerProfile.voluntaryWorks;
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError({ status: 404, message: 'Voluntary Works not found' });
+    }
+};
+
+const volunteerReminder = async (id: number) => {
+    try {
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+        if (!voluntaryWork) {
+            throw new Error(`Voluntary work with id ${id} not found.`);
+        }
+
+        const volunteerData = voluntaryWork.volunteerProfiles.map(({ volunteer }) => ({ name: volunteer.name, email: volunteer.email }));
+        for (const volunteer of volunteerData) {
+            sendEmail(
+                volunteer.email,
+                volunteer.name,
+                'Reminder to rate and feedback Voluntary Work!',
+                `You have successfully finished ${voluntaryWork?.name}!\nWe encourage you to tell us your opinion and thoughts about our voluntary work, you can rate and create feedback for it!`)        }
+
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError(404,);
+    }
+}
+
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
-    registerByVolunteer, putImages, createVoluntaryWork,
+    registerByVolunteer, createVoluntaryWork,
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
-    getVoluntaryWorks, deleteVoluntaryWork
+    getVoluntaryWorks, deleteVoluntaryWork,
+    generateCertificate, getImages, getVoluntaryWorksForVolunteer,
+    volunteerReminder
 }

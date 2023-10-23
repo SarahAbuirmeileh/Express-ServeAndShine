@@ -1,3 +1,7 @@
+import { VolunteerProfile } from "../src/db/entities/VolunteerProfile.js";
+import { Role } from "../src/db/entities/Role.js";
+
+
 export namespace NSVolunteer {
 
     export enum AvailableDays {
@@ -31,5 +35,16 @@ export namespace NSVolunteer {
         availableLocation: string;
         availableDays: AvailableDays[];
         skills: string[];
+    }
+
+    export interface IVolunteer {
+        volunteerProfile: VolunteerProfile;
+        id: string;
+        name: string;
+        email: string;
+        password: string;
+        type: 'volunteer' | 'premium';
+        roles: Role[];
+        createdAt: Date;
     }
 }

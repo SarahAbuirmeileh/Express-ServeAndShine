@@ -4,7 +4,7 @@ import { authorize, checkMe } from "../middleware/auth/authorize.js";
 import { validateAdminEdited, validateAdminId, validateOrganizationAdmin } from "../middleware/validation/organizationAdmin.js";
 import { log } from "../controllers/dataBase-logger.js";
 import { NSLogs } from "../../types/logs.js";
-import { logToCloudWatch } from "../controllers/cloudWatch-logger.js";
+import { logToCloudWatch } from "../controllers/AWS-services/AWS-CloudWatch-logs.js";
 
 const router = express.Router();
 
@@ -132,7 +132,7 @@ router.put("/:id", authorize("PUT_organizationAdmin"), validateAdminEdited, asyn
     });
 });
 
-router.get('/', authorize("GET_organizationAdmins"), async (req, res, next) => {
+router.get('/search', authorize("GET_organizationAdmins"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',

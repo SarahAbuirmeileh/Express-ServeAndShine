@@ -5,7 +5,7 @@ import { authorize } from '../middleware/auth/authorize.js';
 import { validateEditedRole, validateRole, validateRoleId } from '../middleware/validation/role.js';
 import { log } from '../controllers/dataBase-logger.js';
 import { NSLogs } from '../../types/logs.js';
-import { logToCloudWatch } from '../controllers/cloudWatch-logger.js';
+import { logToCloudWatch } from '../controllers/AWS-services/AWS-CloudWatch-logs.js';
 
 var router = express.Router();
 
@@ -183,4 +183,3 @@ router.get('/', authorize("GET_roles"), async (req, res, next) => {
 });
 
 export default router;
-
