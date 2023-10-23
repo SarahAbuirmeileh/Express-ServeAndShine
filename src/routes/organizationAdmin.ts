@@ -8,7 +8,7 @@ import { logToCloudWatch } from "../controllers/AWSServices/CloudWatchLogs.js";
 
 const router = express.Router();
 
-router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
+router.post('/signup', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
     createOrganizationAdmin(req.body).then(async (data) => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -49,6 +49,7 @@ router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin,
 });
 
 router.post('/login', (req, res, next) => {
+    res.locals.stream = 'organization admin'
     res.redirect('/volunteer/login');
 });
 
@@ -182,7 +183,7 @@ router.get('/search', authorize("GET_organizationAdmins"), async (req, res, next
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
             ).then().catch()
-            
+
             next(err);
         });
 });

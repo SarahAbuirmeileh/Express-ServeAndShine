@@ -80,7 +80,7 @@ router.post('/login', (req, res, next) => {
 
             logToCloudWatch(
                 'success',
-                'volunteer',
+                res.locals.stream || 'volunteer',
                 'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
                 res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
                 res.locals.organizationAdmin?.name || res.locals.volunteer?.name
@@ -99,7 +99,7 @@ router.post('/login', (req, res, next) => {
 
             logToCloudWatch(
                 'failed',
-                'volunteer',
+                res.locals.stream || 'volunteer',
                 'Login ' + name,
                 id,
                 name
