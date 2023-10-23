@@ -6,6 +6,7 @@ import { VoluntaryWork } from '../../db/entities/VoluntaryWork.js';
 import createError from 'http-errors';
 import { NSLogs } from '../../../types/logs.js';
 import { log } from '../../controllers/dataBaseLogger.js';
+import { logToCloudWatch } from '../../controllers/AWSServices/CloudWatchLogs.js';
 
 const validateVoluntaryWork = (req: express.Request,
     res: express.Response,
@@ -47,11 +48,16 @@ const validateVoluntaryWork = (req: express.Request,
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Bad Voluntary Work Request'
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Bad Voluntary Work Request',
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
+
         res.status(400).send(errorList);
     } else {
         next();
@@ -134,11 +140,15 @@ const validateEditedVoluntaryWork = async (req: express.Request,
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Bad Voluntary Work Request'
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Bad Voluntary Work Request',
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
         res.status(400).send(errorList);
     } else {
         next();
@@ -158,11 +168,15 @@ const validateVoluntaryWorkId = async (req: express.Request,
             userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Invalid Voluntary Work id'
-        }).then(() => {
-            console.log('logged');
-        }).catch(err => {
-            console.log('NOT logged');
-        })
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Invalid Voluntary Work id',
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
         next(createError(404));
     } else {
         next();
@@ -179,12 +193,20 @@ const validateDeleteFromS3 = async (req: express.Request,
 
     if (errorList.length > 0) {
         log({
-            userId: res.locals.organizationAdmin?.id ,
-            userName: res.locals.organizationAdmin?.name ,
-            userType: ( res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Bad delete image from Voluntary Work Request'
         }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Bad delete image from Voluntary Work Request',
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        ).then().catch()
         res.status(400).send(errorList);
     } else {
         next();
