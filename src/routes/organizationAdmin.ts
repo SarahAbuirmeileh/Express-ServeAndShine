@@ -48,6 +48,10 @@ router.post('/', authorize("POST_organizationAdmin"), validateOrganizationAdmin,
     });
 });
 
+router.post('/login', (req, res, next) => {
+    res.redirect('/volunteer/login');
+});
+
 router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), async (req, res, next) => {
     const id = req.params.id?.toString();
 
