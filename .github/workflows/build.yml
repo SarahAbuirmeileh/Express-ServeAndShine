@@ -103,12 +103,13 @@ jobs:
           export AWS_REGION="${{ secrets.AWS_REGION }}"
           export AWS_CERTIFICATES_BUCKET_NAME="${{ secrets.AWS_CERTIFICATES_BUCKET_NAME }}"
           export PORT="${{ secrets.PORT }}"
-  
-          # Now you can use these environment variables in your deployment commands
-          ssh -i ${{ secrets.DEPLOYMENT_SSH_KEY_PATH }} ec2-user@$ip "your_deploy_command_with_environment_variables"
-  
+    
+          # SSH into the instance and run your deployment command
+          ssh ubuntu@$ip "your_deploy_command_with_environment_variables"
+    
           # Clear the environment variables to avoid conflicts in the next iteration
           unset DB_PASSWORD GIT_VERSION SECRET_KEY DB_HOST DB_PORT DB_USERNAME DB_NAME AWS_BUCKET_NAME AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION AWS_CERTIFICATES_BUCKET_NAME PORT
         done
+
       env:
         SSH_PRIVATE_KEY: ${{ secrets.DEPLOYMENT_KEY }}
