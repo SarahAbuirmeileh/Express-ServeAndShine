@@ -40,7 +40,7 @@ jobs:
       - name: Get EC2 instances from the Auto Scaling Group
         run: |
           # Fetch EC2 instances from your Auto Scaling Group (ASG)
-          instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-ASG" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
+          instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-ASG-" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
           echo "EC2_INSTANCES=$instances" >> $GITHUB_ENV
 
       - name: Deploy to EC2 instances
