@@ -2,9 +2,11 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
 
@@ -23,7 +25,7 @@ jobs:
       id: image_version
       run: echo "gitsha=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-    - name: Login to Registry
+    - name: login to Registry
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
@@ -36,80 +38,20 @@ jobs:
     - name: Publish Docker image
       run: docker push ghcr.io/sarahabuirmeileh/serve-and-shine:${{ steps.image_version.outputs.gitsha }}
 
-    - name: Configure Docker Host
-      uses: khaledez/configure-docker-host@v1
-      with: 
-        host: serve-and-shine-lb-2126130081.eu-west-2.elb.amazonaws.com
-        user: github
-        ssh-private-key: ${{ secrets.DEPLOYMENT_KEY }}
+    - name: Configure AWS CLI
+      run: aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} && aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} && aws configure set region ${{ secrets.AWS_REGION }}
 
-    - name: Deploy
-      run: docker compose -f docker-compose-prod.yml up -d
-      env: 
-        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        GIT_VERSION: ${{ steps.image_version.outputs.gitsha }}
-        SECRET_KEY: ${{ secrets.SECRET_KEY }}
-        DB_HOST: ${{ secrets.DB_HOST }}
-        DB_PORT: ${{ secrets.DB_PORT }}
-        DB_USERNAME: ${{ secrets.DB_USERNAME }}
-        DB_NAME: ${{ secrets.DB_NAME }}
-        AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: ${{ secrets.AWS_REGION }}
-        AWS_CERTIFICATES_BUCKET_NAME: ${{ secrets.AWS_CERTIFICATES_BUCKET_NAME }}
-        PORT: ${{ secrets.PORT }}
-
-  deploy_to_asg:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Get ASG Instances
-      id: ec2_instances
+    - name: Get EC2 instances from the Auto Scaling Group
       run: |
-        # Use AWS CLI to describe the instances in your ASG
-        instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names serve-and-shine-ASG- --query 'AutoScalingGroups[0].Instances[*].InstanceId' --output text)
-        instance_ips=""
-        for instance_id in $instances; do
-          ip=$(aws ec2 describe-instances --instance-ids $instance_id --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
-          instance_ips="$instance_ips $ip"
-        done
-        echo "::set-output name=instance_ips::$instance_ips"
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-    - name: Deploy to EC2 Instances
-      run: |
-        # Retrieve the IP addresses of EC2 instances from the previous step
-        instance_ips=${{ steps.ec2_instances.outputs.instance_ips }}
-        
-        # Loop through the IPs and deploy to each one
-        IFS=$'\n'
-        for ip in $instance_ips; do
-          echo "Deploying to EC2 instance at IP: $ip"
-          # Set environment variables for this instance
-          export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
-          export GIT_VERSION="${{ steps.image_version.outputs.gitsha }}"
-          export SECRET_KEY="${{ secrets.SECRET_KEY }}"
-          export DB_HOST="${{ secrets.DB_HOST }}"
-          export DB_PORT="${{ secrets.DB_PORT }}"
-          export DB_USERNAME="${{ secrets.DB_USERNAME }}"
-          export DB_NAME="${{ secrets.DB_NAME }}"
-          export AWS_BUCKET_NAME="${{ secrets.AWS_BUCKET_NAME }}"
-          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
-          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          export AWS_REGION="${{ secrets.AWS_REGION }}"
-          export AWS_CERTIFICATES_BUCKET_NAME="${{ secrets.AWS_CERTIFICATES_BUCKET_NAME }}"
-          export PORT="${{ secrets.PORT }}"
-    
-          # SSH into the instance and run your deployment command
-          ssh ubuntu@$ip "your_deploy_command_with_environment_variables"
-    
-          # Clear the environment variables to avoid conflicts in the next iteration
-          unset DB_PASSWORD GIT_VERSION SECRET_KEY DB_HOST DB_PORT DB_USERNAME DB_NAME AWS_BUCKET_NAME AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION AWS_CERTIFICATES_BUCKET_NAME PORT
-        done
+        instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-ASG-" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
+        echo "EC2 Instances: $instances" >> $GITHUB_ENV
 
+    - name: Deploy to EC2 instances
+      run: |
+        instances=(${{ env.EC2_INSTANCES }})
+        for instance in "${instances[@]}"; do
+          ssh ubuntu@$instance "docker pull ghcr.io/sarahabuirmeileh/serve-and-shine:${{ steps.image_version.outputs.gitsha }}"
+          ssh ubuntu@$instance "docker-compose -f /path/to/your/docker-compose-prod.yml up -d"
+        done
       env:
-        SSH_PRIVATE_KEY: ${{ secrets.DEPLOYMENT_KEY }}
+        EC2_INSTANCES: ${{ steps.Get EC2 instances from the Auto Scaling Group.outputs.stdout }}
