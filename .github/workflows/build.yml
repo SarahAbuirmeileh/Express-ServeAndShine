@@ -41,9 +41,10 @@ jobs:
   
       - name: Get EC2 instances from the Auto Scaling Group
         run: |
-          # Fetch EC2 instances from your Auto Scaling Group (ASG) and use jq to format the data
-          instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-ASG-" --query 'Reservations[*].Instances[*].PublicIpAddress' --output json | jq -r '.[]')
-          echo "EC2_INSTANCES=$instances" >> $GITHUB_ENV
+          # Fetch EC2 instances from your Auto Scaling Group (ASG) and use Python to format the data
+          instances_json=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-ASG-" --query 'Reservations[*].Instances[*].PublicIpAddress' --output json)
+          instances_cleaned=$(python -c "import json; data = json.loads('$instances_json'); print(' '.join(data))")
+          echo "EC2_INSTANCES=$instances_cleaned" >> $GITHUB_ENV
 
       - name: Deploy to EC2 instances
         run: |
