@@ -39,7 +39,7 @@ const createVolunteer = async (payload: NSVolunteer.Item) => {
             newVolunteer.volunteerProfile = profile;
 
             const role = await Role.findOne({ where: { name: payload.type } });
-            if (role) {
+            if (role) {                
                 newVolunteer.roles = [role];
             }
 

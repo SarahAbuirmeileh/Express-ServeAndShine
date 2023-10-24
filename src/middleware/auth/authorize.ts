@@ -20,7 +20,7 @@ const authorize = (api: string) => {
             permissions.push(...(organizationAdmin.roles.permissions));
 
         } else if (res.locals.volunteer) {
-            const volunteer: Volunteer = res.locals.volunteer;
+            const volunteer: Volunteer = res.locals.volunteer;            
             volunteer.roles.forEach((role) => {
                 permissions.push(...role.permissions);
             });
@@ -138,7 +138,7 @@ const checkCreator = async (req: express.Request, res: express.Response, next: e
             }).then().catch()
             next(createError(401));
         }
-    } else if (res.locals.volunteer) {
+    } else if (res.locals.volunteer) {        
         if (res.locals.volunteer?.id == voluntaryWork?.creatorId) {
             next();
         } else {
@@ -202,7 +202,6 @@ const checkParticipation = async (req: express.Request, res: express.Response, n
         next(createError(401)); // Handle the case when res.locals.volunteer is not defined
     }
 };
-
 
 export {
     authorize,

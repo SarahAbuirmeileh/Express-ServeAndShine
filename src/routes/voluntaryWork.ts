@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getImages, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getImages, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -13,9 +13,10 @@ import { validateVolunteerId } from '../middleware/validation/volunteer.js';
 import { sendEmail } from '../controllers/AWSServices/SES.js';
 import { VoluntaryWork } from '../db/entities/VoluntaryWork.js';
 import { Volunteer } from '../db/entities/Volunteer.js';
+import { SkillTag } from '../db/entities/SkillTag.js';
 
 var router = express.Router();
-
+//
 router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, res, next) => {
     createVoluntaryWork({ ...req.body, creatorId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id }).then((data) => {
         log({
@@ -33,8 +34,8 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
             res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             res.locals.organizationAdmin?.name || res.locals.volunteer?.name
         ).then().catch()
-        
-        res.status(201).send({message:"Voluntary work created successfully!!",data})
+
+        res.status(201).send({ message: "Voluntary work created successfully!!", data })
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
@@ -96,7 +97,7 @@ router.post("/rating/:id", validateVoluntaryWorkId, authorize("DELETE_voluntaryW
         next(err);
     });
 });
-
+//
 router.delete('/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), async (req, res, next) => {
     const id = Number(req.params.id?.toString());
 
@@ -455,9 +456,19 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
 });
 
 router.get('/recommendation', authorize("GET_recommendation"), async (req, res, next) => {
-    const payload = { ...res.locals.volunteer };
-    getVoluntaryWorks(payload)
-        .then(data => {
+    const skillTags: SkillTag[] = res.locals.volunteer.volunteerProfile.skillTags;
+    const payload = {
+        page: req.query.page?.toString() || '1',
+        pageSize: req.query.pageSize?.toString() || '10',
+        time: res.locals.volunteer.availableTime as NSVolunteer.AvailableTime[],
+        location: res.locals.volunteer.availableLocation,
+        days: res.locals.volunteer.availableDays as NSVolunteer.AvailableDays[],
+        status: "Pending" as NSVoluntaryWork.StatusType,
+        skillTags: skillTags.map(skillTag => skillTag.id)
+    };
+
+    getRecommendation(payload)
+        .then(data => {            
             log({
                 userId: res.locals.volunteer?.id,
                 userName: res.locals.volunteer?.name,
@@ -491,8 +502,7 @@ router.get('/recommendation', authorize("GET_recommendation"), async (req, res, 
                 'Get recommendation',
                 res.locals.volunteer?.id,
                 res.locals.volunteer?.name
-            ).then().catch()
-
+            ).then().catch() 
             next(err);
         });
 });
@@ -756,7 +766,7 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
         next(err);
     }
 });
-
+//
 router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: Number(req.params.id) } })
     if (res.locals.volunteer) {
@@ -855,7 +865,7 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
         });
     }
 });
-
+//
 router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_voluntaryWork"), async (req, res, next) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: Number(req.params.id) } })
     const volunteer = await Volunteer.findOne({ where: { id: (req.body.volunteerId.toString()) } })

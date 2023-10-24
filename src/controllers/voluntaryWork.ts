@@ -1,4 +1,4 @@
-import { DeepPartial, FindOperator, FindOptionsWhere, In, LessThan, LessThanOrEqual, Like, MoreThan, MoreThanOrEqual } from "typeorm";
+import { DeepPartial, In, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual } from "typeorm";
 import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
@@ -163,6 +163,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
             },
             relations: ['skillTags', 'volunteerProfiles']
         });
+
         const processedVW = await Promise.all(voluntaryWorks.map(async vw => {
             const volunteers = [];
             for (const vp of vw.volunteerProfiles) {
@@ -240,7 +241,7 @@ const putFeedback = async (id: number, feedback: string) => {
 const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["volunteerProfile"]) => {
     try {
 
-        const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
+        const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["skillTags"] });
         if (!voluntaryWork) {
             throw createError({ status: 404, message: "Voluntary work" });
         }
@@ -249,7 +250,7 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
             volunteerProfile.availableLocation !== voluntaryWork.location ||
             !(volunteerProfile.availableDays?.length > 0 && volunteerProfile.availableDays?.every(day => voluntaryWork.days.includes(day))) ||
             !(volunteerProfile.availableTime?.length > 0 && volunteerProfile.availableTime?.every(time => voluntaryWork.time.includes(time))) ||
-            !(volunteerProfile.skillTags?.length > 0 && volunteerProfile.skillTags.every(skillTag => voluntaryWork.skillTags.some(workSkill => workSkill.id === skillTag.id)))
+            !(voluntaryWork.skillTags?.every(skillTag => volunteerProfile.skillTags.some(workSkill => workSkill.id === skillTag.id)))
         ) {
             throw new Error("Volunteer's profile information does not align with the VoluntaryWork information");
         }
@@ -268,7 +269,7 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
         return "Registration successful!";
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to register by Volunteer";
+        throw ", when trying to register by Volunteer: " + err;
     }
 }
 
@@ -301,7 +302,6 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
         throw ", when trying to register by organization admin";
     }
 }
-
 
 const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     try {
@@ -394,11 +394,83 @@ const volunteerReminder = async (id: number) => {
                 volunteer.email,
                 volunteer.name,
                 'Reminder to rate and feedback Voluntary Work!',
-                `You have successfully finished ${voluntaryWork?.name}!\nWe encourage you to tell us your opinion and thoughts about our voluntary work, you can rate and create feedback for it!`)        }
+                `You have successfully finished ${voluntaryWork?.name}!\nWe encourage you to tell us your opinion and thoughts about our voluntary work, you can rate and create feedback for it!`)
+        }
 
     } catch (err) {
         baseLogger.error(err);
         throw createError(404,);
+    }
+}
+const getRecommendation = async (payload: NSVoluntaryWork.Recommendation) => {
+    try {
+
+        const page = parseInt(payload.page);
+        const pageSize = parseInt(payload.pageSize);
+        const conditions: Record<string, any> = {};
+
+        if (payload.time?.length > 0) {
+            conditions["time"] = In(payload.time);
+        }
+        if (payload.location) {
+            conditions["location"] = payload.location;
+        }
+        if (payload.status) {
+            conditions["status"] = payload.status;
+        }
+        if (payload.days?.length > 0) {
+            console.log(7);
+            conditions["days"] = In(payload.days);
+        }
+        if (payload.skillTags?.length > 0) {
+            conditions["skillTags"] = { id: payload.skillTags };
+        }
+        console.log(conditions);
+
+        const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
+            where: conditions,
+            skip: pageSize * (page - 1),
+            take: pageSize,
+            order: {
+                createdAt: 'ASC'
+            },
+            relations: ['skillTags', 'volunteerProfiles']
+        });
+
+        const processedVW = await Promise.all(voluntaryWorks.map(async vw => {
+            const volunteers = [];
+            for (const vp of vw.volunteerProfiles) {
+                const v = await Volunteer.findOne({ where: { volunteerProfile: { id: vp.id } } });
+                if (v) {
+                    volunteers.push({ name: v.name });
+                }
+            }
+            return {
+                name: vw.name,
+                description: vw.description,
+                days: vw.days,
+                time: vw.time,
+                location: vw.location,
+                startedDate: vw.startedDate,
+                finishedDate: vw.finishedDate,
+                status: vw.status,
+                capacity: vw.capacity,
+                skillTags: vw.skillTags.map(st => { return { name: st.name } }),
+                volunteers,
+                volunteerNumbers: volunteers.length,
+                createdAt: vw.createdAt
+            };
+        }));
+
+        return {
+            page,
+            pageSize: voluntaryWorks.length,
+            total,
+            voluntaryWorks: processedVW
+        };
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError({ status: 404, message: "Voluntary work" });
     }
 }
 
@@ -408,5 +480,5 @@ export {
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
     getVoluntaryWorks, deleteVoluntaryWork,
     generateCertificate, getImages, getVoluntaryWorksForVolunteer,
-    volunteerReminder
+    volunteerReminder, getRecommendation
 }
