@@ -70,16 +70,16 @@ jobs:
       run: |
         # Use AWS CLI to describe the instances in your ASG
         instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names serve-and-shine-ASG- --query 'AutoScalingGroups[0].Instances[*].InstanceId' --output text)
+        instance_ips=""
         for instance_id in $instances; do
           ip=$(aws ec2 describe-instances --instance-ids $instance_id --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
-          echo "Instance ID: $instance_id, IP: $ip" >> instances.txt
+          instance_ips="$instance_ips $ip"
         done
-        echo "::set-output name=instance_ips::$(cat instances.txt)"
+        echo "::set-output name=instance_ips::$instance_ips"
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-
     - name: Deploy to EC2 Instances
       run: |
         # Retrieve the IP addresses of EC2 instances from the previous step
