@@ -52,6 +52,18 @@ jobs:
         for instance in "${instances[@]}"; do
           ssh ubuntu@$instance "docker pull ghcr.io/sarahabuirmeileh/serve-and-shine:${{ steps.image_version.outputs.gitsha }}"
           ssh ubuntu@$instance "docker-compose -f /path/to/your/docker-compose-prod.yml up -d"
-        done
       env:
         EC2_INSTANCES: ${{ steps.Get EC2 instances from the Auto Scaling Group.outputs.stdout }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        GIT_VERSISON: ${{ steps.image_version.outputs.gitsha }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_CERTIFICATES_BUCKET_NAME: ${{ secrets.AWS_CERTIFICATES_BUCKET_NAME }}
+        PORT: ${{ secrets.PORT }}
