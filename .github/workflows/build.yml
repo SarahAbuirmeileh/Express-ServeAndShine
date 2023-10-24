@@ -45,7 +45,7 @@ jobs:
 
       - name: Deploy to EC2 instances
         run: |
-          IFS=',' read -ra instances <<< "$EC2_INSTANCES"
+          IFS=' ' read -ra instances <<< "$EC2_INSTANCES"
           for instance in "${instances[@]}"; do
             ssh ubuntu@"$instance" "docker pull ghcr.io/sarahabuirmeileh/serve-and-shine:${{ steps.image_version.outputs.gitsha }}"
             ssh ubuntu@"$instance" "docker-compose -f /path/to/your/docker-compose-prod.yml up -d"
