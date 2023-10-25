@@ -65,6 +65,12 @@ jobs:
           host: ${{ matrix.ip }}
           user: github
           ssh-private-key: ${{ secrets.DEPLOYMENT_KEY }}
+      - name: login to Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: sarahabuirmeileh
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: deploy
         run: docker compose -f docker-compose-prod.yml up -d
         env:
