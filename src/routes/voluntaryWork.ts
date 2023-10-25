@@ -14,6 +14,7 @@ import { sendEmail } from '../controllers/AWSServices/SES.js';
 import { VoluntaryWork } from '../db/entities/VoluntaryWork.js';
 import { Volunteer } from '../db/entities/Volunteer.js';
 import { SkillTag } from '../db/entities/SkillTag.js';
+import { OrganizationProfile } from '../db/entities/OrganizationProfile.js';
 
 var router = express.Router();
 
@@ -57,7 +58,7 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
     });
 });
 
-router.post("/rating/:id", validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), async (req, res, next) => {         
+router.post("/rating/:id", validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), async (req, res, next) => {
     volunteerReminder(Number(req.params.id)).then(() => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -468,7 +469,7 @@ router.get('/recommendation', authorize("GET_recommendation"), async (req, res, 
     };
 
     getRecommendation(payload)
-        .then(data => {            
+        .then(data => {
             log({
                 userId: res.locals.volunteer?.id,
                 userName: res.locals.volunteer?.name,
@@ -502,7 +503,7 @@ router.get('/recommendation', authorize("GET_recommendation"), async (req, res, 
                 'Get recommendation',
                 res.locals.volunteer?.id,
                 res.locals.volunteer?.name
-            ).then().catch() 
+            ).then().catch()
             next(err);
         });
 });
@@ -549,8 +550,9 @@ router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
         });
 });
 
-router.get('/template', authorize("DELETE_voluntaryWork"), async (req, res, next) => {
-    const prefix = `templates/${req.body.organizationName}`
+router.get('/template/:id', authorize("DELETE_organizationProfile"), async (req, res, next) => {    
+    const organizationProfile = await OrganizationProfile.findOne({where:{id:req.params.id}})
+    const prefix = `templates/${organizationProfile?.name}`
     loadFromS3(process.env.AWS_CERTIFICATES_BUCKET_NAME || '', prefix)
         .then(data => {
             log({
@@ -573,8 +575,8 @@ router.get('/template', authorize("DELETE_voluntaryWork"), async (req, res, next
         })
         .catch(err => {
             log({
-                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
-                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
                 userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Get template/s for organization: ' + req.body.organizationName
@@ -584,8 +586,8 @@ router.get('/template', authorize("DELETE_voluntaryWork"), async (req, res, next
                 'failed',
                 'voluntary work',
                 'Get template/s',
-                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
-                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
             ).then().catch()
 
             next(err);
@@ -598,7 +600,7 @@ router.get('/volunteer/:id', validateVolunteerId, async (req, res, next) => {
             log({
                 userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
                 userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin')as NSLogs.userType,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Get voluntary works for volunteer with id: ' + req.params.id
             }).then().catch()
@@ -617,7 +619,7 @@ router.get('/volunteer/:id', validateVolunteerId, async (req, res, next) => {
             log({
                 userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
                 userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin')as NSLogs.userType,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Get voluntary works for volunteer with id: ' + req.params.id
             }).then().catch()
