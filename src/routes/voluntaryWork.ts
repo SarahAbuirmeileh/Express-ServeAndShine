@@ -204,7 +204,8 @@ router.delete('/certificate/:id', validateVoluntaryWorkId, authorize("DELETE_vol
 
     const id = Number(req.params.id?.toString());
     const voluntaryWork = await getVoluntaryWork({ id });
-    const key = `certificates/${req.body.organizationName}/${voluntaryWork?.name}/${req.body.volunteerName}.pdf`
+    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name });
+    const key = `certificates/${organizationProfile?.name || req.body.organizationName}/${voluntaryWork?.name}/${req.body.volunteerName}.pdf`
 
     deleteFromS3(key, "certificate")
         .then(data => {
@@ -250,8 +251,8 @@ router.delete('/certificate/:id', validateVoluntaryWorkId, authorize("DELETE_vol
 router.delete('/template/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
 
     const id = Number(req.params.id?.toString());
-    const voluntaryWork = await getVoluntaryWork({ id });
-    const key = `templates/${req.body.organizationName}/certificate_template.html`
+    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name });
+    const key = `templates/${organizationProfile?.name || req.body.organizationName}/${req.body.imageName || "certificate_template"}.html`
 
     deleteFromS3(key, "template")
         .then(data => {
@@ -561,9 +562,9 @@ router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
 });
 
 router.get('/template/:id', authorize("PUT_images"), async (req, res, next) => {
-    const payload = {page:'', pageSize:'', id:'', name:'', adminName:res.locals.organizationAdmin.name}
+    const payload = { page: '', pageSize: '', id: '', name: '', adminName: res.locals.organizationAdmin.name }
     const organizationProfile = await searchOrganizationProfile(payload);
-    
+
     const prefix = `templates/${organizationProfile?.name || req.body.organizationName}`
     loadFromS3(process.env.AWS_CERTIFICATES_BUCKET_NAME || '', prefix)
         .then(data => {

@@ -187,7 +187,7 @@ const validateDeleteFromS3 = async (req: express.Request,
     res: express.Response,
     next: express.NextFunction
 ) => {
-    const values = ["organizationName", "imageName"];
+    const values = ["imageName"];
     const voluntaryWork = req.body;
     const errorList = values.map(key => !voluntaryWork[key] && `${key} is Required!`).filter(Boolean);
 
