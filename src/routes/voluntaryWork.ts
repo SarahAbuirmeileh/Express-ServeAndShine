@@ -97,7 +97,7 @@ router.post("/rating/:id", validateVoluntaryWorkId, authorize("DELETE_voluntaryW
         next(err);
     });
 });
-//
+
 router.delete('/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), async (req, res, next) => {
     const id = Number(req.params.id?.toString());
 
@@ -598,7 +598,7 @@ router.get('/volunteer/:id', validateVolunteerId, async (req, res, next) => {
             log({
                 userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
                 userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
-                userType: res.locals.volunteer?.type as NSLogs.userType,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin')as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
                 request: 'Get voluntary works for volunteer with id: ' + req.params.id
             }).then().catch()
@@ -617,7 +617,7 @@ router.get('/volunteer/:id', validateVolunteerId, async (req, res, next) => {
             log({
                 userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
                 userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
-                userType: res.locals.volunteer?.type as NSLogs.userType,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin')as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
                 request: 'Get voluntary works for volunteer with id: ' + req.params.id
             }).then().catch()

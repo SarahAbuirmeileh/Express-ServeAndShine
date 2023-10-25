@@ -245,7 +245,7 @@ const putFeedback = async (id: number, feedback: string) => {
 
 const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["volunteerProfile"]) => {
     try {
-
+        
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["skillTags"] });
         if (!voluntaryWork) {
             throw createError({ status: 404, message: "Voluntary work" });
@@ -270,7 +270,15 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
             voluntaryWork.volunteerProfiles = [volunteerProfile];
         }
 
+        if (volunteerProfile.voluntaryWorks) {
+            volunteerProfile.voluntaryWorks.push(voluntaryWork);
+        } else {  
+            volunteerProfile.voluntaryWorks = [voluntaryWork];
+        }
+
         await voluntaryWork.save();
+        await volunteerProfile.save()
+
         return "Registration successful!";
     } catch (err) {
         baseLogger.error(err);
@@ -280,13 +288,13 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
 
 const registerByOrganizationAdmin = async (workId: number, volunteerId: string) => {
     try {
-
+        
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
         const volunteer = await Volunteer.findOne({
             where: { id: volunteerId },
-            relations: ["roles", "roles.permissions", "volunteerProfile"]
+            relations: ["roles", "roles.permissions", "volunteerProfile","volunteerProfile.voluntaryWorks" ]
         });
-
+        
         if (!voluntaryWork) {
             throw "Voluntary work not found";
         }
@@ -299,8 +307,16 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
         } else {
             voluntaryWork.volunteerProfiles = [volunteer.volunteerProfile];
         }
-
+        
+        if (volunteer.volunteerProfile.voluntaryWorks) {
+            volunteer.volunteerProfile.voluntaryWorks.push(voluntaryWork);
+        } else {  
+            volunteer.volunteerProfile.voluntaryWorks = [voluntaryWork];
+        }
+        
         await voluntaryWork.save();
+        await volunteer.volunteerProfile.save();
+
         return "Registration successful!";
     } catch (err) {
         baseLogger.error(err);
@@ -310,9 +326,8 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
 
 const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     try {
-
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["volunteerProfiles"] });
-        const volunteer = await Volunteer.findOne({ where: { id: volunteerId }, relations: ["volunteerProfile"] });
+        const volunteer = await Volunteer.findOne({ where: { id: volunteerId }, relations: ["volunteerProfile", "volunteerProfile.voluntaryWorks"] });
 
         if (!voluntaryWork) {
             throw createError({ status: 404, message: "Voluntary work" });
@@ -321,17 +336,24 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
         if (!volunteer) {
             throw createError({ status: 404, message: "Volunteer" });
         }
+
         const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
         if (index !== -1) {
             voluntaryWork.volunteerProfiles.splice(index, 1);
-            await voluntaryWork.save();
+            
+            const workIndex = volunteer.volunteerProfile.voluntaryWorks.findIndex(work => work.id === workId);
+            if (workIndex !== -1) {
+                volunteer.volunteerProfile.voluntaryWorks.splice(workIndex, 1);
+            }
+            await Promise.all([voluntaryWork.save(), volunteer.volunteerProfile.save()]);
+
             return "Deregistration successful!";
         } else {
             throw new Error("Volunteer is not registered for this voluntary work");
         }
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to deregister voluntary work";
+        throw "Error when trying to deregister voluntary work";
     }
 }
 
@@ -368,17 +390,16 @@ const getImages = async (voluntaryWorkId: number) => {
     return voluntaryWork?.images;
 }
 
-const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
+const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {  
     try {
         const volunteer = await Volunteer.findOne({
             where: { id: volunteerId },
-            relations: ["volunteerProfile"]
+            relations: ["volunteerProfile","volunteerProfile.voluntaryWorks"]
         });
-
+        
         if (!volunteer) {
             throw createError({ status: 404, message: 'Volunteer not found' });
-        }
-
+        }   
         return volunteer.volunteerProfile.voluntaryWorks;
     } catch (err) {
         baseLogger.error(err);
