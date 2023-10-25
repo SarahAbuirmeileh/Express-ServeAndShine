@@ -1,39 +1,44 @@
 version: '3'
 
 services:
-  mysql:
-    image: mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=$DB_PASSWORD
-      - MYSQL_DATABASE=$DB_NAME
-    volumes:
-      - db-data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      timeout: 20s
-      retries: 10
-    restart: always
+  # mysql:
+  #   image: mysql
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=$DB_PASSWORD
+  #     - MYSQL_DATABASE=$DB_NAME
+  #   volumes:
+  #     - db-data:/var/lib/mysql
+  #   ports:
+  #     - "3306:3306"
+  #   healthcheck:
+  #     test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+  #     timeout: 20s
+  #     retries: 10
+  #   restart: always
 
   app:
     image: ghcr.io/sarahabuirmeileh/serve-and-shine:$GIT_VERSISON
     mem_limit: 5g
     restart: always #like sysd service
     environment:
-      - PORT=80
-      - DB_HOST=mysql  # to comunicate the servies in the same project ny the name of the serevice
+      - PORT=$PORT
+      - DB_HOST=$DB_HOST
       - DB_USERNAME=$DB_USERNAME
       - DB_PASSWORD=$DB_PASSWORD
       - DB_NAME=$DB_NAME
+      - DB_PORT=$DB_PORT
+      - SECRET_KEY=$SECRET_KEY
       - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+      - AWS_REGION=$AWS_REGION
+      - AWS_BUCKET_NAME=$AWS_BUCKET_NAME
+      - AWS_CERTIFICATES_BUCKET_NAME=$AWS_CERTIFICATES_BUCKET_NAME
       
     ports:
       - "80:80"
-    depends_on:
-      mysql:
-        condition: service_healthy
+#     depends_on:
+#       mysql:
+#         condition: service_healthy
 
-volumes:
-  db-data:
+# volumes:
+#   db-data:

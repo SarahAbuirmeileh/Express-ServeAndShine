@@ -10,12 +10,16 @@ import { VolunteerProfile } from "./entities/VolunteerProfile.js";
 import { Logs } from "./entities/Logs.js";
 
 const dataSource = new DataSource({
+  
   type: 'mysql',
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
   username:  process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database:  process.env.DB_NAME,
   entities: [OrganizationAdmin, OrganizationProfile, Permission,
     Role, SkillTag, VoluntaryWork, Volunteer, VolunteerProfile, Logs],
   migrations: ['./**/migration/*.ts'],
