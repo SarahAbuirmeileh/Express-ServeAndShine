@@ -58,6 +58,7 @@ jobs:
       matrix:
         ip: ${{ fromJson(needs.build.outputs.ec2_ips) }}
     steps:
+      - uses: actions/checkout@v3
       - name: configure docker host
         uses: khaledez/configure-docker-host@v1
         with:
