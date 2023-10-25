@@ -48,8 +48,9 @@ jobs:
         run: |
           for ip in ${{ steps.get_instance_ips.outputs.ips }}
           do
-            ssh -i ${{ secrets.DEPLOYMENT_KEY }} -o StrictHostKeyChecking=no github@$ip "docker compose -f docker-compose-prod.yml up -d"
-          done
+            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519  # Store the private key
+            ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ubuntu@$ip "docker compose -f docker-compose-prod.yml up -d"
+            done
 
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
