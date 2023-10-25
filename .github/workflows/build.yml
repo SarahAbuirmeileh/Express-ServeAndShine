@@ -44,18 +44,11 @@ jobs:
           instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-asg" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
           echo "::set-output name=ips::$instances"
           
-      - name: Set up SSH key
+      - name: Configure Docker Hosts on EC2 Instances
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.AWS_DEPLOYMENT_KEY }}" >  ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-
-      - name: Deploy to EC2 Instances
-        run: |
-          instances="${{ steps.get_instance_ips.outputs.ips }}"
-          IFS=' ' read -ra ips <<< "$instances"
-          for ip in "${ips[@]}"; do
-            ssh ubuntu@$ip "docker compose -f docker-compose-prod.yml up -d"
+          for ip in ${{ steps.get_instance_ips.outputs.ips }}
+          do
+            ssh -i ${{ secrets.DEPLOYMENT_KEY }} -o StrictHostKeyChecking=no github@$ip "docker compose -f docker-compose-prod.yml up -d"
           done
 
         env:
