@@ -201,11 +201,10 @@ router.delete('/image/:id', validateVoluntaryWorkId, authorize("PUT_images"), va
 })
 
 router.delete('/certificate/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
-
     const id = Number(req.params.id?.toString());
     const voluntaryWork = await getVoluntaryWork({ id });
     const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name });
-    const key = `certificates/${organizationProfile?.name || req.body.organizationName}/${voluntaryWork?.name}/${req.body.volunteerName}.pdf`
+    const key = `certificates/${organizationProfile?.name || req.body.organizationName}/${voluntaryWork?.name}/${req.body.imageName}.pdf`
 
     deleteFromS3(key, "certificate")
         .then(data => {
@@ -1008,7 +1007,7 @@ router.post("/generate-certificate/:id", validateVoluntaryWorkId, authorize("PUT
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Template added successfully!!")
+        res.status(201).send("Certifications generated successfully!!")
 
     }).catch((err) => {
         log({
