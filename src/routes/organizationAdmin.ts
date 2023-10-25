@@ -6,6 +6,7 @@ import { log } from "../controllers/dataBaseLogger.js";
 import { NSLogs } from "../../types/logs.js";
 import { logToCloudWatch } from "../controllers/AWSServices/CloudWatchLogs.js";
 import { login } from "../controllers/volunteer.js";
+import { authenticate } from "../middleware/auth/authenticate.js";
 
 const router = express.Router();
 
@@ -26,8 +27,8 @@ router.post('/signup', authorize("POST_organizationAdmin"), validateOrganization
             data.id,
             req.body.name
         ).then().catch()
-
-        res.status(201).send({message:"Organization Admin created successfully!!" , data})
+        const { password, ...dataWithoutPassword } = data;
+        res.status(201).send({ message: "Organization Admin created successfully!!", dataWithoutPassword })
     }).catch(async err => {
         log({
             userId: "",
@@ -52,7 +53,7 @@ router.post('/signup', authorize("POST_organizationAdmin"), validateOrganization
 router.post('/login', (req, res, next) => {
     const email = req.body.email;
     const name = req.body.name;
-    const id = req.body.id;
+    const id = req.body.id;    
     login(email, name, id)
         .then(data => {
             res.cookie('myApp', data.token, {
@@ -100,7 +101,7 @@ router.post('/login', (req, res, next) => {
         })
 });
 
-router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), async (req, res, next) => {
+router.delete('/:id',authenticate, validateAdminId, authorize("DELETE_organizationAdmin"), async (req, res, next) => {
     const id = req.params.id?.toString();
 
     deleteOrganizationAdmin(id)
@@ -144,7 +145,7 @@ router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), as
         });
 });
 
-router.put("/:id", authorize("PUT_organizationAdmin"), validateAdminEdited, async (req, res, next) => {
+router.put("/:id",authenticate, authorize("PUT_organizationAdmin"), validateAdminEdited, async (req, res, next) => {
     editOrganizationAdmin({ ...req.body, id: req.params.id }).then(async () => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -184,7 +185,7 @@ router.put("/:id", authorize("PUT_organizationAdmin"), validateAdminEdited, asyn
     });
 });
 
-router.get('/search', authorize("GET_organizationAdmins"), async (req, res, next) => {
+router.get('/search',authenticate, authorize("GET_organizationAdmins"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',

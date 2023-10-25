@@ -56,8 +56,8 @@ const deleteFromS3 = async (key: string, type: string) => {
             Bucket: (type === "image" ? process.env.AWS_BUCKET_NAME : process.env.AWS_CERTIFICATES_BUCKET_NAME) || '',
             Key: key,
         };
-
-        return S3.deleteObject(deleteParams).promise();
+        await S3.deleteObject(deleteParams).promise();
+        return "Image deleted successfully !"
 
     } catch (err) {
         baseLogger.error("Error deleting image from S3:", err);

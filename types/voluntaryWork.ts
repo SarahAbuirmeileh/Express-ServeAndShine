@@ -1,3 +1,4 @@
+import { SkillTag } from "../src/db/entities/SkillTag.js";
 import { NSVolunteer } from "./volunteer.js";
 
 export namespace NSVoluntaryWork {
@@ -20,7 +21,7 @@ export namespace NSVoluntaryWork {
         feedback?: string[];
         status?: StatusType;
         days?: NSVolunteer.AvailableDays[];
-        startedDate?:string;
+        startedDate?: string;
         finishedDate?: string;
         capacity?: number;
         skillTagIds?: number[];
@@ -46,9 +47,9 @@ export namespace NSVoluntaryWork {
         finishedBefore: string;
         startedAfter: string;
         startedBefore: string;
-        ratingMore:number;
-        ratingLess:number;
-        creatorId:string;
+        ratingMore: number;
+        ratingLess: number;
+        creatorId: string;
     }
 
     export interface Date {
@@ -73,6 +74,16 @@ export namespace NSVoluntaryWork {
         finishedDate: string;
         capacity: number;
         skillTagIds: number[];
-        creatorId:string;
+        creatorId: string;
+    }
+
+    export interface Recommendation {
+        page: string,
+        pageSize: string,
+        time: NSVolunteer.AvailableTime[],
+        location: string,
+        days: NSVolunteer.AvailableDays[],
+        status: NSVoluntaryWork.StatusType,
+        skillTags: number[]
     }
 }

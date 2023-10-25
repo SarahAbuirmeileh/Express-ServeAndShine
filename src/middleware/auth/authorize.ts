@@ -20,15 +20,15 @@ const authorize = (api: string) => {
             permissions.push(...(organizationAdmin.roles.permissions));
 
         } else if (res.locals.volunteer) {
-            const volunteer: Volunteer = res.locals.volunteer;
+            const volunteer: Volunteer = res.locals.volunteer;            
             volunteer.roles.forEach((role) => {
                 permissions.push(...role.permissions);
             });
         }
 
-        if (permissions?.filter(p => p.name === api).length > 0) {
+        if (permissions?.filter(p => p.name === api).length > 0) {            
             next();
-        } else if ((/^PUT_.+/.test(api)) || (/^DELETE_.+/.test(api))) {
+        } else if ((/^PUT_.+/.test(api)) || (/^DELETE_.+/.test(api))) {            
             if ((/organizationProfile$/.test(api))) {
                 checkAdmin(req, res, next);
             } else if ((/organizationAdmin$/.test(api)) || (/volunteer$/.test(api))) {
@@ -110,9 +110,9 @@ const checkAdmin = async (req: express.Request, res: express.Response, next: exp
         }
     } else {
         log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: (res.locals.volunteer?.type) as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
             request: 'Authorization failed'
         }).then().catch()
@@ -138,7 +138,7 @@ const checkCreator = async (req: express.Request, res: express.Response, next: e
             }).then().catch()
             next(createError(401));
         }
-    } else if (res.locals.volunteer) {
+    } else if (res.locals.volunteer) {   
         if (res.locals.volunteer?.id == voluntaryWork?.creatorId) {
             next();
         } else {
@@ -202,7 +202,6 @@ const checkParticipation = async (req: express.Request, res: express.Response, n
         next(createError(401)); // Handle the case when res.locals.volunteer is not defined
     }
 };
-
 
 export {
     authorize,
