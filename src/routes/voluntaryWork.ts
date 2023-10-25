@@ -16,7 +16,7 @@ import { Volunteer } from '../db/entities/Volunteer.js';
 import { SkillTag } from '../db/entities/SkillTag.js';
 
 var router = express.Router();
-//
+
 router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, res, next) => {
     createVoluntaryWork({ ...req.body, creatorId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id }).then((data) => {
         log({
