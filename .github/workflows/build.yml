@@ -8,14 +8,9 @@ on:
     branches:
       - main
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
 
     steps:
       - uses: actions/checkout@v3
@@ -37,24 +32,26 @@ jobs:
 
       - name: Configure AWS CLI
         run: aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} && aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} && aws configure set region ${{ secrets.AWS_REGION }}
-      
+
       - name: Get EC2 Instance IPs
         id: get_instance_ips
         run: |
           instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-asg" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
           echo "::set-output name=ips::$instances"
-          
+
       - name: Configure Docker Hosts on EC2 Instances
         run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOYMENT_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
           for ip in ${{ steps.get_instance_ips.outputs.ips }}
           do
-            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519  # Store the private key
             ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ubuntu@$ip "docker compose -f docker-compose-prod.yml up -d"
-            done
+          done
 
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          GIT_VERSISON: ${{ steps.image_version.outputs.gitsha }}
+          GIT_VERSION: ${{ steps.image_version.outputs.gitsha }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
