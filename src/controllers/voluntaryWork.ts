@@ -245,7 +245,7 @@ const putFeedback = async (id: number, feedback: string) => {
 
 const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["volunteerProfile"]) => {
     try {
-        
+
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["skillTags"] });
         if (!voluntaryWork) {
             throw createError({ status: 404, message: "Voluntary work" });
@@ -272,7 +272,7 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
 
         if (volunteerProfile.voluntaryWorks) {
             volunteerProfile.voluntaryWorks.push(voluntaryWork);
-        } else {  
+        } else {
             volunteerProfile.voluntaryWorks = [voluntaryWork];
         }
 
@@ -288,13 +288,13 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
 
 const registerByOrganizationAdmin = async (workId: number, volunteerId: string) => {
     try {
-        
+
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
         const volunteer = await Volunteer.findOne({
             where: { id: volunteerId },
-            relations: ["roles", "roles.permissions", "volunteerProfile","volunteerProfile.voluntaryWorks" ]
+            relations: ["roles", "roles.permissions", "volunteerProfile", "volunteerProfile.voluntaryWorks"]
         });
-        
+
         if (!voluntaryWork) {
             throw "Voluntary work not found";
         }
@@ -307,13 +307,13 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
         } else {
             voluntaryWork.volunteerProfiles = [volunteer.volunteerProfile];
         }
-        
+
         if (volunteer.volunteerProfile.voluntaryWorks) {
             volunteer.volunteerProfile.voluntaryWorks.push(voluntaryWork);
-        } else {  
+        } else {
             volunteer.volunteerProfile.voluntaryWorks = [voluntaryWork];
         }
-        
+
         await voluntaryWork.save();
         await volunteer.volunteerProfile.save();
 
@@ -340,7 +340,7 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
         const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
         if (index !== -1) {
             voluntaryWork.volunteerProfiles.splice(index, 1);
-            
+
             const workIndex = volunteer.volunteerProfile.voluntaryWorks.findIndex(work => work.id === workId);
             if (workIndex !== -1) {
                 volunteer.volunteerProfile.voluntaryWorks.splice(workIndex, 1);
@@ -390,16 +390,16 @@ const getImages = async (voluntaryWorkId: number) => {
     return voluntaryWork?.images;
 }
 
-const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {  
+const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
     try {
         const volunteer = await Volunteer.findOne({
             where: { id: volunteerId },
-            relations: ["volunteerProfile","volunteerProfile.voluntaryWorks"]
+            relations: ["volunteerProfile", "volunteerProfile.voluntaryWorks"]
         });
-        
+
         if (!volunteer) {
             throw createError({ status: 404, message: 'Volunteer not found' });
-        }   
+        }
         return volunteer.volunteerProfile.voluntaryWorks;
     } catch (err) {
         baseLogger.error(err);
@@ -430,6 +430,7 @@ const volunteerReminder = async (id: number) => {
         throw createError(404);
     }
 }
+
 const getRecommendation = async (payload: NSVoluntaryWork.Recommendation) => {
     try {
 
@@ -502,11 +503,34 @@ const getRecommendation = async (payload: NSVoluntaryWork.Recommendation) => {
     }
 }
 
+const deleteImage = async (voluntaryWorkId: number, imageName: string) => {
+    try {
+        const voluntaryWork = await VoluntaryWork.findOne({ where: { id: voluntaryWorkId } });
+        console.log(imageName);
+        
+        if (voluntaryWork) {
+            const imagesToDelete = voluntaryWork.images.filter((img) => img.endsWith(imageName));
+            console.log(imagesToDelete);
+            
+            if (imagesToDelete.length > 0) {
+                for (const imageUrl of imagesToDelete) {
+                    const imageIndex = voluntaryWork.images.findIndex((img) => img === imageUrl);
+                    voluntaryWork.images.splice(imageIndex, 1);
+                }
+
+                await voluntaryWork.save();
+            }
+        };
+    } catch (err) {
+        baseLogger.error(err);
+        throw new Error('Error when trying to delete an image');
+    }
+}
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
     registerByVolunteer, createVoluntaryWork,
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
     getVoluntaryWorks, deleteVoluntaryWork,
     generateCertificate, getImages, getVoluntaryWorksForVolunteer,
-    volunteerReminder, getRecommendation
+    volunteerReminder, getRecommendation, deleteImage
 }

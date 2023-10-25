@@ -58,8 +58,8 @@ const searchOrganizationProfile = async (payload: {
         }
 
         if (payload.adminName) {
-            const admin = await OrganizationAdmin.findOne({ where: { name: payload.adminName } });
-
+            const admin = await OrganizationAdmin.findOne({ where: { name: payload.adminName }, relations:["orgProfile"] });
+            
             if (admin) {
                 return admin.orgProfile;
             } else {

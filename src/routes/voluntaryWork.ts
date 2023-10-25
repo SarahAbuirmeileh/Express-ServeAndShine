@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getImages, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteImage, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getImages, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -15,6 +15,7 @@ import { VoluntaryWork } from '../db/entities/VoluntaryWork.js';
 import { Volunteer } from '../db/entities/Volunteer.js';
 import { SkillTag } from '../db/entities/SkillTag.js';
 import { OrganizationProfile } from '../db/entities/OrganizationProfile.js';
+import baseLogger from '../../logger.js';
 
 var router = express.Router();
 
@@ -143,51 +144,60 @@ router.delete('/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork")
         });
 })
 
-router.delete('/image/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
+router.delete('/image/:id', validateVoluntaryWorkId, authorize("PUT_images"), validateDeleteFromS3, async (req, res, next) => {
 
     const id = Number(req.params.id?.toString());
     const voluntaryWork = await getVoluntaryWork({ id });
-    const key = `${req.body.organizationName}/${voluntaryWork?.name}/${req.body.imageName}.png`
+    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name });
+    const key = `${organizationProfile?.name || req.body.organizationName}/${voluntaryWork?.name}/${req.body.imageName}.png`
 
-    deleteFromS3(key, 'image')
-        .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Delete image from Voluntary Work with id: ' + id
-            }).then().catch()
+    deleteImage(id, req.body.imageName + '.png').then(() => {
+        deleteFromS3(key, 'image')
+            .then(data => {
+                log({
+                    userId: res.locals.organizationAdmin?.id,
+                    userName: res.locals.organizationAdmin?.name,
+                    userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                    type: 'success' as NSLogs.Type,
+                    request: 'Delete image from Voluntary Work with id: ' + id
+                }).then().catch()
 
-            logToCloudWatch(
-                'success',
-                'voluntary work',
-                'Delete image from Voluntary Work with id: ' + id,
-                res.locals.organizationAdmin?.id,
-                res.locals.organizationAdmin?.name
-            ).then().catch()
+                logToCloudWatch(
+                    'success',
+                    'voluntary work',
+                    'Delete image from Voluntary Work with id: ' + id,
+                    res.locals.organizationAdmin?.id,
+                    res.locals.organizationAdmin?.name
+                ).then().catch()
 
-            res.send(data);
-        })
-        .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Delete image from Voluntary Work with id: ' + id
-            }).then().catch()
+                res.send(data);
+            })
+            .catch(err => {
+                log({
+                    userId: res.locals.organizationAdmin?.id,
+                    userName: res.locals.organizationAdmin?.name,
+                    userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                    type: 'failed' as NSLogs.Type,
+                    request: 'Delete image from Voluntary Work with id: ' + id
+                }).then().catch()
 
-            logToCloudWatch(
-                'failed',
-                'voluntary work',
-                'Delete image from Voluntary Work with id: ' + id,
-                res.locals.organizationAdmin?.id,
-                res.locals.organizationAdmin?.name
-            ).then().catch()
+                logToCloudWatch(
+                    'failed',
+                    'voluntary work',
+                    'Delete image from Voluntary Work with id: ' + id,
+                    res.locals.organizationAdmin?.id,
+                    res.locals.organizationAdmin?.name
+                ).then().catch()
 
-            next(err);
-        });
+                next(err);
+            });
+
+    }).catch(err => {
+        baseLogger.error(err);
+        next(err);
+    })
+
+
 })
 
 router.delete('/certificate/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
@@ -550,8 +560,8 @@ router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
         });
 });
 
-router.get('/template/:id', authorize("DELETE_organizationProfile"), async (req, res, next) => {    
-    const organizationProfile = await OrganizationProfile.findOne({where:{id:req.params.id}})
+router.get('/template/:id', authorize("DELETE_organizationProfile"), async (req, res, next) => {
+    const organizationProfile = await OrganizationProfile.findOne({ where: { id: req.params.id } })
     const prefix = `templates/${organizationProfile?.name}`
     loadFromS3(process.env.AWS_CERTIFICATES_BUCKET_NAME || '', prefix)
         .then(data => {
@@ -716,7 +726,7 @@ router.put("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_feedback"), 
     });
 });
 
-router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
+router.put("/image/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
     const images = req.files?.image;
     if (!images) {
         return res.status(400).send("No images provided.");
@@ -727,7 +737,7 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
 
         const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
         const organization = await searchOrganizationProfile(payload);
-        const organizationName = organization?.name || '';
+        const organizationName = organization?.name || req.body.organizationName;
 
         await putImages(Number(req.params.id), uploadedFiles, organizationName);
 
@@ -768,7 +778,7 @@ router.put("/images/:id", validateVoluntaryWorkId, authorize("PUT_images"), asyn
         next(err);
     }
 });
-//
+
 router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: Number(req.params.id) } })
     if (res.locals.volunteer) {
@@ -867,7 +877,7 @@ router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_volunta
         });
     }
 });
-//
+
 router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_voluntaryWork"), async (req, res, next) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: Number(req.params.id) } })
     const volunteer = await Volunteer.findOne({ where: { id: (req.body.volunteerId.toString()) } })
