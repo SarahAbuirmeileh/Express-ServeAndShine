@@ -43,7 +43,12 @@ jobs:
         run: |
           instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-asg" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
           echo "::set-output name=ips::$instances"
-  
+          
+      - name: Set up SSH key
+        run: |
+          echo "${{ secrets.AWS_DEPLOYMENT_KEY }}" >  ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
       - name: Deploy to EC2 Instances
         run: |
           instances="${{ steps.get_instance_ips.outputs.ips }}"
