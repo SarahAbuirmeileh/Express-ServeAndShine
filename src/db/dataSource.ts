@@ -11,11 +11,11 @@ import { Logs } from "./entities/Logs.js";
 
 const dataSource = new DataSource({
   type: 'mysql',
-  host: 'localhost'|| process.env.DB_HOST,
-  port: 3306 || Number(process.env.DB_PORT),
-  username: "root" || process.env.DB_USERNAME,
-  password: "" || process.env.DB_PASSWORD,
-  database: "Serve-and-Shine" || process.env.DB_NAME,
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  username:  process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   entities: [OrganizationAdmin, OrganizationProfile, Permission,
     Role, SkillTag, VoluntaryWork, Volunteer, VolunteerProfile, Logs],
   migrations: ['./**/migration/*.ts'],

@@ -44,6 +44,8 @@ const createVolunteer = async (payload: NSVolunteer.Item) => {
             }
 
             await transaction.save(newVolunteer);
+            profile.volunteer=newVolunteer;
+            await transaction.save(profile);
             return newVolunteer
         });
     } catch (err) {

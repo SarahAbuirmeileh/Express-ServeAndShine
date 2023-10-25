@@ -57,7 +57,7 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
     });
 });
 
-router.post("/rating/:id", validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), checkParticipation, async (req, res, next) => {
+router.post("/rating/:id", validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), async (req, res, next) => {         
     volunteerReminder(Number(req.params.id)).then(() => {
         log({
             userId: res.locals.organizationAdmin?.id,

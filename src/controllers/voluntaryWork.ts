@@ -383,12 +383,14 @@ const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
 
 const volunteerReminder = async (id: number) => {
     try {
-        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id }, relations:["volunteerProfiles", "volunteerProfiles.volunteer"] });
         if (!voluntaryWork) {
             throw new Error(`Voluntary work with id ${id} not found.`);
-        }
-
-        const volunteerData = voluntaryWork.volunteerProfiles.map(({ volunteer }) => ({ name: volunteer.name, email: volunteer.email }));
+        }   
+        
+        const volunteerData = voluntaryWork.volunteerProfiles?.map(( volunteer ) => ({ name: volunteer.volunteer.name, email: volunteer.volunteer.email }));
+        
         for (const volunteer of volunteerData) {
             sendEmail(
                 volunteer.email,
@@ -397,9 +399,9 @@ const volunteerReminder = async (id: number) => {
                 `You have successfully finished ${voluntaryWork?.name}!\nWe encourage you to tell us your opinion and thoughts about our voluntary work, you can rate and create feedback for it!`)
         }
 
-    } catch (err) {
+    } catch (err) {   
         baseLogger.error(err);
-        throw createError(404,);
+        throw createError(404);
     }
 }
 const getRecommendation = async (payload: NSVoluntaryWork.Recommendation) => {
