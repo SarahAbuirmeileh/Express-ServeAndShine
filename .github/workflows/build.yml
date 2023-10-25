@@ -8,9 +8,14 @@ on:
     branches:
       - main
 
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - uses: actions/checkout@v3
@@ -32,28 +37,23 @@ jobs:
 
       - name: Configure AWS CLI
         run: aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} && aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} && aws configure set region ${{ secrets.AWS_REGION }}
-
+      
       - name: Get EC2 Instance IPs
         id: get_instance_ips
         run: |
           instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-asg" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
           echo "::set-output name=ips::$instances"
-
-      - name: Hosts on EC2 Instances
-        id: host_on_ec2
+          
+      - name: Configure Docker Hosts on EC2 Instances
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.AWS_DEPLOYMENT_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          IFS=$'\n' # Set the internal field separator to newline
           for ip in ${{ steps.get_instance_ips.outputs.ips }}
           do
-            ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ubuntu@$ip "docker compose -f docker-compose-prod.yml up -d"
+            ssh -i ${{ secrets.DEPLOYMENT_KEY }} -o StrictHostKeyChecking=no github@$ip "docker compose -f docker-compose-prod.yml up -d"
           done
-  
+
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          GIT_VERSION: ${{ steps.image_version.outputs.gitsha }}
+          GIT_VERSISON: ${{ steps.image_version.outputs.gitsha }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
@@ -65,16 +65,3 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_CERTIFICATES_BUCKET_NAME: ${{ secrets.AWS_CERTIFICATES_BUCKET_NAME }}
           PORT: ${{ secrets.PORT }}
-  
-      - name: Configure Docker Hosts
-        id: configure_docker_hosts
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOYMENT_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          IFS=$'\n' # Set the internal field separator to newline
-          for ip in ${{ steps.get_instance_ips.outputs.ips }}
-          do
-            echo "Configuring Docker host for IP: $ip"
-            ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no github@$ip "docker compose -f docker-compose-prod.yml up -d"
-          done
