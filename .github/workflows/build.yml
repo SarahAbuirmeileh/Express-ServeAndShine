@@ -34,7 +34,7 @@ jobs:
         run: docker build . --file Dockerfile --tag ghcr.io/sarahabuirmeileh/serve-and-shine:${{ steps.image_version.outputs.gitsha }}
       - name: Puplish docker image
         run: docker push ghcr.io/sarahabuirmeileh/serve-and-shine:${{ steps.image_version.outputs.gitsha }}
-  
+
       - name: Configure AWS CLI
         run: aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} && aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} && aws configure set region ${{ secrets.AWS_REGION }}
       
@@ -49,11 +49,9 @@ jobs:
           instances="${{ steps.get_instance_ips.outputs.ips }}"
           IFS=' ' read -ra ips <<< "$instances"
           for ip in "${ips[@]}"; do
-            if [ "$ip" != "13.40.105.150" ]; then
-              ssh -i ${{ secrets.DEPLOYMENT_KEY }} github@$ip "docker compose -f docker-compose-prod.yml up -d"
-            fi
+            ssh -i ${{ secrets.DEPLOYMENT_KEY }} ubuntu@$ip "docker compose -f docker-compose-prod.yml up -d"
           done
-  
+
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           GIT_VERSISON: ${{ steps.image_version.outputs.gitsha }}
