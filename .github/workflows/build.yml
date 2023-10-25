@@ -46,9 +46,12 @@ jobs:
   
       - name: Deploy to EC2 Instances
         run: |
-          IFS=' ' read -ra ips <<< "${{ steps.get_instance_ips.outputs.ips }}"
+          instances="${{ steps.get_instance_ips.outputs.ips }}"
+          IFS=' ' read -ra ips <<< "$instances"
           for ip in "${ips[@]}"; do
-            ssh -i ${{ secrets.DEPLOYMENT_KEY }} github@$ip "docker compose -f docker-compose-prod.yml up -d"
+            if [ "$ip" != "13.40.105.150" ]; then
+              ssh -i ${{ secrets.DEPLOYMENT_KEY }} github@$ip "docker compose -f docker-compose-prod.yml up -d"
+            fi
           done
   
         env:
