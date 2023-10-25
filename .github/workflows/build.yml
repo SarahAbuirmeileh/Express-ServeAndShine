@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+      - dev
 
 
 jobs:
@@ -16,6 +17,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+
+    outputs:
+      ec2_ips: ${{ steps.get_instance_ips.outputs.ip }}
 
     steps:
       - uses: actions/checkout@v3
@@ -41,27 +45,15 @@ jobs:
       - name: Get EC2 Instance IPs
         id: get_instance_ips
         run: |
-          instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-asg" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
-          echo "::set-output name=ips::$instances"
+          aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-asg" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output json >> $GITHUB_OUTPUT
           
-      - name: Configure Docker Hosts on EC2 Instances
-        run: |
-          for ip in ${{ steps.get_instance_ips.outputs.ips }}
-          do
-            ssh -i ${{ secrets.DEPLOYMENT_KEY }} -o StrictHostKeyChecking=no github@$ip "docker compose -f docker-compose-prod.yml up -d"
-          done
-
-        env:
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          GIT_VERSISON: ${{ steps.image_version.outputs.gitsha }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_CERTIFICATES_BUCKET_NAME: ${{ secrets.AWS_CERTIFICATES_BUCKET_NAME }}
-          PORT: ${{ secrets.PORT }}
+      
+  deploy:
+    needs: ["build"]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ip: ${{ fromJson(needs.build.outputs.ec2_ips) }}
+    steps:
+      - name: test
+        run: echo ${{matrix.ip}}
