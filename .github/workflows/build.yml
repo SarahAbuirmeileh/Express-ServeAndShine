@@ -45,7 +45,7 @@ jobs:
       - name: Get EC2 Instance IPs
         id: get_instance_ips
         run: |
-          aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-asg" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output json >> $GITHUB_OUTPUT
+          aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-asg" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text >> $GITHUB_OUTPUT
           
       
   deploy:
