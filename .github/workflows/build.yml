@@ -41,7 +41,7 @@ jobs:
       - name: Get EC2 Instance IPs
         id: get_instance_ips
         run: |
-          instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-ASG" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
+          instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-asg" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
           echo "::set-output name=ips::$instances"
   
       - name: Deploy to EC2 Instances
@@ -49,7 +49,7 @@ jobs:
           instances="${{ steps.get_instance_ips.outputs.ips }}"
           IFS=' ' read -ra ips <<< "$instances"
           for ip in "${ips[@]}"; do
-            ssh -i ${{ secrets.AWS_DEPLOYMENT_KEY }} ubuntu@$ip "docker compose -f docker-compose-prod.yml up -d"
+            ssh ubuntu@$ip "docker compose -f docker-compose-prod.yml up -d"
           done
 
         env:
