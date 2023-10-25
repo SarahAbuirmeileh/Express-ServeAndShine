@@ -8,6 +8,7 @@ on:
     branches:
       - main
 
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,39 +37,23 @@ jobs:
   
       - name: Configure AWS CLI
         run: aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} && aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} && aws configure set region ${{ secrets.AWS_REGION }}
-      - name: Install jq
-        run: sudo apt-get install jq
-  
-      - name: Get EC2 instances from the Auto Scaling Group
-        run: |
-          instances_json=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-ASG-" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output json)
-          instances_cleaned=$(python - <<EOF
-            import json
-            
-            data = $instances_json
-            instances = [instance for reservation in data for instance in reservation]
-            instances_str = ' '.join(instances)
-            print(f"EC2_INSTANCES={instances_str}")
-            EOF
-            )
-                echo "$instances_cleaned" >> $GITHUB_ENV
       
-
-      - name: Deploy to EC2 instances
+      - name: Get EC2 Instance IPs
+        id: get_instance_ips
         run: |
-          set -e
-          IFS=$'\n' read -d '' -ra instances <<< "$EC2_INSTANCES"
-          for instance in "${instances[@]}"; do
-            if ssh ubuntu@"$instance" "docker pull ghcr.io/sarahabuirmeileh/serve-and-shine:${{ steps.image_version.outputs.gitsha }}"; then
-              ssh ubuntu@"$instance" "docker compose -f docker-compose-prod.yml up -d"
-            else
-              echo "Failed to SSH into $instance"
-            fi
+          instances=$(aws ec2 describe-instances --filters "Name=tag:aws:autoscaling:groupName,Values=serve-and-shine-ASG" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text)
+          echo "::set-output name=ips::$instances"
+  
+      - name: Deploy to EC2 Instances
+        run: |
+          IFS=' ' read -ra ips <<< "${{ steps.get_instance_ips.outputs.ips }}"
+          for ip in "${ips[@]}"; do
+            ssh -i ${{ secrets.DEPLOYMENT_KEY }} github@$ip "docker compose -f docker-compose-prod.yml up -d"
           done
-        
+  
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          GIT_VERSION: ${{ steps.image_version.outputs.gitsha }}
+          GIT_VERSISON: ${{ steps.image_version.outputs.gitsha }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
