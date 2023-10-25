@@ -2,7 +2,7 @@ import { DeepPartial, In, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual }
 import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
-import { getDate } from "./index.js";
+import { getDate, isValidDate } from "./index.js";
 import { Volunteer } from "../db/entities/Volunteer.js";
 import createError from 'http-errors';
 import baseLogger from "../../logger.js";
@@ -114,10 +114,10 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
             conditions["skillTags"] = In(payload.skills);
         }
         if (payload.startedDate) {
-            conditions["startedDate"] = payload.startedDate; // Assuming this is a specific date comparison
+            conditions["startedDate"] = payload.startedDate;
         }
         if (payload.finishedDate) {
-            conditions["finishedDate"] = payload.finishedDate; // Assuming this is a specific date comparison
+            conditions["finishedDate"] = payload.finishedDate;
         }
         if (payload.capacity) {
             conditions["capacity"] = payload.capacity;
@@ -127,23 +127,27 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         }
 
         if (payload.startedAfter) {
+            if (!isValidDate(payload.startedAfter)) throw "Invalid date!"
             const startedAfterDate = getDate(payload.startedAfter);
-            conditions["startedDate"] = MoreThan(payload.startedAfter);
+            conditions["startedDate"] = MoreThan(startedAfterDate);
         }
 
         if (payload.startedBefore) {
+            if (!isValidDate(payload.startedBefore)) throw "Invalid date!"
             const startedBeforeDate = getDate(payload.startedBefore);
-            conditions["startedDate"] = LessThan(payload.startedBefore);
+            conditions["startedDate"] = LessThan(startedBeforeDate);
         }
 
         if (payload.finishedAfter) {
+            if (!isValidDate(payload.finishedAfter)) throw "Invalid date!"
             const finishedAfterDate = getDate(payload.finishedAfter);
-            conditions["finishedDate"] = MoreThan(payload.finishedAfter);
+            conditions["finishedDate"] = MoreThan(finishedAfterDate);
         }
 
         if (payload.finishedBefore) {
+            if (!isValidDate(payload.finishedBefore)) throw "Invalid date!"
             const finishedBeforeDate = getDate(payload.finishedBefore);
-            conditions["finishedDate"] = LessThan(payload.finishedBefore);
+            conditions["finishedDate"] = LessThan(finishedBeforeDate);
         }
 
         if (payload.ratingMore) {
@@ -188,7 +192,8 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
                 skillTags: vw.skillTags.map(st => { return { name: st.name } }),
                 volunteers,
                 volunteerNumbers: volunteers.length,
-                createdAt: vw.createdAt
+                creatorId: vw.creatorId,
+                createdAt: vw.createdAt,
             };
         }));
 
@@ -201,7 +206,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Voluntary work" });
+        throw createError({ message: err });
     }
 }
 
@@ -384,13 +389,13 @@ const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
 const volunteerReminder = async (id: number) => {
     try {
 
-        let voluntaryWork = await VoluntaryWork.findOne({ where: { id }, relations:["volunteerProfiles", "volunteerProfiles.volunteer"] });
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id }, relations: ["volunteerProfiles", "volunteerProfiles.volunteer"] });
         if (!voluntaryWork) {
             throw new Error(`Voluntary work with id ${id} not found.`);
-        }   
-        
-        const volunteerData = voluntaryWork.volunteerProfiles?.map(( volunteer ) => ({ name: volunteer.volunteer.name, email: volunteer.volunteer.email }));
-        
+        }
+
+        const volunteerData = voluntaryWork.volunteerProfiles?.map((volunteer) => ({ name: volunteer.volunteer.name, email: volunteer.volunteer.email }));
+
         for (const volunteer of volunteerData) {
             sendEmail(
                 volunteer.email,
@@ -399,7 +404,7 @@ const volunteerReminder = async (id: number) => {
                 `You have successfully finished ${voluntaryWork?.name}!\nWe encourage you to tell us your opinion and thoughts about our voluntary work, you can rate and create feedback for it!`)
         }
 
-    } catch (err) {   
+    } catch (err) {
         baseLogger.error(err);
         throw createError(404);
     }
