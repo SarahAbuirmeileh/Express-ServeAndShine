@@ -560,9 +560,11 @@ router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
         });
 });
 
-router.get('/template/:id', authorize("DELETE_organizationProfile"), async (req, res, next) => {
-    const organizationProfile = await OrganizationProfile.findOne({ where: { id: req.params.id } })
-    const prefix = `templates/${organizationProfile?.name}`
+router.get('/template/:id', authorize("PUT_images"), async (req, res, next) => {
+    const payload = {page:'', pageSize:'', id:'', name:'', adminName:res.locals.organizationAdmin.name}
+    const organizationProfile = await searchOrganizationProfile(payload);
+    
+    const prefix = `templates/${organizationProfile?.name || req.body.organizationName}`
     loadFromS3(process.env.AWS_CERTIFICATES_BUCKET_NAME || '', prefix)
         .then(data => {
             log({
@@ -937,7 +939,7 @@ router.put("/template/:id", validateVoluntaryWorkId, authorize("PUT_images"), as
 
     const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
     const organization = await searchOrganizationProfile(payload);
-    const organizationName = organization?.name || '';
+    const organizationName = organization?.name || req.body.organizationName;
 
     await putCertificateTemplate(organizationName, uploadedFiles).then(() => {
         log({
