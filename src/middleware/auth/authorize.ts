@@ -186,7 +186,7 @@ const checkParticipation = async (req: express.Request, res: express.Response, n
                     next(createError(401));
                 }
             } else {
-                next(createError(404)); // Optional: Handle the case when voluntaryWork is not found
+                next(createError(404, "Voluntary Work")); // Optional: Handle the case when voluntaryWork is not found
             }
         } else {
             next(createError(401)); // Handle the case when volunteerProfile is not defined

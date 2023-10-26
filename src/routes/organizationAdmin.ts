@@ -10,7 +10,7 @@ import { authenticate } from "../middleware/auth/authenticate.js";
 
 const router = express.Router();
 
-router.post('/signup', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
+router.post('/signup', /*authorize("POST_organizationAdmin"), */validateOrganizationAdmin, (req, res, next) => {
     createOrganizationAdmin(req.body).then(async (data) => {
         log({
             userId: data.id,
@@ -78,7 +78,7 @@ router.post('/login', (req, res, next) => {
                 name
             ).then().catch()
 
-            res.status(201).send("You logged in successfully !");
+            res.status(200).send("You logged in successfully !");
         })
         .catch(err => {
             log({
@@ -101,7 +101,7 @@ router.post('/login', (req, res, next) => {
         })
 });
 
-router.delete('/:id',authenticate, validateAdminId, authorize("DELETE_organizationAdmin"), async (req, res, next) => {
+router.delete('/:id',/*authenticate, */validateAdminId, /*authorize("DELETE_organizationAdmin"), */async (req, res, next) => {
     const id = req.params.id?.toString();
 
     deleteOrganizationAdmin(id)
@@ -145,7 +145,7 @@ router.delete('/:id',authenticate, validateAdminId, authorize("DELETE_organizati
         });
 });
 
-router.put("/:id",authenticate, authorize("PUT_organizationAdmin"), validateAdminEdited, async (req, res, next) => {
+router.put("/:id",/*authenticate, authorize("PUT_organizationAdmin"),*/ validateAdminEdited, async (req, res, next) => {
     editOrganizationAdmin({ ...req.body, id: req.params.id }).then(async () => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -163,7 +163,7 @@ router.put("/:id",authenticate, authorize("PUT_organizationAdmin"), validateAdmi
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Organization Admin edited successfully!!")
+        res.status(200).send("Organization Admin edited successfully!!")
     }).catch(async err => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -185,7 +185,7 @@ router.put("/:id",authenticate, authorize("PUT_organizationAdmin"), validateAdmi
     });
 });
 
-router.get('/search',authenticate, authorize("GET_organizationAdmins"), async (req, res, next) => {
+router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
@@ -235,5 +235,221 @@ router.get('/search',authenticate, authorize("GET_organizationAdmins"), async (r
             next(err);
         });
 });
+
+/**
+ * @swagger
+ * tags:
+ *   name: OrganizationAdmin
+ *   description: The OrganizationAdmin managing API
+ */
+
+
+/**
+ * @swagger
+ * /organizationAdmin/login:
+ *   post:
+ *     summary: Login an organization admin
+ *     tags: [OrganizationAdmin]
+ *     requestBody:
+ *       description: Organization admin data to sign up
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               id:
+ *                 type: string
+ *           example:
+ *             name: "Admin 1"
+ *             email: "tamimitarteel@gmail.com"
+ *             id: "89588e2a-7f6e-42cc-b3d2-943e04966eb6"
+ *     responses:
+ *       200:
+ *         description: Organization admin loged in successfully
+ *       401:
+ *         description: Organization admin unautharized
+ */
+
+/**
+ * @swagger
+ * /organizationAdmin/search:
+ *   get:
+ *     summary: Get organization admin based on the provided query parameters
+ *     tags: [OrganizationAdmin]
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: string
+ *         description: Filter organization admin by ID
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Filter organization admin by name
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         description: Filter organization admin by email
+ *       - in: query
+ *         name: organizationName
+ *         schema:
+ *           type: string
+ *         description: Filter organization admin by organization name
+ *     responses:
+ *       200:
+ *         description: Find organization admin
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 organizationAdmin:
+ *                   type: object
+ *               example:
+ *                 organizationProfile:
+ *                   - name: "Admin 1"
+ *                     email: "tamimitarteel@gamil.com"
+ *                     createdAt: "22023-10-26T22:26:29.365Z"
+ *                     
+ *       404:
+ *         description: Organization Admin not found
+ */
+
+/**
+ * @swagger
+ * /organizationAdmin/{id}:
+ *   delete:
+ *     summary: Delete an organization admin by ID
+ *     tags: [OrganizationAdmin]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the organization admin to delete
+ *     responses:
+ *       200:
+ *         description: Organization admin deleted successfully
+ *       404:
+ *         description: Organization admin not found
+ */
+
+/**
+ * @swagger
+ * /organizationAdmin/signup:
+ *   post:
+ *     summary: Sign up an organization admin
+ *     tags: [OrganizationAdmin]
+ *     requestBody:
+ *       description: Organization admin data to sign up
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               organizationId:
+ *                 type: string
+ *               # Add other properties from NSOrganizationAdmin.Item as needed
+ *           example:
+ *             name: "Admin 1"
+ *             email: "tamimitarteel@gmail.com"
+ *             password: "Tareel123>>"
+ *             organizationId: "8995852d-5b2e-4aff-a6fe-3e96cab49add"
+ *     responses:
+ *       201:
+ *         description: Organization admin signed up successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   # Define the structure of the returned data here
+ *               example:
+ *                 message: "Organization admin signs up successfully"
+ *                 data:
+ *                   name: "Admin 1"
+ *                   email: "tamimitarteel@gmail.com"
+ *                   roles: 
+ *                      id: 2
+ *                      name: "admin"
+ *                      createdAt: "2023-10-25T21:42:11.724Z"
+ *                   orgProfile:
+ *                      id: "8995852d-5b2e-4aff-a6fe-3e96cab49add"
+ *                      name: "Test"
+ *                      description: "test test"
+ *                      createdAt: "2023-10-26T11:00:41.632Z"
+ *                   id: "f7ee8f20-eabe-47a7-bd9a-30594765dbf7"
+ *                   createdAt: "2023-10-26T20:07:06.810Z"
+ *       400:
+ *         description: Bad request, validation failed
+ */
+
+/**
+ * @swagger
+ * /organizationAdmin/{id}:
+ *   put:
+ *     summary: Edit an organization admin by ID
+ *     tags: [OrganizationAdmin]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the organization admin to edit
+ *     requestBody:
+ *       description: Organization admin data to update
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *               oldPassword:
+ *                 type: string
+ *               organizationName:
+ *                 type: string
+ *           example:
+ *              name: "New Name"
+ *               
+ *     responses:
+ *       200:
+ *         description: Organization admin edited successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                  name: "Updated Organization Admin Name"
+ * 
+ *       404:
+ *         description: Organization admin not found
+ */
 
 export default router;

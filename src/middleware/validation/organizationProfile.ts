@@ -48,7 +48,7 @@ const validateOrgId = async (req: express.Request,
         }).catch(err => {
             console.log('NOT logged');
         })
-        next(createError(404));
+        next(createError(404, "Organization Profile"));
     } else {
         next();
     }
