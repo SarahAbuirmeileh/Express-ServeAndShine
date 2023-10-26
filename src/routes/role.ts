@@ -111,7 +111,7 @@ router.put("/:id", authorize("PUT_role"), validateEditedRole, async (req, res, n
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Role edited successfully!!")
+        res.status(200).send("Role edited successfully!!")
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -183,3 +183,163 @@ router.get('/', authorize("GET_roles"), async (req, res, next) => {
 });
 
 export default router;
+
+/**
+ * @swagger
+ * tags:
+ *   name: Role
+ *   description: The permission managing API
+ */
+
+/**
+ * @swagger
+ * /role:
+ *   post:
+ *     summary: Create a new role with associated permissions
+ *     tags: [Role]
+ *     requestBody:
+ *       description: Role data to create
+ *       required: true
+ *       content:
+ *         application/json:  
+ *           example:
+ *             name: "Role Name"
+ *             permissionsId: [1, 2] 
+ *     responses:
+ *       201:
+ *         description: Role created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                 message: "Role created successfully"
+ *                 data:
+ *                   id: 1
+ *                   name: "Role Name"
+ *                   permissions: [
+ *                     {
+ *                       id: 1,
+ *                       name: "Permission 1"
+ *                     },
+ *                     {
+ *                       id: 2,
+ *                       name: "Permission 2"
+ *                     }
+ *                   ]
+ *       400:
+ *         description: Bad request, validation failed
+ */
+
+/**
+ * @swagger
+ * /role/{id}:
+ *   delete:
+ *     summary: Delete a role by ID
+ *     tags: [Role]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the role to delete
+ *     responses:
+ *       200:
+ *         description: Role deleted successfully
+ *       404:
+ *         description: Role not found
+ */
+
+/**
+ * @swagger
+ * /role/{id}:
+ *   put:
+ *     summary: Edit a role by ID
+ *     tags: [Role]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the role to edit
+ *     requestBody:
+ *       description: Role data to update
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *           example:
+ *             name: "Updated Role Name"
+ *     responses:
+ *       200:
+ *         description: Role edited successfully
+ *       404:
+ *         description: Role not found
+ */
+
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Get roles based on the provided query parameters or get all roles
+ *     tags: [Role]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: string
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: string
+ *         description: Number of items per page
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: number
+ *         description: Filter roles by ID
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Filter roles by name
+ *     responses:
+ *       200:
+ *         description: List of roles or a single role
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 page:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 roles:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *               example:
+ *                 page: 1
+ *                 pageSize: 10
+ *                 total: 2
+ *                 roles:
+ *                   - id: 1
+ *                     name: "Role 1"
+ *                   - id: 2
+ *                     name: "Role 2"
+ *       404:
+ *         description: Role not found
+ */
