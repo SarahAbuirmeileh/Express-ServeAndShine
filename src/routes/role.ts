@@ -231,7 +231,13 @@ export default router;
  *                     }
  *                   ]
  *       400:
- *         description: Bad request, validation failed
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500:
+ *         description: Something went wrong
  */
 
 /**
@@ -250,8 +256,16 @@ export default router;
  *     responses:
  *       200:
  *         description: Role deleted successfully
+ *       400:
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
  *       404:
  *         description: Role not found
+ *       500:
+ *         description: Something went wrong
  */
 
 /**
@@ -282,8 +296,14 @@ export default router;
  *     responses:
  *       200:
  *         description: Role edited successfully
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
  *       404:
  *         description: Role not found
+ *       500:
+ *         description: Something went wrong
  */
 
 /**
@@ -297,22 +317,23 @@ export default router;
  *         name: page
  *         schema:
  *           type: string
- *         description: Page number for pagination
+ *         description: Page number for pagination (optional)
  *       - in: query
  *         name: pageSize
  *         schema:
  *           type: string
- *         description: Number of items per page
+ *         required: false
+ *         description: Number of items per page (optional)
  *       - in: query
  *         name: id
  *         schema:
  *           type: number
- *         description: Filter roles by ID
+ *         description: Filter roles by ID (optional)
  *       - in: query
  *         name: name
  *         schema:
  *           type: string
- *         description: Filter roles by name
+ *         description: Filter roles by name (optional)
  *     responses:
  *       200:
  *         description: List of roles or a single role
@@ -342,4 +363,10 @@ export default router;
  *                     name: "Role 2"
  *       404:
  *         description: Role not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500:
+ *         description: Something went wrong
  */

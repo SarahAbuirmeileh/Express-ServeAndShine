@@ -14,7 +14,6 @@ import { sendEmail } from '../controllers/AWSServices/SES.js';
 import { VoluntaryWork } from '../db/entities/VoluntaryWork.js';
 import { Volunteer } from '../db/entities/Volunteer.js';
 import { SkillTag } from '../db/entities/SkillTag.js';
-import { OrganizationProfile } from '../db/entities/OrganizationProfile.js';
 import baseLogger from '../../logger.js';
 
 var router = express.Router();
@@ -1032,3 +1031,226 @@ router.post("/generate-certificate/:id", validateVoluntaryWorkId, authorize("PUT
 });
 
 export default router;
+
+/**
+ * @swagger
+ * tags:
+ *   name: VoluntaryWork
+ *   description: The voluntary work managing API
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork:
+ *   post:
+ *     summary: Create a new voluntary work entry
+ *     tags: [Voluntary Work]
+ *     requestBody:
+ *       description: Data for creating a new voluntary work entry
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/VoluntaryWorkRequest'
+ *     responses:
+ *       201:
+ *         description: Voluntary work created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/VoluntaryWorkResponse'
+ *       400:
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     VoluntaryWorkRequest:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         location:
+ *           type: string
+ *         time:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["Morning", "Afternoon"]
+ *         status:
+ *           type: string
+ *           example: "Active"
+ *         days:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["Monday", "Wednesday"]
+ *         startedDate:
+ *           type: string
+ *           format: date
+ *         finishedDate:
+ *           type: string
+ *           format: date
+ *         capacity:
+ *           type: integer
+ *         skillTagIds:
+ *           type: array
+ *           items:
+ *             type: integer
+ *       example:
+ *         name: "Voluntary Work Name"
+ *         description: "Description of the voluntary work"
+ *         location: "Voluntary Work Location"
+ *         time: ["Morning", "Afternoon"]
+ *         status: "Active"
+ *         days: ["Monday", "Wednesday"]
+ *         startedDate: "2023-10-26"
+ *         finishedDate: "2023-10-28"
+ *         capacity: 10
+ *         skillTagIds: [1, 2]
+ */ 
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     VoluntaryWorkRequest:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         location:
+ *           type: string
+ *         time:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["Morning", "Afternoon"]
+ *         status:
+ *           type: string
+ *           example: "Active"
+ *         days:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["Monday", "Wednesday"]
+ *         startedDate:
+ *           type: string
+ *           format: date
+ *         finishedDate:
+ *           type: string
+ *           format: date
+ *         capacity:
+ *           type: integer
+ *         skillTagIds:
+ *           type: array
+ *           items:
+ *             type: integer
+ *       example:
+ *         name: "Voluntary Work Name"
+ *         description: "Description of the voluntary work"
+ *         location: "Voluntary Work Location"
+ *         time: ["Morning", "Afternoon"]
+ *         status: "Active"
+ *         days: ["Monday", "Wednesday"]
+ *         startedDate: "2023-10-26"
+ *         finishedDate: "2023-10-28"
+ *         capacity: 10
+ *         skillTagIds: [1, 2]
+
+ *     VoluntaryWorkResponse:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *         data:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: string
+ *             name:
+ *               type: string
+ *             startedDate:
+ *               type: string
+ *               format: date-time
+ *             finishedDate:
+ *               type: string
+ *               format: date-time
+ *             skillTagIds:
+ *               type: array
+ *               items:
+ *                 type: integer
+ *             feedback:
+ *               type: array
+ *               items:
+ *                 type: object
+ *             images:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             description:
+ *               type: string
+ *             days:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             time:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             location:
+ *               type: string
+ *             rating:
+ *               type: number
+ *             capacity:
+ *               type: integer
+ *             creatorId:
+ *               type: string
+ *             skillTags:
+ *               type: array
+ *               items:
+ *                 type: object
+ *             volunteerProfiles:
+ *               type: array
+ *               items:
+ *                 type: object
+ *             orgProfiles:
+ *               type: object
+ *             createdAt:
+ *               type: string
+ *               format: date-time
+ *       example:
+ *         message: "Voluntary work created successfully!!"
+ *         data:
+ *           id: "auto generated"
+ *           name: "Voluntary Work Name"
+ *           startedDate: "2023-10-26T00:00:00.000Z"
+ *           finishedDate: "2023-10-28T00:00:00.000Z"
+ *           skillTagIds: [1, 2]
+ *           feedback: []
+ *           images: []
+ *           description: "Description of the voluntary work"
+ *           days: ["Monday", "Wednesday"]
+ *           location: "Voluntary Work Location"
+ *           rating: 0
+ *           capacity: 10
+ *           creatorId: "Your Creator ID"
+ *           skillTags: []
+
+ *           time: ["Morning", "Afternoon"]
+ *           createdAt: "2023-10-26T00:00:00.000Z"
+ */
+
+
