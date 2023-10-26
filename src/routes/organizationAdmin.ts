@@ -5,6 +5,8 @@ import { validateAdminEdited, validateAdminId, validateOrganizationAdmin } from 
 import { log } from "../controllers/dataBaseLogger.js";
 import { NSLogs } from "../../types/logs.js";
 import { logToCloudWatch } from "../controllers/AWSServices/CloudWatchLogs.js";
+import { login } from "../controllers/volunteer.js";
+import { authenticate } from "../middleware/auth/authenticate.js";
 
 const router = express.Router();
 
@@ -25,8 +27,8 @@ router.post('/signup', authorize("POST_organizationAdmin"), validateOrganization
             data.id,
             req.body.name
         ).then().catch()
-
-        res.status(201).send({message:"Organization Admin created successfully!!" , data})
+        const { password, ...dataWithoutPassword } = data;
+        res.status(201).send({ message: "Organization Admin created successfully!!", dataWithoutPassword })
     }).catch(async err => {
         log({
             userId: "",
@@ -49,11 +51,57 @@ router.post('/signup', authorize("POST_organizationAdmin"), validateOrganization
 });
 
 router.post('/login', (req, res, next) => {
-    res.locals.stream = 'organization admin'
-    res.redirect('/volunteer/login');
+    const email = req.body.email;
+    const name = req.body.name;
+    const id = req.body.id;    
+    login(email, name, id)
+        .then(data => {
+            res.cookie('myApp', data.token, {
+                httpOnly: true,
+                maxAge: 60 * 24 * 60 * 1000,
+                sameSite: "lax"       // Protect against CSRF attacks
+            });
+
+            log({
+                userId: id,
+                userName: name,
+                userType: (data.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Login ' + (name)
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'organization admin',
+                'Login ' + (name),
+                id,
+                name
+            ).then().catch()
+
+            res.status(201).send("You logged in successfully !");
+        })
+        .catch(err => {
+            log({
+                userId: id,
+                userName: name,
+                userType: 'volunteer' as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Login ' + (name)
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'organization admin',
+                'Login ' + name,
+                id,
+                name
+            ).then().catch()
+
+            res.status(401).send(err);
+        })
 });
 
-router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), async (req, res, next) => {
+router.delete('/:id',authenticate, validateAdminId, authorize("DELETE_organizationAdmin"), async (req, res, next) => {
     const id = req.params.id?.toString();
 
     deleteOrganizationAdmin(id)
@@ -97,7 +145,7 @@ router.delete('/:id', validateAdminId, authorize("DELETE_organizationAdmin"), as
         });
 });
 
-router.put("/:id", authorize("PUT_organizationAdmin"), validateAdminEdited, async (req, res, next) => {
+router.put("/:id",authenticate, authorize("PUT_organizationAdmin"), validateAdminEdited, async (req, res, next) => {
     editOrganizationAdmin({ ...req.body, id: req.params.id }).then(async () => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -137,7 +185,7 @@ router.put("/:id", authorize("PUT_organizationAdmin"), validateAdminEdited, asyn
     });
 });
 
-router.get('/search', authorize("GET_organizationAdmins"), async (req, res, next) => {
+router.get('/search',authenticate, authorize("GET_organizationAdmins"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',

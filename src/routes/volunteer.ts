@@ -8,6 +8,7 @@ import { log } from '../controllers/dataBaseLogger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
 import { sendEmail } from '../controllers/AWSServices/SES.js';
+import { Volunteer } from '../db/entities/Volunteer.js';
 
 var router = express.Router();
 
@@ -18,13 +19,13 @@ router.post('/signup', validateVolunteer, (req, res, next) => {
             userName: req.body.name,
             userType: data.type as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Register volunteer ' + req.body.name
+            request: 'Signup volunteer ' + req.body.name
         }).then().catch()
 
         logToCloudWatch(
             'success',
             'volunteer',
-            'Register volunteer ' + req.body.name,
+            'Signup volunteer ' + req.body.name,
             data.id,
             req.body.name
         ).then().catch()
@@ -32,28 +33,60 @@ router.post('/signup', validateVolunteer, (req, res, next) => {
         sendEmail(
             req.body.email,
             req.body.name,
-            'Registration in Serve And Shine',
+            'Signup volunteer in Serve And Shine',
             'You have successfully registered in Serve And Shine. You can now view voluntary organizations and works');
-            
-        res.status(201).send({message: "Volunteer created successfully!!", data})
-    }).catch(err => {
-        log({
-            userId: "",
-            userName: req.body.name,
-            userType: req.body.type as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Register volunteer' + req.body.name
-        }).then().catch()
 
-        logToCloudWatch(
-            'failed',
-            'volunteer',
-            'Register volunteer ' + req.body.name,
-            "",
-            req.body.name
-        ).then().catch()
+        const { password, ...dataWithoutPassword } = data;
+        res.status(201).send({ message: "Volunteer created successfully!!", dataWithoutPassword })
+    }).catch(async err => {
+        if (err.message.includes("Converting circular structure")) {
+            const data = await Volunteer.findOne({ where: { id: req.body.id } });
+            if (data) {
 
-        next(err);
+                log({
+                    userId: data.id,
+                    userName: req.body.name,
+                    userType: data.type as NSLogs.userType,
+                    type: 'success' as NSLogs.Type,
+                    request: 'Signup volunteer ' + req.body.name
+                }).then().catch()
+
+                logToCloudWatch(
+                    'success',
+                    'volunteer',
+                    'Signup volunteer ' + req.body.name,
+                    data.id,
+                    req.body.name
+                ).then().catch()
+
+                sendEmail(
+                    req.body.email,
+                    req.body.name,
+                    'Signup volunteer in Serve And Shine',
+                    'You have successfully registered in Serve And Shine. You can now view voluntary organizations and works');
+
+                const { password, ...dataWithoutPassword } = data;
+                res.status(201).send({ message: "Volunteer created successfully!!", dataWithoutPassword })
+            }
+
+        } else {
+            log({
+                userId: "",
+                userName: req.body.name,
+                userType: req.body.type as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Signup volunteer ' + req.body.name
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'volunteer',
+                'Signup volunteer ' + req.body.name,
+                "",
+                req.body.name
+            ).then().catch()
+            next(err);
+        }
     });
 });
 
@@ -68,22 +101,21 @@ router.post('/login', (req, res, next) => {
                 maxAge: 60 * 24 * 60 * 1000,
                 sameSite: "lax"       // Protect against CSRF attacks
             });
-            if (data.volunteer) res.locals.volunteer = data.volunteer;
-            if (data.organizationAdmin) res.locals.organizationAdmin = data.organizationAdmin;
+
             log({
                 userId: id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                userName: name,
+                userType: (data.volunteer?.type) as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+                request: 'Login ' + (name)
             }).then().catch()
 
             logToCloudWatch(
                 'success',
-                res.locals.stream || 'volunteer',
-                'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+                'volunteer',
+                'Login ' + (name),
+                id,
+                name
             ).then().catch()
 
             res.status(201).send("You logged in successfully !");
@@ -94,12 +126,12 @@ router.post('/login', (req, res, next) => {
                 userName: name,
                 userType: 'volunteer' as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Login ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+                request: 'Login ' + (name)
             }).then().catch()
 
             logToCloudWatch(
                 'failed',
-                res.locals.stream || 'volunteer',
+                'volunteer',
                 'Login ' + name,
                 id,
                 name
@@ -261,13 +293,13 @@ router.get("/logout", authenticate, (req, res, next) => {
         userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
         userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
         type: 'success' as NSLogs.Type,
-        request: 'Logout ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+        request: 'Logout ' + (res.locals.organizationAdmin?.name || res.locals.volunteer?.name)
     }).then().catch()
 
     logToCloudWatch(
         'success',
         'volunteer',
-        'Logout ' + res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+        'Logout ' + (res.locals.organizationAdmin?.name || res.locals.volunteer?.name),
         res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
         res.locals.organizationAdmin?.name || res.locals.volunteer?.name
     ).then().catch()

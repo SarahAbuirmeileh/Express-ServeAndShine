@@ -1,8 +1,8 @@
-import { DeepPartial, FindOperator, FindOptionsWhere, In, LessThan, LessThanOrEqual, Like, MoreThan, MoreThanOrEqual } from "typeorm";
+import { DeepPartial, In, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual } from "typeorm";
 import { NSVoluntaryWork } from "../../types/voluntaryWork.js";
 import { SkillTag } from "../db/entities/SkillTag.js";
 import { VoluntaryWork } from "../db/entities/VoluntaryWork.js";
-import { getDate } from "./index.js";
+import { getDate, isValidDate } from "./index.js";
 import { Volunteer } from "../db/entities/Volunteer.js";
 import createError from 'http-errors';
 import baseLogger from "../../logger.js";
@@ -114,10 +114,10 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
             conditions["skillTags"] = In(payload.skills);
         }
         if (payload.startedDate) {
-            conditions["startedDate"] = payload.startedDate; // Assuming this is a specific date comparison
+            conditions["startedDate"] = payload.startedDate;
         }
         if (payload.finishedDate) {
-            conditions["finishedDate"] = payload.finishedDate; // Assuming this is a specific date comparison
+            conditions["finishedDate"] = payload.finishedDate;
         }
         if (payload.capacity) {
             conditions["capacity"] = payload.capacity;
@@ -127,23 +127,27 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         }
 
         if (payload.startedAfter) {
+            if (!isValidDate(payload.startedAfter)) throw "Invalid date!"
             const startedAfterDate = getDate(payload.startedAfter);
-            conditions["startedDate"] = MoreThan(payload.startedAfter);
+            conditions["startedDate"] = MoreThan(startedAfterDate);
         }
 
         if (payload.startedBefore) {
+            if (!isValidDate(payload.startedBefore)) throw "Invalid date!"
             const startedBeforeDate = getDate(payload.startedBefore);
-            conditions["startedDate"] = LessThan(payload.startedBefore);
+            conditions["startedDate"] = LessThan(startedBeforeDate);
         }
 
         if (payload.finishedAfter) {
+            if (!isValidDate(payload.finishedAfter)) throw "Invalid date!"
             const finishedAfterDate = getDate(payload.finishedAfter);
-            conditions["finishedDate"] = MoreThan(payload.finishedAfter);
+            conditions["finishedDate"] = MoreThan(finishedAfterDate);
         }
 
         if (payload.finishedBefore) {
+            if (!isValidDate(payload.finishedBefore)) throw "Invalid date!"
             const finishedBeforeDate = getDate(payload.finishedBefore);
-            conditions["finishedDate"] = LessThan(payload.finishedBefore);
+            conditions["finishedDate"] = LessThan(finishedBeforeDate);
         }
 
         if (payload.ratingMore) {
@@ -163,6 +167,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
             },
             relations: ['skillTags', 'volunteerProfiles']
         });
+
         const processedVW = await Promise.all(voluntaryWorks.map(async vw => {
             const volunteers = [];
             for (const vp of vw.volunteerProfiles) {
@@ -187,7 +192,8 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
                 skillTags: vw.skillTags.map(st => { return { name: st.name } }),
                 volunteers,
                 volunteerNumbers: volunteers.length,
-                createdAt: vw.createdAt
+                creatorId: vw.creatorId,
+                createdAt: vw.createdAt,
             };
         }));
 
@@ -200,7 +206,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Voluntary work" });
+        throw createError({ message: err });
     }
 }
 
@@ -240,7 +246,7 @@ const putFeedback = async (id: number, feedback: string) => {
 const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["volunteerProfile"]) => {
     try {
 
-        const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
+        const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["skillTags"] });
         if (!voluntaryWork) {
             throw createError({ status: 404, message: "Voluntary work" });
         }
@@ -249,7 +255,7 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
             volunteerProfile.availableLocation !== voluntaryWork.location ||
             !(volunteerProfile.availableDays?.length > 0 && volunteerProfile.availableDays?.every(day => voluntaryWork.days.includes(day))) ||
             !(volunteerProfile.availableTime?.length > 0 && volunteerProfile.availableTime?.every(time => voluntaryWork.time.includes(time))) ||
-            !(volunteerProfile.skillTags?.length > 0 && volunteerProfile.skillTags.every(skillTag => voluntaryWork.skillTags.some(workSkill => workSkill.id === skillTag.id)))
+            !(voluntaryWork.skillTags?.every(skillTag => volunteerProfile.skillTags.some(workSkill => workSkill.id === skillTag.id)))
         ) {
             throw new Error("Volunteer's profile information does not align with the VoluntaryWork information");
         }
@@ -264,11 +270,19 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
             voluntaryWork.volunteerProfiles = [volunteerProfile];
         }
 
+        if (volunteerProfile.voluntaryWorks) {
+            volunteerProfile.voluntaryWorks.push(voluntaryWork);
+        } else {
+            volunteerProfile.voluntaryWorks = [voluntaryWork];
+        }
+
         await voluntaryWork.save();
+        await volunteerProfile.save()
+
         return "Registration successful!";
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to register by Volunteer";
+        throw ", when trying to register by Volunteer: " + err;
     }
 }
 
@@ -278,7 +292,7 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId } });
         const volunteer = await Volunteer.findOne({
             where: { id: volunteerId },
-            relations: ["roles", "roles.permissions", "volunteerProfile"]
+            relations: ["roles", "roles.permissions", "volunteerProfile", "volunteerProfile.voluntaryWorks"]
         });
 
         if (!voluntaryWork) {
@@ -294,7 +308,15 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
             voluntaryWork.volunteerProfiles = [volunteer.volunteerProfile];
         }
 
+        if (volunteer.volunteerProfile.voluntaryWorks) {
+            volunteer.volunteerProfile.voluntaryWorks.push(voluntaryWork);
+        } else {
+            volunteer.volunteerProfile.voluntaryWorks = [voluntaryWork];
+        }
+
         await voluntaryWork.save();
+        await volunteer.volunteerProfile.save();
+
         return "Registration successful!";
     } catch (err) {
         baseLogger.error(err);
@@ -302,12 +324,10 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
     }
 }
 
-
 const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
     try {
-
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["volunteerProfiles"] });
-        const volunteer = await Volunteer.findOne({ where: { id: volunteerId }, relations: ["volunteerProfile"] });
+        const volunteer = await Volunteer.findOne({ where: { id: volunteerId }, relations: ["volunteerProfile", "volunteerProfile.voluntaryWorks"] });
 
         if (!voluntaryWork) {
             throw createError({ status: 404, message: "Voluntary work" });
@@ -316,17 +336,24 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
         if (!volunteer) {
             throw createError({ status: 404, message: "Volunteer" });
         }
+
         const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
         if (index !== -1) {
             voluntaryWork.volunteerProfiles.splice(index, 1);
-            await voluntaryWork.save();
+
+            const workIndex = volunteer.volunteerProfile.voluntaryWorks.findIndex(work => work.id === workId);
+            if (workIndex !== -1) {
+                volunteer.volunteerProfile.voluntaryWorks.splice(workIndex, 1);
+            }
+            await Promise.all([voluntaryWork.save(), volunteer.volunteerProfile.save()]);
+
             return "Deregistration successful!";
         } else {
             throw new Error("Volunteer is not registered for this voluntary work");
         }
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to deregister voluntary work";
+        throw "Error when trying to deregister voluntary work";
     }
 }
 
@@ -367,13 +394,12 @@ const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
     try {
         const volunteer = await Volunteer.findOne({
             where: { id: volunteerId },
-            relations: ["volunteerProfile"]
+            relations: ["volunteerProfile", "volunteerProfile.voluntaryWorks"]
         });
 
         if (!volunteer) {
             throw createError({ status: 404, message: 'Volunteer not found' });
         }
-
         return volunteer.volunteerProfile.voluntaryWorks;
     } catch (err) {
         baseLogger.error(err);
@@ -383,30 +409,128 @@ const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
 
 const volunteerReminder = async (id: number) => {
     try {
-        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id }, relations: ["volunteerProfiles", "volunteerProfiles.volunteer"] });
         if (!voluntaryWork) {
             throw new Error(`Voluntary work with id ${id} not found.`);
         }
 
-        const volunteerData = voluntaryWork.volunteerProfiles.map(({ volunteer }) => ({ name: volunteer.name, email: volunteer.email }));
+        const volunteerData = voluntaryWork.volunteerProfiles?.map((volunteer) => ({ name: volunteer.volunteer.name, email: volunteer.volunteer.email }));
+
         for (const volunteer of volunteerData) {
             sendEmail(
                 volunteer.email,
                 volunteer.name,
                 'Reminder to rate and feedback Voluntary Work!',
-                `You have successfully finished ${voluntaryWork?.name}!\nWe encourage you to tell us your opinion and thoughts about our voluntary work, you can rate and create feedback for it!`)        }
+                `You have successfully finished ${voluntaryWork?.name}!\nWe encourage you to tell us your opinion and thoughts about our voluntary work, you can rate and create feedback for it!`)
+        }
 
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404,);
+        throw createError(404);
     }
 }
 
+const getRecommendation = async (payload: NSVoluntaryWork.Recommendation) => {
+    try {
+
+        const page = parseInt(payload.page);
+        const pageSize = parseInt(payload.pageSize);
+        const conditions: Record<string, any> = {};
+
+        if (payload.time?.length > 0) {
+            conditions["time"] = In(payload.time);
+        }
+        if (payload.location) {
+            conditions["location"] = payload.location;
+        }
+        if (payload.status) {
+            conditions["status"] = payload.status;
+        }
+        if (payload.days?.length > 0) {
+            console.log(7);
+            conditions["days"] = In(payload.days);
+        }
+        if (payload.skillTags?.length > 0) {
+            conditions["skillTags"] = { id: payload.skillTags };
+        }
+        console.log(conditions);
+
+        const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
+            where: conditions,
+            skip: pageSize * (page - 1),
+            take: pageSize,
+            order: {
+                createdAt: 'ASC'
+            },
+            relations: ['skillTags', 'volunteerProfiles']
+        });
+
+        const processedVW = await Promise.all(voluntaryWorks.map(async vw => {
+            const volunteers = [];
+            for (const vp of vw.volunteerProfiles) {
+                const v = await Volunteer.findOne({ where: { volunteerProfile: { id: vp.id } } });
+                if (v) {
+                    volunteers.push({ name: v.name });
+                }
+            }
+            return {
+                name: vw.name,
+                description: vw.description,
+                days: vw.days,
+                time: vw.time,
+                location: vw.location,
+                startedDate: vw.startedDate,
+                finishedDate: vw.finishedDate,
+                status: vw.status,
+                capacity: vw.capacity,
+                skillTags: vw.skillTags.map(st => { return { name: st.name } }),
+                volunteers,
+                volunteerNumbers: volunteers.length,
+                createdAt: vw.createdAt
+            };
+        }));
+
+        return {
+            page,
+            pageSize: voluntaryWorks.length,
+            total,
+            voluntaryWorks: processedVW
+        };
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError({ status: 404, message: "Voluntary work" });
+    }
+}
+
+const deleteImage = async (voluntaryWorkId: number, imageName: string) => {
+    try {
+        const voluntaryWork = await VoluntaryWork.findOne({ where: { id: voluntaryWorkId } });
+        console.log(imageName);
+        
+        if (voluntaryWork) {
+            const imagesToDelete = voluntaryWork.images.filter((img) => img.endsWith(imageName));
+            console.log(imagesToDelete);
+            
+            if (imagesToDelete.length > 0) {
+                for (const imageUrl of imagesToDelete) {
+                    const imageIndex = voluntaryWork.images.findIndex((img) => img === imageUrl);
+                    voluntaryWork.images.splice(imageIndex, 1);
+                }
+
+                await voluntaryWork.save();
+            }
+        };
+    } catch (err) {
+        baseLogger.error(err);
+        throw new Error('Error when trying to delete an image');
+    }
+}
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
     registerByVolunteer, createVoluntaryWork,
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
     getVoluntaryWorks, deleteVoluntaryWork,
     generateCertificate, getImages, getVoluntaryWorksForVolunteer,
-    volunteerReminder
+    volunteerReminder, getRecommendation, deleteImage
 }
