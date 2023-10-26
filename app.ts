@@ -28,6 +28,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }))
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/health", function (req, res) {
+  res.sendStatus(200);
+})
 
 app.use('/', indexRouter);
 app.use('/permission', authenticate, permissionRouter);
