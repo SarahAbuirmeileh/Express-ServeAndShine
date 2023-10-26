@@ -256,8 +256,6 @@ export default router;
  *     responses:
  *       200:
  *         description: Role deleted successfully
- *       400:
- *         description: Bad Request, validation failed
  *       401:
  *         description: You are unauthorized
  *       403:  

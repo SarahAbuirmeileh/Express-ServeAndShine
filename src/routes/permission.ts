@@ -245,8 +245,6 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
  *                     name: "Permission 1"
  *                   - id: 2
  *                     name: "Permission 2"
- *       400:
- *         description: Bad request, validation failed
  *       401:
  *         description: You are unauthorized
  *       403:  
@@ -273,8 +271,6 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
  *     responses:
  *       200:
  *         description: Permission deleted successfully
- *       400:
- *         description: Bad request, validation failed
  *       401:
  *         description: You are unauthorized
  *       403:  
@@ -301,7 +297,8 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
  *             properties:
  *               name:
  *                 type: string
- *               # Add other properties from NSPermission.Item as needed
+ *             required:
+ *              true
  *           example:
  *             name: "Permission Name"
  *     responses:
@@ -354,13 +351,13 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
  *             properties:
  *               name:
  *                 type: string
+ *             required:
+ *                 true
  *           example:
  *             name: "Updated Permission Name"
  *     responses:
  *       200:
  *         description: Permission edited successfully
- *       400:
- *         description: Bad request, validation failed
  *       401:
  *         description: You are unauthorized
  *       403:  
