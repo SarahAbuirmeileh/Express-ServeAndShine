@@ -27,7 +27,7 @@ router.post('/', authorize("POST_permission"), validatePermission, (req, res, ne
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send({message:"Permission created successfully!!",data})
+        res.status(201).send({ message: "Permission created successfully!!", data })
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -111,7 +111,7 @@ router.put("/:id", authorize("PUT_permission"), validatePermissionId, async (req
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Permission edited successfully!!")
+        res.status(200).send("Permission edited successfully!!")
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -181,6 +181,8 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
             next(err);
         });
 });
+
+
 
 export default router;
 

@@ -1,4 +1,5 @@
 import "./config.js"
+import swaggerUi from 'swagger-ui-express';
 import express from 'express'
 import dotenv from 'dotenv'
 import createError from 'http-errors'
@@ -16,6 +17,7 @@ import organizationProfileRouter from "./src/routes/organizationProfile.js"
 import volunteerRouter from "./src/routes/volunteer.js"
 import { authenticate } from "./src/middleware/auth/authenticate.js"
 import { errorHandler } from "./src/middleware/errorHandler/errorHandler.js"
+import { swaggerSpec } from "./swaggerConfig.js";
 
 const app = express();
 dotenv.config();
@@ -25,6 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(fileUpload({ limits: { fileSize: 50 * 1024 * 1024 } }))
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/', indexRouter);
 app.use('/permission', authenticate, permissionRouter);
