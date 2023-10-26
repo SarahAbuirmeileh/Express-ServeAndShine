@@ -14,8 +14,8 @@ import { sendEmail } from '../controllers/AWSServices/SES.js';
 import { VoluntaryWork } from '../db/entities/VoluntaryWork.js';
 import { Volunteer } from '../db/entities/Volunteer.js';
 import { SkillTag } from '../db/entities/SkillTag.js';
-import { OrganizationProfile } from '../db/entities/OrganizationProfile.js';
 import baseLogger from '../../logger.js';
+import { validateOrganizationProfile } from '../middleware/validation/organizationProfile.js';
 
 var router = express.Router();
 
@@ -170,7 +170,7 @@ router.delete('/image/:id', validateVoluntaryWorkId, authorize("PUT_images"), va
                     res.locals.organizationAdmin?.name
                 ).then().catch()
 
-                res.send(data);
+                res.status(200).send(data);
             })
             .catch(err => {
                 log({
@@ -247,11 +247,11 @@ router.delete('/certificate/:id', validateVoluntaryWorkId, authorize("DELETE_vol
         });
 })
 
-router.delete('/template/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
+router.delete('/template/:id', validateOrganizationProfile, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
 
-    const id = Number(req.params.id?.toString());
-    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name });
-    const key = `templates/${organizationProfile?.name || req.body.organizationName}/${req.body.imageName || "certificate_template"}.html`
+    const id = (req.params.id?.toString());
+    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id, name: "", adminName:'' });
+    const key = `templates/${organizationProfile?.name }/${req.body.imageName || "certificate_template"}.html`
 
     deleteFromS3(key, "template")
         .then(data => {
@@ -350,13 +350,11 @@ router.get('/search', authorize("GET_voluntaryWorks"), async (req, res, next) =>
         startedDate: req.query.startedDate?.toString() || "",
         finishedDate: req.query.finishedDate?.toString() || "",
         capacity: Number(req.query.capacity) || 0,
-        finishedAfter: "",
-        finishedBefore: "",
-        startedAfter: "",
-        startedBefore: "",
+        finishedAfter: "",finishedBefore: "",
+        startedAfter: "",startedBefore: "", creatorId: "",
         ratingMore: Number(req.query.ratingMore) || 0,
         ratingLess: Number(req.query.ratingLess) || 0,
-        creatorId: ""
+       
     };
 
     getVoluntaryWorks(payload)
@@ -666,7 +664,7 @@ router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), chec
             res.locals.volunteer?.name
         ).then().catch()
 
-        res.status(201).send("Rating added successfully!!")
+        res.status(201).send("Rating added or updated successfully!!")
     }).catch(err => {
         log({
             userId: res.locals.volunteer?.id,
@@ -1007,7 +1005,7 @@ router.post("/generate-certificate/:id", validateVoluntaryWorkId, authorize("PUT
             res.locals.organizationAdmin?.name
         ).then().catch()
 
-        res.status(201).send("Certifications generated successfully!!")
+        res.status(201).send("Certifications generated and sent successfully!!")
 
     }).catch((err) => {
         log({
@@ -1032,3 +1030,1336 @@ router.post("/generate-certificate/:id", validateVoluntaryWorkId, authorize("PUT
 });
 
 export default router;
+
+/**
+ * @swagger
+ * tags:
+ *   name: VoluntaryWork
+ *   description: The voluntary work managing API
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork:
+ *   post:
+ *     summary: Create a new voluntary work entry
+ *     tags: [VoluntaryWork]
+ *     requestBody:
+ *       description: Data for creating a new voluntary work entry
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/VoluntaryWorkRequest'
+ *     responses:
+ *       201:
+ *         description: Voluntary work created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/VoluntaryWorkResponse'
+ *       400:
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     VoluntaryWorkRequest:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         location:
+ *           type: string
+ *         time:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["Morning", "Afternoon"]
+ *         status:
+ *           type: string
+ *           example: "Active"
+ *         days:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["Monday", "Wednesday"]
+ *         startedDate:
+ *           type: string
+ *           format: date
+ *         finishedDate:
+ *           type: string
+ *           format: date
+ *         capacity:
+ *           type: integer
+ *         skillTagIds:
+ *           type: array
+ *           items:
+ *             type: integer
+ *       example:
+ *         name: "Voluntary Work Name"
+ *         description: "Description of the voluntary work"
+ *         location: "Voluntary Work Location"
+ *         time: ["Morning", "Afternoon"]
+ *         status: "Active"
+ *         days: ["Monday", "Wednesday"]
+ *         startedDate: "2023-10-26"
+ *         finishedDate: "2023-10-28"
+ *         capacity: 10
+ *         skillTagIds: [1, 2]
+ */ 
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     VoluntaryWorkRequest:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *         location:
+ *           type: string
+ *         time:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["Morning", "Afternoon"]
+ *         status:
+ *           type: string
+ *           example: "Active"
+ *         days:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["Monday", "Wednesday"]
+ *         startedDate:
+ *           type: string
+ *           format: date
+ *         finishedDate:
+ *           type: string
+ *           format: date
+ *         capacity:
+ *           type: integer
+ *         skillTagIds:
+ *           type: array
+ *           items:
+ *             type: integer
+ *       example:
+ *         name: "Voluntary Work Name"
+ *         description: "Description of the voluntary work"
+ *         location: "Voluntary Work Location"
+ *         time: ["Morning", "Afternoon"]
+ *         status: "Active"
+ *         days: ["Monday", "Wednesday"]
+ *         startedDate: "2023-10-26"
+ *         finishedDate: "2023-10-28"
+ *         capacity: 10
+ *         skillTagIds: [1, 2]
+
+ *     VoluntaryWorkResponse:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *         data:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: string
+ *             name:
+ *               type: string
+ *             startedDate:
+ *               type: string
+ *               format: date-time
+ *             finishedDate:
+ *               type: string
+ *               format: date-time
+ *             skillTagIds:
+ *               type: array
+ *               items:
+ *                 type: integer
+ *             feedback:
+ *               type: array
+ *               items:
+ *                 type: object
+ *             images:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             description:
+ *               type: string
+ *             days:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             time:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             location:
+ *               type: string
+ *             rating:
+ *               type: number
+ *             capacity:
+ *               type: integer
+ *             creatorId:
+ *               type: string
+ *             skillTags:
+ *               type: array
+ *               items:
+ *                 type: object
+ *             volunteerProfiles:
+ *               type: array
+ *               items:
+ *                 type: object
+ *             orgProfiles:
+ *               type: object
+ *             createdAt:
+ *               type: string
+ *               format: date-time
+ *       example:
+ *         message: "Voluntary work created successfully!!"
+ *         data:
+ *           id: "auto generated"
+ *           name: "Voluntary Work Name"
+ *           startedDate: "2023-10-26T00:00:00.000Z"
+ *           finishedDate: "2023-10-28T00:00:00.000Z"
+ *           skillTagIds: [1, 2]
+ *           feedback: []
+ *           images: []
+ *           description: "Description of the voluntary work"
+ *           days: ["Monday", "Wednesday"]
+ *           location: "Voluntary Work Location"
+ *           rating: 0
+ *           capacity: 10
+ *           creatorId: "Your Creator ID"
+ *           skillTags: []
+
+ *           time: ["Morning", "Afternoon"]
+ *           createdAt: "2023-10-26T00:00:00.000Z"
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/{id}:
+ *   delete:
+ *     summary: Delete a voluntary work entry by ID
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work entry to delete
+ *     responses:
+ *       200:
+ *         description: Voluntary work entry deleted successfully!
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       404:
+ *         description: Voluntary work is not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/rating/{id}:
+ *   post:
+ *     summary: Send reminders to volunteers for rating and feedback
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work entry for which volunteers reminders should be sent
+ *     responses:
+ *       201:
+ *         description: Create remainder for rate and feedback  successfully!!
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       404:
+ *         description: Voluntary work is not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/image/{id}:
+ *   delete:
+ *     summary: Delete an image associated with a voluntary work entry
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work entry for which the image should be deleted
+ *     requestBody:
+ *       description: Data for deleting the image
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organizationName:
+ *                 type: string
+ *                 description: The name of the organization (can be optional)
+ *               imageName:
+ *                 type: string
+ *                 description: The name of the image to be deleted (without the file extension)
+ *             required:
+ *                - imageName
+ *           example:
+ *             organizationName: "Organization Name"
+ *             imageName: "ImageName"
+ *     responses:
+ *       200:
+ *         description: Image deleted successfully !
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       404:
+ *         description: Voluntary work is not found
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/certificate/{id}:
+ *   delete:
+ *     summary: Delete a certificate associated with a voluntary work entry
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work entry for which the certificate should be deleted
+ *     requestBody:
+ *       description: Data for deleting the certificate
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organizationName:
+ *                 type: string
+ *               imageName:
+ *                 type: string
+ *               volunteerName:
+ *                 type: string
+ *             required:
+ *               - imageName
+ *               - volunteerName
+ *           example:
+ *             organizationName: "Organization Name"
+ *             imageName: "CertificateName"
+ *             volunteerName: "Volunteer Name"
+ *     responses:
+ *       200:
+ *         description: Certificate deleted successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Certificate deleted successfully"
+ *               data: "Certificate deleted successfully!"
+ *       400:
+ *         description: Bad Request. Validation failed.
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       404:
+ *         description: Voluntary work is not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/template/{id}:
+ *   delete:
+ *     summary: Delete a template associated with an organization
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the organization to delete its template
+ *     requestBody:
+ *       description: Data for deleting the template
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               imageName:
+ *                 type: string
+ *             required:
+ *               - imageName
+ *           example:
+ *             imageName: "TemplateFileName"
+ *     responses:
+ *       200:
+ *         description: Template deleted successfully
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       404:
+ *         description: Organization is not found
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/{id}:
+ *   put:
+ *     summary: Update a voluntary work entry by ID
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work entry to be updated
+ *     requestBody:
+ *       description: Data for updating the voluntary work entry
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               location:
+ *                 type: string
+ *               capacity:
+ *                 type: integer
+ *               days:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               time:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *               skillTagIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *               startedDate:
+ *                 type: string
+ *               finishedDate:
+ *                 type: string
+ *             required:
+ *                false
+ *             example:
+ *               name: "Updated Voluntary Work Name"
+ *               description: "Updated description for the voluntary work"
+ *               location: "Updated location"
+ *               capacity: 50
+ *               days: "Updated days"
+ *               images: ["image1.jpg", "image2.jpg"]
+ *               time: "Updated time"
+ *               status: "Updated status"
+ *               skillTagIds: [1, 2, 3]
+ *               startedDate: "2023-10-31"
+ *               finishedDate: "2023-11-30"
+ *     responses:
+ *       201:
+ *         description: Voluntary work updated successfully
+ *       400:
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       404:
+ *         description: Organization is not found
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/search:
+ *   get:
+ *     summary: Search for voluntary work entries based on various filters
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         description: Page number for pagination (default 1) 
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: pageSize
+ *         description: Number of entries per page (default 10)
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: id
+ *         description: ID of the voluntary work entry
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: name
+ *         description: Name of the voluntary work entry
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: time
+ *         description: Available time for the voluntary work entry
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *       - in: query
+ *         name: location
+ *         description: Location of the voluntary work entry
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: days
+ *         description: Available days for the voluntary work entry
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *       - in: query
+ *         name: rating
+ *         description: Minimum rating for the voluntary work entry
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: status
+ *         description: Status of the voluntary work entry
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: skills
+ *         description: Skill tags associated with the voluntary work entry
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *       - in: query
+ *         name: startedDate
+ *         description: Voluntary work entry started date (e.g., "2023-10-31")
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: finishedDate
+ *         description: Voluntary work entry finished date (e.g., "2023-11-30")
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: capacity
+ *         description: Capacity of the voluntary work entry
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: ratingMore
+ *         description: Filter for voluntary work entries with a rating greater than or equal to a specific value
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: ratingLess
+ *         description: Filter for voluntary work entries with a rating less than or equal to a specific value
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: creatorId
+ *         description: ID of the creator of the voluntary work entry
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successful search for voluntary work entries
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 page:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 voluntaryWorks:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       days:
+ *                         type: string
+ *                       time:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *                       startedDate:
+ *                         type: string
+ *                       finishedDate:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                       images:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       rating:
+ *                         type: number
+ *                       feedback:
+ *                         type: string
+ *                       capacity:
+ *                         type: integer
+ *                       skillTags:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                       volunteers:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                       volunteerNumbers:
+ *                         type: integer
+ *                       creatorId:
+ *                         type: string
+ *                       createdAt:
+ *                         type: string
+*                       required:
+*                          false
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description: You don't have the permission
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/analysis:
+ *   get:
+ *     summary: Analyze and search for voluntary work entries based on various filters
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         description: Page number for pagination (default 1)
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: pageSize
+ *         description: Number of entries per page (default 10)
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: id
+ *         description: ID of the voluntary work entry
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: name
+ *         description: Name of the voluntary work entry
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: time
+ *         description: Available time for the voluntary work entry
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *       - in: query
+ *         name: location
+ *         description: Location of the voluntary work entry
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: days
+ *         description: Available days for the voluntary work entry
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *       - in: query
+ *         name: rating
+ *         description: Minimum rating for the voluntary work entry
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: status
+ *         description: Status of the voluntary work entry
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: skills
+ *         description: Skill tags associated with the voluntary work entry
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: string
+ *       - in: query
+ *         name: startedDate
+ *         description: Voluntary work entry started date (e.g., "2023-10-31")
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: finishedDate
+ *         description: Voluntary work entry finished date (e.g., "2023-11-30")
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: capacity
+ *         description: Capacity of the voluntary work entry
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: finishedAfter
+ *         description: Filter for voluntary work entries finished after a certain date
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: finishedBefore
+ *         description: Filter for voluntary work entries finished before a certain date
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: startedAfter
+ *         description: Filter for voluntary work entries started after a certain date
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: startedBefore
+ *         description: Filter for voluntary work entries started before a certain date
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: ratingMore
+ *         description: Filter for voluntary work entries with a rating greater than or equal to a specific value
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: ratingLess
+ *         description: Filter for voluntary work entries with a rating less than or equal to a specific value
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: creatorId
+ *         description: ID of the creator of the voluntary work entry
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successful analysis and search for voluntary work entries
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 page:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 voluntaryWorks:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       days:
+ *                         type: string
+ *                       time:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *                       startedDate:
+ *                         type: string
+ *                       finishedDate:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                       images:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                       rating:
+ *                         type: number
+ *                       feedback:
+ *                         type: string
+ *                       capacity:
+ *                         type: integer
+ *                       skillTags:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                       volunteers:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                       volunteerNumbers:
+ *                         type: integer
+ *                       creatorId:
+ *                         type: string
+ *                       createdAt:
+ *                         type: string
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description: You don't have the permission
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/recommendation:
+ *   get:
+ *     summary: Get voluntary work recommendations based on volunteer's information
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         description: Page number for pagination (default 1)
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: pageSize
+ *         description: Number of entries per page (default 10)
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Successful retrieval of voluntary work recommendations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 page:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 voluntaryWorks:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       days:
+ *                         type: string
+ *                       time:
+ *                         type: string
+ *                       location:
+ *                         type: string
+ *                       startedDate:
+ *                         type: string
+ *                       finishedDate:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                       capacity:
+ *                         type: integer
+ *                       skillTags:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                       volunteers:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                       volunteerNumbers:
+ *                         type: integer
+ *                       createdAt:
+ *                         type: string
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description: You don't have the permission
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/image/{id}:
+ *   get:
+ *     summary: Get images associated with a voluntary work entry
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work entry to retrieve images
+ *     responses:
+ *       200:
+ *         description: Successful retrieval of images
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ *                 format: uri
+ *       401:
+ *         description: Unauthorized. You do not have permission to access these images.
+ *       403:
+ *         description: You don't have the permission
+ *       404:
+ *         description: Voluntary work is not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/template/{id}:
+ *   get:
+ *     summary: Get templates associated with an organization
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the organization to retrieve its templates
+ *     responses:
+ *       200:
+ *         description: Successful retrieval of templates
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ *                 format: uri
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description: You don't have the permission
+ *       404:
+ *         description: Organization not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/volunteer/{id}:
+ *   get:
+ *     summary: Get voluntary works associated with a volunteer
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the volunteer to retrieve their associated voluntary works
+ *     responses:
+ *       200:
+ *         description: Successful retrieval of voluntary works for the volunteer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                   description:
+ *                     type: string
+ *                   days:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   time:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   location:
+ *                     type: string
+ *                   startedDate:
+ *                     type: string
+ *                   finishedDate:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ *                   capacity:
+ *                     type: integer
+ *                   skillTags:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   volunteers:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                   volunteerNumbers:
+ *                     type: integer
+ *                   createdAt:
+ *                     type: string
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description: You don't have the permission
+ *       404:
+ *         description: Volunteer not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/rating/{id}:
+ *   put:
+ *     summary: Add or update the rating for a voluntary work
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work to add or update the rating
+ *     requestBody:
+ *       description: The rating to add or update for the voluntary work
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: number
+ *           example:
+ *             rating: 4
+ *     responses:
+ *       201:
+ *         description: Rating added or updated successfully
+ *       400:
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description: You don't have the permission.
+ *       404:
+ *         description: Voluntary work not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/feedback/{id}:
+ *   put:
+ *     summary: Add feedback to a voluntary work
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work to add feedback
+ *     requestBody:
+ *       description: Feedback to add to the voluntary work
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: string
+ *           example:
+ *             feedback: "This voluntary work was a great experience!"
+ *     responses:
+ *       201:
+ *         description: Feedback added successfully
+ *       400:
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description: You don't have the permission
+ *       404:
+ *         description: Voluntary work not found
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/image/{id}:
+ *   put:
+ *     summary: Add images to a voluntary work
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work to add images
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: array 
+ *                 items:
+ *                   type: string
+ *           example:
+ *             image: [binary-data]
+ *     responses:
+ *       201:
+ *         description: Images added successfully
+ *       400:
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description: You don't have the permission.
+ *       404:
+ *         description: Voluntary work not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/register/{id}:
+ *   put:
+ *     summary: Register in voluntary work
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work to register for
+ *     requestBody:
+ *       description: Registration request details
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               volunteerId:
+ *                 type: string
+ *           example:
+ *             volunteerId: "12345"
+ *     responses:
+ *       201:
+ *         description: Registration completed successfully
+ *       400:
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description: You don't have the permission.
+ *       404:
+ *         description: Voluntary work not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/deregister/{id}:
+ *   put:
+ *     summary: Deregister from a voluntary work
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work to deregister from
+ *     requestBody:
+ *       description: Deregistration request details
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               volunteerId:
+ *                 type: string
+ *           example:
+ *             volunteerId: "12345"
+ *     responses:
+ *       201:
+ *         description: Deregistration completed successfully
+ *       400:
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description:  You are unauthorized
+ *       403:
+ *         description: You don't have the permission.
+ *       404:
+ *         description: Voluntary work or volunteer not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/template/{id}:
+ *   put:
+ *     summary: Add a certificate template for an organization
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the organization for which to add a certificate template
+ *     requestBody:
+ *       description: Certificate template file to upload
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               template:
+ *                 type: file
+ *           example:
+ *             template: certificate_template.html
+ *     responses:
+ *       201:
+ *         description: Certificate template added successfully
+ *       400:
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description: You don't have the permission.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/generate-certificate/{id}:
+ *   post:
+ *     summary: Generate certificates for a voluntary work and send them to volunteers
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work for which to generate certificates
+ *     requestBody:
+ *       description: Request body to customize the certificates
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               date:
+ *                 type: string
+ *                 description: Date to include on the certificates
+ *           example:
+ *             date: "2023-10-12"
+ *     responses:
+ *       201:
+ *         description: Certificates generated and sent successfully
+ *       400:
+ *         description: Bad Request, validation failed
+ *       401:
+ *         description:  You are unauthorized
+ *       403:
+ *         description: You don't have the permission.
+ *       500:
+ *         description: Something went wrong
+ */
+

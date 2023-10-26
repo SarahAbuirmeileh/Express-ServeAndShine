@@ -29,7 +29,8 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
 
 const deleteVoluntaryWork = async (voluntaryWorkId: number) => {
     try {
-        return VoluntaryWork.delete(voluntaryWorkId);
+        await  VoluntaryWork.delete(voluntaryWorkId);
+        return "Voluntary work entry deleted successfully!"
     } catch (err) {
         baseLogger.error(err);
         throw createError({ status: 404, message: "Voluntary work" });
