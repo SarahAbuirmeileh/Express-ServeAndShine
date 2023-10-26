@@ -182,7 +182,164 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
         });
 });
 
+/**
+ * @swagger
+ * tags:
+ *   name: Permission
+ *   description: The permission managing API
+ */
 
+
+
+/**
+ * @swagger
+ * /permission:
+ *   get:
+ *     summary: Get permissions based on the provided query parameters or get all permissions
+ *     tags: [Permission]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: string
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: string
+ *         description: Number of items per page
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: number
+ *         description: Filter permissions by ID
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Filter permissions by name
+ *     responses:
+ *       200:
+ *         description: List of permissions or a single permission
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 page:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 permissions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *               example:
+ *                 page: 1
+ *                 pageSize: 10
+ *                 total: 2
+ *                 permissions:
+ *                   - id: 1
+ *                     name: "Permission 1"
+ *                   - id: 2
+ *                     name: "Permission 2"
+ *       404:
+ *         description: Permission not found
+ */
+
+/**
+ * @swagger
+ * /permission/{id}:
+ *   delete:
+ *     summary: Delete a permission by ID
+ *     tags: [Permission]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the permission to delete
+ *     responses:
+ *       200:
+ *         description: Permission deleted successfully
+ *       404:
+ *         description: Permission not found
+ */
+
+/**
+ * @swagger
+ * /permission:
+ *   post:
+ *     summary: Create a new permission
+ *     tags: [Permission]
+ *     requestBody:
+ *       description: Permission data to create
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               # Add other properties from NSPermission.Item as needed
+ *           example:
+ *             name: "Permission Name"
+ *     responses:
+ *       201:
+ *         description: Permission created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   # Define the structure of the returned data here
+ *               example:
+ *                 message: "Permission created successfully"
+ *                 data:
+ *                   id: 1
+ *                   name: "Permission Name"
+ *       400:
+ *         description: Bad request, validation failed
+ */
+
+/**
+ * @swagger
+ * /permission/{id}:
+ *   put:
+ *     summary: Edit a permission by ID
+ *     tags: [Permission]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the permission to edit
+ *     requestBody:
+ *       description: Permission data to update
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *           example:
+ *             name: "Updated Permission Name"
+ *     responses:
+ *       200:
+ *         description: Permission edited successfully
+ *       404:
+ *         description: Permission not found
+ */
 
 export default router;
 
