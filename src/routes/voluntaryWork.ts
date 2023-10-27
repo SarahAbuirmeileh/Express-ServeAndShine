@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteImage, deleteRating, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getFeedbackAndRating, getImages, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteFeedback, deleteImage, deleteRating, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getFeedbackAndRating, getImages, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -312,7 +312,7 @@ router.delete("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), c
             res.locals.volunteer?.name
         ).then().catch()
 
-        res.status(201).send("Rating deleted successfully!!")
+        res.status(200).send("Rating deleted successfully!!")
     }).catch(err => {
         log({
             userId: res.locals.volunteer?.id,
@@ -326,6 +326,46 @@ router.delete("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), c
             'failed',
             'voluntary work',
             'Delete Rating to voluntary work with id' + req.params.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
+        next(err);
+    });
+});
+
+router.delete("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_rating"), checkParticipation, async (req, res, next) => {
+    deleteFeedback(Number(req.params.id), res.locals.volunteer?.name).then(() => {
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: res.locals.volunteer?.type as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Delete Feedback to voluntary work with id' + req.params.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Delete Feedback to voluntary work with id' + req.params.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
+        res.status(200).send("Feedback deleted successfully!!")
+    }).catch(err => {
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: res.locals.volunteer?.type as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Delete Feedback to voluntary work with id' + req.params.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Delete Feedback to voluntary work with id' + req.params.id,
             res.locals.volunteer?.id,
             res.locals.volunteer?.name
         ).then().catch()
@@ -2517,7 +2557,7 @@ export default router;
  *         required: true
  *         description: ID of the voluntary work from which to delete a rating
  *     responses:
- *       201:
+ *       200:
  *         description: Rating deleted successfully
  *       401:
  *         description: You are unauthorized
@@ -2526,8 +2566,33 @@ export default router;
  *       404:
  *         description: Rating not found or Voluntary work not found.
  *       500:
- *         description: Internal Server Error
+ *         description: Something went wrong
  */
 
+/**
+ * @swagger
+ * /voluntaryWork/feedback/{id}:
+ *   delete:
+ *     summary: Delete feedback for a voluntary work
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work from which to delete feedback
+ *     responses:
+ *       200:
+ *         description: Rating deleted successfully
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description:  You don't have the permission.
+ *       404:
+ *         description: Feedback not found or Voluntary work not found.
+ *       500:
+ *         description: Something went wrong
+ */
 
 

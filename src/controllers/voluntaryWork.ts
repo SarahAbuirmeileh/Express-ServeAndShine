@@ -604,6 +604,25 @@ const deleteRating = async (id: number, volunteerName: string) => {
     }
 };
 
+const deleteFeedback = async (id: number, volunteerName: string) => {
+    try {
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+        if (voluntaryWork) {
+            const existingFeedbackIndex = voluntaryWork.feedback.findIndex(item => item.volunteerName === volunteerName);
+            if (existingFeedbackIndex !== -1) {
+                voluntaryWork.feedback.splice(existingFeedbackIndex, 1);
+                await voluntaryWork.save();
+            } else {
+                throw createError(404, "Feedback not found");
+            }
+        } else {
+            throw createError(404, "Voluntary work not found");
+        }
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError(500, "Internal Server Error");
+    }
+};
 
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
@@ -611,5 +630,5 @@ export {
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
     getVoluntaryWorks, deleteVoluntaryWork, getFeedbackAndRating,
     generateCertificate, getImages, getVoluntaryWorksForVolunteer,
-    volunteerReminder, getRecommendation, deleteImage
+    volunteerReminder, getRecommendation, deleteImage, deleteFeedback
 }
