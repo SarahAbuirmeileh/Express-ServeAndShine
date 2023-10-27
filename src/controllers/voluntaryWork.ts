@@ -102,8 +102,8 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         if (payload.location) {
             conditions["location"] = payload.location;
         }
-        if (payload.rating) {
-            conditions["rating"] = payload.rating;
+        if (payload.avgRating) {
+            conditions["avgRating"] = payload.avgRating;
         }
         if (payload.status) {
             conditions["status"] = payload.status;
@@ -151,12 +151,12 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
             conditions["finishedDate"] = LessThan(finishedBeforeDate);
         }
 
-        if (payload.ratingMore) {
-            conditions["rating"] = MoreThanOrEqual(payload.ratingMore);
+        if (payload.avgRatingMore) {
+            conditions["avgRating"] = MoreThanOrEqual(payload.avgRatingMore);
         }
 
-        if (payload.ratingLess) {
-            conditions["rating"] = LessThanOrEqual(payload.ratingLess);
+        if (payload.avgRatingLess) {
+            conditions["avgRating"] = LessThanOrEqual(payload.avgRatingLess);
         }
 
         const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
@@ -187,7 +187,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
                 finishedDate: vw.finishedDate,
                 status: vw.status,
                 images: vw.images,
-                rating: vw.rating,
+                avgRating: vw.avgRating,
                 feedback: vw.feedback,
                 capacity: vw.capacity,
                 skillTags: vw.skillTags.map(st => { return { name: st.name } }),
@@ -212,21 +212,21 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
 }
 
 const putRating = async (id: number, rating: number) => {
-    try {
-        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
-        if (voluntaryWork) {
-            if (voluntaryWork.rating) {
-                voluntaryWork.rating += rating;
-                voluntaryWork.rating /= 2;
-            } else {
-                voluntaryWork.rating = rating;
-            }
-            return voluntaryWork.save();
-        }
-    } catch (err) {
-        baseLogger.error(err);
-        throw createError(404,);
-    }
+    // try {
+    //     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+    //     if (voluntaryWork) {
+    //         if (voluntaryWork.rating) {
+    //             voluntaryWork.rating += rating;
+    //             voluntaryWork.rating /= 2;
+    //         } else {
+    //             voluntaryWork.rating = rating;
+    //         }
+    //         return voluntaryWork.save();
+    //     }
+    // } catch (err) {
+    //     baseLogger.error(err);
+    //     throw createError(404,);
+    // }
 }
 
 const putFeedback = async (id: number, feedback: string) => {

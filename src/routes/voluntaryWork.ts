@@ -344,7 +344,7 @@ router.get('/search', authorize("GET_voluntaryWorks"), async (req, res, next) =>
         time: ((Array.isArray(req.query.time) ? req.query.time : [req.query.time]).filter(Boolean)) as NSVolunteer.AvailableTime[],
         location: (typeof req.query.location === 'string' ? req.query.location : ''),
         days: (Array.isArray(req.query.days) ? req.query.days : [req.query.days]).filter(Boolean) as NSVolunteer.AvailableDays[],
-        rating: Number(req.query.rating) || 0,
+        avgRating: Number(req.query.avgRating) || 0,
         status: req.query.status as NSVoluntaryWork.StatusType,
         skills: (Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean) as string[],
         startedDate: req.query.startedDate?.toString() || "",
@@ -352,8 +352,8 @@ router.get('/search', authorize("GET_voluntaryWorks"), async (req, res, next) =>
         capacity: Number(req.query.capacity) || 0,
         finishedAfter: "",finishedBefore: "",
         startedAfter: "",startedBefore: "", creatorId: "",
-        ratingMore: Number(req.query.ratingMore) || 0,
-        ratingLess: Number(req.query.ratingLess) || 0,
+        avgRatingMore: Number(req.query.avgRatingMore) || 0,
+        avgRatingLess: Number(req.query.avgRatingLess) || 0,
        
     };
 
@@ -408,7 +408,7 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
         time: ((Array.isArray(req.query.time) ? req.query.time : [req.query.time]).filter(Boolean)) as NSVolunteer.AvailableTime[],
         location: (typeof req.query.location === 'string' ? req.query.location : ''),
         days: (Array.isArray(req.query.days) ? req.query.days : [req.query.days]).filter(Boolean) as NSVolunteer.AvailableDays[],
-        rating: Number(req.query.rating) || 0,
+        avgRating: Number(req.query.avgRating) || 0,
         status: req.query.status as NSVoluntaryWork.StatusType,
         skills: (Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean) as string[],
         startedDate: req.query.startedDate?.toString() || "",
@@ -418,8 +418,8 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
         finishedBefore: req.query.finishedBefore?.toString() || "",
         startedAfter: req.query.startedAfter?.toString() || "",
         startedBefore: req.query.startedBefore?.toString() || "",
-        ratingMore: Number(req.query.ratingMore) || 0,
-        ratingLess: Number(req.query.ratingLess) || 0,
+        avgRatingMore: Number(req.query.avgRatingMore) || 0,
+        avgRatingLess: Number(req.query.avgRatingLess) || 0,
         creatorId: req.query.creatorId?.toString() || ""
     };
 
