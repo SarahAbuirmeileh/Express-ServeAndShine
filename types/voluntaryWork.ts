@@ -17,8 +17,9 @@ export namespace NSVoluntaryWork {
         location?: string;
         time?: NSVolunteer.AvailableTime[];
         images?: string[];
-        rating?: number[];
+        avgRating?: number;
         feedback?: NSVoluntaryWork.Feedback[];
+        rating: NSVoluntaryWork.Rating[];
         status?: StatusType;
         days?: NSVolunteer.AvailableDays[];
         startedDate?: string;
@@ -67,6 +68,7 @@ export namespace NSVoluntaryWork {
         images?: string[];
         avgRating?: number;
         feedback?: NSVoluntaryWork.Feedback[];
+        rating: NSVoluntaryWork.Rating[];
         status: StatusType;
         createdAt?: Date;
         days: NSVolunteer.AvailableDays[];

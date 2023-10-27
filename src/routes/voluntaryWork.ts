@@ -647,7 +647,7 @@ router.get('/volunteer/:id', validateVolunteerId, async (req, res, next) => {
 });
 
 router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), checkParticipation, async (req, res, next) => {
-    putRating(Number(req.params.id), Number(req.body.rating)).then(() => {
+    putRating(Number(req.params.id), Number(req.body.rating), res.locals.volunteer?.name).then(() => {
         log({
             userId: res.locals.volunteer?.id,
             userName: res.locals.volunteer?.name,

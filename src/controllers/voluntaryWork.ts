@@ -19,7 +19,9 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
         });
         newVoluntaryWork.skillTags = skillTags;
         newVoluntaryWork.feedback = [];
+        newVoluntaryWork.rating = [];
         newVoluntaryWork.images = [];
+        newVoluntaryWork.volunteerProfiles = [];
         return newVoluntaryWork.save();
     } catch (err) {
         baseLogger.error(err);
@@ -29,7 +31,7 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
 
 const deleteVoluntaryWork = async (voluntaryWorkId: number) => {
     try {
-        await  VoluntaryWork.delete(voluntaryWorkId);
+        await VoluntaryWork.delete(voluntaryWorkId);
         return "Voluntary work entry deleted successfully!"
     } catch (err) {
         baseLogger.error(err);
@@ -191,6 +193,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
                 feedback: vw.feedback,
                 capacity: vw.capacity,
                 skillTags: vw.skillTags.map(st => { return { name: st.name } }),
+                rating: vw.rating,
                 volunteers,
                 volunteerNumbers: volunteers.length,
                 creatorId: vw.creatorId,
@@ -211,29 +214,27 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
     }
 }
 
-const putRating = async (id: number, rating: number) => {
-    // try {
-    //     let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
-    //     if (voluntaryWork) {
-    //         if (voluntaryWork.rating) {
-    //             voluntaryWork.rating += rating;
-    //             voluntaryWork.rating /= 2;
-    //         } else {
-    //             voluntaryWork.rating = rating;
-    //         }
-    //         return voluntaryWork.save();
-    //     }
-    // } catch (err) {
-    //     baseLogger.error(err);
-    //     throw createError(404,);
-    // }
-}
-
-const putFeedback = async (id: number, feedback: string, volunteerName:string) => {
+const putRating = async (id: number, rating: number, volunteerName: string) => {
     try {
         let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
         if (voluntaryWork) {
-            voluntaryWork.feedback.push({volunteerName,feedback});
+            voluntaryWork.rating.push({ volunteerName, rating });
+            voluntaryWork.avgRating = await calculateAvgRating(id) || 0;
+            await voluntaryWork.save();
+        } else {
+            throw createError({ status: 404, message: "Voluntary work" });
+        }
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError(404,);
+    }
+}
+
+const putFeedback = async (id: number, feedback: string, volunteerName: string) => {
+    try {
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+        if (voluntaryWork) {
+            voluntaryWork.feedback.push({ volunteerName, feedback });
             await voluntaryWork.save();
         } else {
             throw createError({ status: 404, message: "Voluntary work" });
@@ -508,11 +509,11 @@ const deleteImage = async (voluntaryWorkId: number, imageName: string) => {
     try {
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: voluntaryWorkId } });
         console.log(imageName);
-        
+
         if (voluntaryWork) {
             const imagesToDelete = voluntaryWork.images.filter((img) => img.endsWith(imageName));
             console.log(imagesToDelete);
-            
+
             if (imagesToDelete.length > 0) {
                 for (const imageUrl of imagesToDelete) {
                     const imageIndex = voluntaryWork.images.findIndex((img) => img === imageUrl);
@@ -527,6 +528,14 @@ const deleteImage = async (voluntaryWorkId: number, imageName: string) => {
         throw new Error('Error when trying to delete an image');
     }
 }
+
+const calculateAvgRating = async (voluntaryWorkId: number) => {
+    const voluntaryWork = await VoluntaryWork.findOne({ where: { id: voluntaryWorkId } });
+    if (voluntaryWork) {
+        return voluntaryWork.rating.reduce((acc, item) => { return acc + item.rating }, 0) / voluntaryWork.rating.length;
+    }
+}
+
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
     registerByVolunteer, createVoluntaryWork,

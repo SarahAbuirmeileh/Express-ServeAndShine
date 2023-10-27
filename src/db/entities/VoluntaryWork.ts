@@ -53,6 +53,9 @@ export class VoluntaryWork extends BaseEntity {
     @Column({ type: 'json', nullable: true })
     feedback: NSVoluntaryWork.Feedback[];
 
+    @Column({ type: 'json', nullable: true })
+    rating: NSVoluntaryWork.Rating[];
+
     @Column({nullable:false})
     capacity: number;
 
