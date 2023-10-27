@@ -271,7 +271,7 @@ router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ asyn
  *       200:
  *         description: Organization admin loged in successfully
  *       401:
- *         description: Organization admin unautharized
+ *         description: Organization admin unauthorized
  */
 
 /**

@@ -7,7 +7,7 @@ import { Role } from "../db/entities/Role.js";
 import { Not } from "typeorm";
 import baseLogger from "../../logger.js";
 
-const error = { status: 500, message: 'when trying to manade organization admin' };
+const error = { status: 500, message: 'when trying to manage organization admin' };
 
 const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
     try {
@@ -27,7 +27,7 @@ const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
         } else {
             error.status = 404;
             error.message = "Organization";
-            throw error
+            throw error;
         }
     } catch (err) {
         baseLogger.error(err);

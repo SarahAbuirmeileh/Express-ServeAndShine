@@ -4,7 +4,7 @@ import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import createError from 'http-errors';
 
-const error = { status: 500, message: 'when trying to manade organization profile' };
+const error = { status: 500, message: 'when trying to manage organization profile' };
 
 const createOrganizationProfile = async (payload: NSOrganizationProfile.Item) => {
     try {

@@ -11,6 +11,7 @@ import createError from 'http-errors';
 import { Role } from "../db/entities/Role.js";
 import baseLogger from "../../logger.js";
 
+const error = { status: 500, message: 'when trying to manage volunteer' };
 
 const createVolunteer = async (payload: NSVolunteer.Item) => {
     try {
@@ -50,7 +51,7 @@ const createVolunteer = async (payload: NSVolunteer.Item) => {
         });
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to create volunteer";
+        throw createError(error.status, error.message);
     }
 };
 
@@ -75,14 +76,18 @@ const editVolunteer = async (payload: { name: string, id: string, email: string,
 
             if (payload.newPassword) {
                 if (!payload.oldPassword) {
-                    throw "Old password is needed !";
+                    error.status = 400;
+                    error.message = "old password is required";
+                    throw error;
                 }
 
                 const passwordMatching = await bcrypt.compare(payload.oldPassword, volunteer?.password || '');
                 if (passwordMatching) {
                     volunteer.password = await bcrypt.hash(payload.newPassword, 10);
                 } else {
-                    throw "The old password isn't correct !"
+                    error.status = 400;
+                    error.message = "the old password isn't correct";
+                    throw error;
                 }
             }
 
@@ -90,7 +95,7 @@ const editVolunteer = async (payload: { name: string, id: string, email: string,
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Volunteer" });
+        throw createError(error.status, error.message);
     }
 }
 
@@ -207,6 +212,12 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
             }
             return true;
         });
+
+        if (filteredVolunteers.length==0) {
+            error.status = 404;
+            error.message = "Volunteer";
+            throw error;
+        }
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;
         const paginatedVolunteers = filteredVolunteers.slice(startIndex, endIndex);
@@ -219,7 +230,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Volunteer" });
+        throw createError(error.status, error.message);
     }
 }
 

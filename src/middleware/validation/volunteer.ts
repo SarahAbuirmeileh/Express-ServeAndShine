@@ -19,6 +19,8 @@ const validateVolunteer = (req: express.Request, res: express.Response, next: ex
             errorList.push(`${field} is required.`);
         }
     });
+    // const values = ["name", "email", "password", "availableTime", "availableLocation", "availableDays", "skills"];
+    // const errorList = values.map(key => !volunteer[key] && `${key} is Required!`).filter(Boolean);
 
     if (!EmailValidator.validate(volunteer.email)) {
         errorList.push('Email is not valid.');
@@ -55,7 +57,6 @@ const validateVolunteer = (req: express.Request, res: express.Response, next: ex
         }).catch(err => {
             console.log('NOT logged');
         })
-        next(createError(400));
         res.status(400).send({ errors: errorList });
     } else {
         next();
@@ -80,7 +81,7 @@ const validateEditedVolunteer = async (req: express.Request, res: express.Respon
         }).catch(err => {
             console.log('NOT logged');
         })
-        next(createError(404));
+        next(createError(404, "Volunteer"));
     }
 
     if (volunteer.email) {
@@ -150,7 +151,7 @@ const validateVolunteerId = async (req: express.Request,
         }).catch(err => {
             console.log('NOT logged');
         })
-        next(createError(404));
+        next(createError(404, "Volunteer"));
     } else {
         next();
     }

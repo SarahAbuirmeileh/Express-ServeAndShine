@@ -1,7 +1,7 @@
 import express from 'express';
 import { authorize, checkMe } from '../middleware/auth/authorize.js';
 import { authenticate } from '../middleware/auth/authenticate.js';
-import { validateEditedVolunteer, validateVolunteer } from '../middleware/validation/volunteer.js';
+import { validateEditedVolunteer, validateVolunteer, validateVolunteerId } from '../middleware/validation/volunteer.js';
 import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login } from '../controllers/volunteer.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { log } from '../controllers/dataBaseLogger.js';
@@ -141,7 +141,7 @@ router.post('/login', (req, res, next) => {
         })
 });
 
-router.delete('/:id', authenticate, authorize("DELETE_volunteer"), async (req, res, next) => {
+router.delete('/:id', authenticate, authorize("DELETE_volunteer"), validateVolunteerId, async (req, res, next) => {
     const id = req.params.id?.toString();
 
     deleteVolunteer(id)
@@ -185,7 +185,7 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), async (req, r
         });
 })
 
-router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolunteer, async (req, res, next) => {
+router.put("/:id",authenticate, authorize("PUT_volunteer"), validateEditedVolunteer, async (req, res, next) => {
     editVolunteer({ ...req.body, id: req.params.id?.toString() }).then(() => {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
@@ -346,6 +346,318 @@ router.get('/me', authenticate, async (req, res, next) => {
         res.send(res.locals.organizationAdmin);
     }
 });
+
+/**
+ * @swagger
+ * tags:
+ *   name: Volunteer
+ *   description: The Volunteer managing API
+ */
+
+
+/**
+ * @swagger
+ * /volunteer/login:
+ *   post:
+ *     summary: Login a volunteer
+ *     tags: [Volunteer]
+ *     requestBody:
+ *       description: Volunteer data to sign up
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               id:
+ *                 type: string
+ *           example:
+ *             name: "Volunteer 1"
+ *             email: "volunteer1@gmail.com"
+ *             id: "9635940b-6176-4148-8e62-7801233e9f85"
+ *     responses:
+ *       200:
+ *         description: Volunteer loged in successfully
+ *       401:
+ *         description: Volunteer unauthorized
+ */
+
+/**
+ * @swagger
+ * /volunteer/logout:
+ *   get:
+ *     summary: Logout a volunteer
+ *     tags: [Volunteer]
+ *     responses:
+ *       200:
+ *         description: Volunteer loged out successfully
+ *       401:
+ *         description: Volunteer unauthorized
+ */
+
+/**
+ * @swagger
+ * /volunteer/search:
+ *   get:
+ *     summary: Get volunteer based on the provided query parameters
+ *     tags: [Volunteer]
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: string
+ *         description: Filter volunteer by ID
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: Filter volunteer by name
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         description: Filter volunteer by email
+ *       - in: query
+ *         name: availableLocation
+ *         schema:
+ *           type: string
+ *         description: Filter volunteer by availableLocation
+ *       - in: query
+ *         name: availableTime
+ *         schema:
+ *           type: string
+ *         description: Filter volunteer by availableTime
+ *       - in: query
+ *         name: availableDays
+ *         schema:
+ *           type: string
+ *         description: Filter volunteer by availableDays
+ *     responses:
+ *       200:
+ *         description: Find volunteer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 page:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 total:
+ *                   type: integer
+ *                 volunteers:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *               example:
+ *                 page: 1
+ *                 pageSize: 10
+ *                 total: 1
+ *                 volunteers:
+ *                   - name: "Volunteer 1"
+ *                     email: "volunteer1@gamil.com"
+ *                     type: "volunteer"
+ *                     volunteerProfile:
+ *                         availableTime: ["Afternoon"]
+ *                         availableDays: ["Wednesday", "Saturday"]
+ *                     availableLocation: "main"
+ *                     dateOfBirth: null
+ *                     skillTags: ["softskills"]
+ *                     
+ *       404:
+ *         description: Volunteer not found
+ */
+
+/**
+ * @swagger
+ * /volunteer/{id}:
+ *   delete:
+ *     summary: Delete a volunteer by ID
+ *     tags: [Volunteer]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the volunteer to delete
+ *     responses:
+ *       200:
+ *         description: Volunteer deleted successfully
+ *       404:
+ *         description: Volunteer not found
+ */
+
+/**
+ * @swagger
+ * /volunteer/me:
+ *   get:
+ *     summary: Get information about loged in volunteer
+ *     tags: [Volunteer]
+ *     responses:
+ *       200:
+ *         description: Find me
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 volunteer:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *               example:
+ *                 volunteer:
+ *                   - id: "1ff02f01-a8fd-4438-932b-df62b4a28dc2"
+ *                     name: "Volunteer 1"
+ *                     email: "volunteer1@gamil.com"
+ *                     password: "$2b$10$UodozOgAHz3HFr5tEwGcuuOuoGn/dJ8s07NBdQnyWMn8le5fMc.kO"
+ *                     type: "volunteer"
+ *                     createdAt: "2023-10-27T13:31:16.941Z"
+ *                     roles:
+ *                        id: 4
+ *                        name: "volunteer"
+ *                        createdAt: "2023-10-25T21:42:11.784Z"
+ *                        permissions:
+ *                             - id: 1
+ *                               name: "GET_me"
+ *                               createdAt: "2023-10-25T21:40:56.000Z"
+ *                             - id: 2
+ *                               name: "GET_volunteers"
+ *                               createdAt: "2023-10-25T21:40:56.000Z"
+ *                     volunteerProfile:
+ *                         id: "c9e2bca2-5060-4c9e-bae7-60480e590d1"
+ *                         availableTime: ["Afternoon"]
+ *                         availableDays: ["Wednesday", "Saturday"]
+ *                         availableLocation: "main"
+ *                         dateOfBirth: null
+ *                         skillTags: 
+ *                             id: 1
+ *                             name: "softskills"
+ *                             createdAt: "2023-10-27T08:56:15.498Z"
+ *                         voluntaryWorks: []
+ *       401:
+ *         description: Volunteer unauthorized
+ */
+
+/**
+ * @swagger
+ * /volunteer/signup:
+ *   post:
+ *     summary: Sign up a volunteer
+ *     tags: [Volunteer]
+ *     requestBody:
+ *       description: Volunteer data to sign up
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               availableTime:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               availableDays:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               availableLocation:
+ *                 type: string
+ *               skills:
+ *                 type: array
+ *                 items:
+ *                    type: string
+ *               # Add other properties from NSVolunteer.Item as needed
+ *           example:
+ *             name: "Volunteer 1"
+ *             email: "volunteer1@gmail.com"
+ *             password: "volunteer123?"
+ *             availableTime: ["Afternoon"]
+ *             availableDays: ["Saturday", "Wednesday"]
+ *             availableLocation: "main"
+ *             skills: ["softskills"]
+ *     responses:
+ *       201:
+ *         description: Volunteer signed up successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   # Define the structure of the returned data here
+ *               example:
+ *                 message: "Volunteer signs up successfully"
+ *                 dataWithoutPassword:
+ *                   id: "7bd5f299-20b6-4aa5-87e4-fc416274f6b4"
+ *                   name: "Volunteer 1"
+ *                   email: "volunteer1@gmail.com"
+ *                   type: "volunteer"
+ *                   createdAt: "2023-10-27T08:56:15.827Z"
+ *       400:
+ *         description: Bad request, validation failed
+ */
+
+/**
+ * @swagger
+ * /volunteer/{id}:
+ *   put:
+ *     summary: Edit a volunteer by ID
+ *     tags: [Volunteer]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the volunteer to edit
+ *     requestBody:
+ *       description: Volunteer data to update
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *               oldPassword:
+ *                 type: string
+ *           example:
+ *              name: "New Name"
+ *               
+ *     responses:
+ *       200:
+ *         description: Volunteer edited successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               example:
+ *                  name: "Updated Volunteer Name"
+ * 
+ *       404:
+ *         description: Volunteer not found
+ */
 
 export default router;
 
