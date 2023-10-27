@@ -202,22 +202,22 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
  *         name: page
  *         schema:
  *           type: string
- *         description: Page number for pagination
+ *         description: Page number for pagination (optional)
  *       - in: query
  *         name: pageSize
  *         schema:
  *           type: string
- *         description: Number of items per page
+ *         description: Number of items per page (optional)
  *       - in: query
  *         name: id
  *         schema:
  *           type: number
- *         description: Filter permissions by ID
+ *         description: Filter permissions by ID (optional)
  *       - in: query
  *         name: name
  *         schema:
  *           type: string
- *         description: Filter permissions by name
+ *         description: Filter permissions by name (optional)
  *     responses:
  *       200:
  *         description: List of permissions or a single permission
@@ -245,8 +245,14 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
  *                     name: "Permission 1"
  *                   - id: 2
  *                     name: "Permission 2"
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
  *       404:
  *         description: Permission not found
+ *       500:
+ *         description: Something went wrong
  */
 
 /**
@@ -265,8 +271,14 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
  *     responses:
  *       200:
  *         description: Permission deleted successfully
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
  *       404:
  *         description: Permission not found
+ *       500:
+ *         description: Something went wrong
  */
 
 /**
@@ -285,7 +297,8 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
  *             properties:
  *               name:
  *                 type: string
- *               # Add other properties from NSPermission.Item as needed
+ *             required:
+ *              true
  *           example:
  *             name: "Permission Name"
  *     responses:
@@ -307,6 +320,12 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
  *                   name: "Permission Name"
  *       400:
  *         description: Bad request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500:
+ *         description: Something went wrong
  */
 
 /**
@@ -332,14 +351,23 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
  *             properties:
  *               name:
  *                 type: string
+ *             required:
+ *                 true
  *           example:
  *             name: "Updated Permission Name"
  *     responses:
  *       200:
  *         description: Permission edited successfully
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
  *       404:
  *         description: Permission not found
+ *       500:
+ *         description: Something went wrong
  */
+
 
 export default router;
 

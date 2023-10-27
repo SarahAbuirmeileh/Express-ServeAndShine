@@ -1,5 +1,4 @@
 import express from "express"
-import { NSError } from "../../../types/error.js";
 
 const errorHandler = (
     error: any,
@@ -11,7 +10,7 @@ const errorHandler = (
     } else if (error.status == 401) {
         res.status(401).send("You are unauthorized");
     } else if (error.status == 403) {
-        res.status(401).send("You don't have the permission");
+        res.status(403).send("You don't have the permission");
     } else if (error.status == 400) {
         res.status(400).send("Your request is BAD, " + error.message);
     } else {
