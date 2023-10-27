@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteImage, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getImages, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteFeedback, deleteImage, deleteRating, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getFeedbackAndRating, getImages, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -250,8 +250,8 @@ router.delete('/certificate/:id', validateVoluntaryWorkId, authorize("DELETE_vol
 router.delete('/template/:id', validateOrganizationProfile, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
 
     const id = (req.params.id?.toString());
-    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id, name: "", adminName:'' });
-    const key = `templates/${organizationProfile?.name }/${req.body.imageName || "certificate_template"}.html`
+    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id, name: "", adminName: '' });
+    const key = `templates/${organizationProfile?.name}/${req.body.imageName || "certificate_template"}.html`
 
     deleteFromS3(key, "template")
         .then(data => {
@@ -293,6 +293,86 @@ router.delete('/template/:id', validateOrganizationProfile, authorize("DELETE_vo
             next(err);
         });
 })
+
+router.delete("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), checkParticipation, async (req, res, next) => {
+    deleteRating(Number(req.params.id), res.locals.volunteer?.name).then(() => {
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: res.locals.volunteer?.type as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Delete Rating to voluntary work with id' + req.params.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Delete Rating to voluntary work with id' + req.params.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
+        res.status(200).send("Rating deleted successfully!!")
+    }).catch(err => {
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: res.locals.volunteer?.type as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Delete Rating to voluntary work with id' + req.params.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Delete Rating to voluntary work with id' + req.params.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
+        next(err);
+    });
+});
+
+router.delete("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_rating"), checkParticipation, async (req, res, next) => {
+    deleteFeedback(Number(req.params.id), res.locals.volunteer?.name).then(() => {
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: res.locals.volunteer?.type as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Delete Feedback to voluntary work with id' + req.params.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Delete Feedback to voluntary work with id' + req.params.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
+        res.status(200).send("Feedback deleted successfully!!")
+    }).catch(err => {
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: res.locals.volunteer?.type as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Delete Feedback to voluntary work with id' + req.params.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Delete Feedback to voluntary work with id' + req.params.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
+        next(err);
+    });
+});
 
 router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, async (req, res, next) => {
     editVoluntaryWork({ ...req.body, id: req.params.id?.toString() }).then(() => {
@@ -344,17 +424,17 @@ router.get('/search', authorize("GET_voluntaryWorks"), async (req, res, next) =>
         time: ((Array.isArray(req.query.time) ? req.query.time : [req.query.time]).filter(Boolean)) as NSVolunteer.AvailableTime[],
         location: (typeof req.query.location === 'string' ? req.query.location : ''),
         days: (Array.isArray(req.query.days) ? req.query.days : [req.query.days]).filter(Boolean) as NSVolunteer.AvailableDays[],
-        rating: Number(req.query.rating) || 0,
+        avgRating: Number(req.query.avgRating) || 0,
         status: req.query.status as NSVoluntaryWork.StatusType,
         skills: (Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean) as string[],
         startedDate: req.query.startedDate?.toString() || "",
         finishedDate: req.query.finishedDate?.toString() || "",
         capacity: Number(req.query.capacity) || 0,
-        finishedAfter: "",finishedBefore: "",
-        startedAfter: "",startedBefore: "", creatorId: "",
-        ratingMore: Number(req.query.ratingMore) || 0,
-        ratingLess: Number(req.query.ratingLess) || 0,
-       
+        finishedAfter: "", finishedBefore: "",
+        startedAfter: "", startedBefore: "", creatorId: "",
+        avgRatingMore: Number(req.query.avgRatingMore) || 0,
+        avgRatingLess: Number(req.query.avgRatingLess) || 0,
+
     };
 
     getVoluntaryWorks(payload)
@@ -408,7 +488,7 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
         time: ((Array.isArray(req.query.time) ? req.query.time : [req.query.time]).filter(Boolean)) as NSVolunteer.AvailableTime[],
         location: (typeof req.query.location === 'string' ? req.query.location : ''),
         days: (Array.isArray(req.query.days) ? req.query.days : [req.query.days]).filter(Boolean) as NSVolunteer.AvailableDays[],
-        rating: Number(req.query.rating) || 0,
+        avgRating: Number(req.query.avgRating) || 0,
         status: req.query.status as NSVoluntaryWork.StatusType,
         skills: (Array.isArray(req.query.skills) ? req.query.skills : [req.query.skills]).filter(Boolean) as string[],
         startedDate: req.query.startedDate?.toString() || "",
@@ -418,8 +498,8 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
         finishedBefore: req.query.finishedBefore?.toString() || "",
         startedAfter: req.query.startedAfter?.toString() || "",
         startedBefore: req.query.startedBefore?.toString() || "",
-        ratingMore: Number(req.query.ratingMore) || 0,
-        ratingLess: Number(req.query.ratingLess) || 0,
+        avgRatingMore: Number(req.query.avgRatingMore) || 0,
+        avgRatingLess: Number(req.query.avgRatingLess) || 0,
         creatorId: req.query.creatorId?.toString() || ""
     };
 
@@ -646,20 +726,63 @@ router.get('/volunteer/:id', validateVolunteerId, async (req, res, next) => {
         });
 });
 
+router.get('/rating-and-feedback/:id', validateVoluntaryWorkId, async (req, res, next) => {
+    getFeedbackAndRating(Number(req.params.id.toString()))
+        .then(data => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Get rating and feedback for  voluntary work with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Get rating and feedback for  voluntary work',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Get rating and feedback for voluntary work with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Get rating and feedback for  voluntary work',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+});
+
+
 router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), checkParticipation, async (req, res, next) => {
-    putRating(Number(req.params.id), Number(req.body.rating)).then(() => {
+    putRating(Number(req.params.id), Number(req.body.rating), res.locals.volunteer?.name).then(() => {
         log({
             userId: res.locals.volunteer?.id,
             userName: res.locals.volunteer?.name,
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Add Rating to voluntary work with id' + req.params.id
+            request: 'Add or update Rating to voluntary work with id' + req.params.id
         }).then().catch()
 
         logToCloudWatch(
             'success',
             'voluntary work',
-            'Add Rating to voluntary work with id' + req.params.id,
+            'Add or update Rating to voluntary work with id' + req.params.id,
             res.locals.volunteer?.id,
             res.locals.volunteer?.name
         ).then().catch()
@@ -671,13 +794,13 @@ router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), chec
             userName: res.locals.volunteer?.name,
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Add Rating to voluntary work with id' + req.params.id
+            request: 'Add or update Rating to voluntary work with id' + req.params.id
         }).then().catch()
 
         logToCloudWatch(
             'failed',
             'voluntary work',
-            'Add Rating to voluntary work with id' + req.params.id,
+            'Add or update Rating to voluntary work with id' + req.params.id,
             res.locals.volunteer?.id,
             res.locals.volunteer?.name
         ).then().catch()
@@ -687,37 +810,37 @@ router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), chec
 });
 
 router.put("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_feedback"), checkParticipation, async (req, res, next) => {
-    putFeedback(Number(req.params.id), req.body.feedback).then(() => {
+    putFeedback(Number(req.params.id), req.body.feedback, res.locals.volunteer?.name).then(() => {
         log({
             userId: res.locals.volunteer?.id,
             userName: res.locals.volunteer?.name,
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Add feedback to voluntary work with id' + req.params.id
+            request: 'Add or update feedback to voluntary work with id' + req.params.id
         }).then().catch()
 
         logToCloudWatch(
             'success',
             'voluntary work',
-            'Add feedback to voluntary work with id' + req.params.id,
+            'Add or update feedback to voluntary work with id' + req.params.id,
             res.locals.volunteer?.id,
             res.locals.volunteer?.name
         ).then().catch()
 
-        res.status(201).send("Feedback added successfully!!")
+        res.status(201).send("Feedback or update added successfully!!")
     }).catch(err => {
         log({
             userId: res.locals.volunteer?.id,
             userName: res.locals.organizationAdmin?.name,
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Add feedback to voluntary work with id' + req.params.id
+            request: 'Add or update feedback to voluntary work with id' + req.params.id
         }).then().catch()
 
         logToCloudWatch(
             'failed',
             'voluntary work',
-            'Add feedback to voluntary work with id' + req.params.id,
+            'Add or update feedback to voluntary work with id' + req.params.id,
             res.locals.volunteer?.id,
             res.locals.volunteer?.name
         ).then().catch()
@@ -1117,7 +1240,7 @@ export default router;
  *         finishedDate: "2023-10-28"
  *         capacity: 10
  *         skillTagIds: [1, 2]
- */ 
+ */
 
 /**
  * @swagger
@@ -2362,4 +2485,114 @@ export default router;
  *       500:
  *         description: Something went wrong
  */
+
+/**
+ * @swagger
+ * /voluntaryWork/rating-and-feedback/{id}:
+ *   get:
+ *     summary: Get ratings and feedback for a voluntary work
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work for which to get ratings and feedback
+ *     responses:
+ *       200:
+ *         description: Ratings and feedback retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 avgRating:
+ *                   type: number
+ *                   description: Average rating for the voluntary work
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       volunteerName:
+ *                         type: string
+ *                         description: Name of the volunteer
+ *                       rating:
+ *                         type: number
+ *                         description: Rating given by the volunteer
+ *                       feedback:
+ *                         type: string
+ *                         description: Feedback provided by the volunteer
+ *           example:
+ *             avgRating: 4.5
+ *             data:
+ *               - volunteerName: "John Doe"
+ *                 rating: 4
+ *                 feedback: "Great experience!"
+ *               - volunteerName: "Alice Smith"
+ *                 rating: 5
+ *                 feedback: "Wonderful opportunity!"
+ *               - volunteerName: "Eve Johnson"
+ *                 rating: 4
+ *                 feedback: "Enjoyed the work but could be improved."
+
+ *       404:
+ *         description: Voluntary work not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/rating/{id}:
+ *   delete:
+ *     summary: Delete a rating for a voluntary work
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work from which to delete a rating
+ *     responses:
+ *       200:
+ *         description: Rating deleted successfully
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description:  You don't have the permission.
+ *       404:
+ *         description: Rating not found or Voluntary work not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/feedback/{id}:
+ *   delete:
+ *     summary: Delete feedback for a voluntary work
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work from which to delete feedback
+ *     responses:
+ *       200:
+ *         description: Rating deleted successfully
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description:  You don't have the permission.
+ *       404:
+ *         description: Feedback not found or Voluntary work not found.
+ *       500:
+ *         description: Something went wrong
+ */
+
 

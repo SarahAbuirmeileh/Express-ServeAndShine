@@ -19,7 +19,9 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
         });
         newVoluntaryWork.skillTags = skillTags;
         newVoluntaryWork.feedback = [];
+        newVoluntaryWork.rating = [];
         newVoluntaryWork.images = [];
+        newVoluntaryWork.volunteerProfiles = [];
         return newVoluntaryWork.save();
     } catch (err) {
         baseLogger.error(err);
@@ -29,7 +31,7 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
 
 const deleteVoluntaryWork = async (voluntaryWorkId: number) => {
     try {
-        await  VoluntaryWork.delete(voluntaryWorkId);
+        await VoluntaryWork.delete(voluntaryWorkId);
         return "Voluntary work entry deleted successfully!"
     } catch (err) {
         baseLogger.error(err);
@@ -102,8 +104,8 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         if (payload.location) {
             conditions["location"] = payload.location;
         }
-        if (payload.rating) {
-            conditions["rating"] = payload.rating;
+        if (payload.avgRating) {
+            conditions["avgRating"] = payload.avgRating;
         }
         if (payload.status) {
             conditions["status"] = payload.status;
@@ -151,12 +153,12 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
             conditions["finishedDate"] = LessThan(finishedBeforeDate);
         }
 
-        if (payload.ratingMore) {
-            conditions["rating"] = MoreThanOrEqual(payload.ratingMore);
+        if (payload.avgRatingMore) {
+            conditions["avgRating"] = MoreThanOrEqual(payload.avgRatingMore);
         }
 
-        if (payload.ratingLess) {
-            conditions["rating"] = LessThanOrEqual(payload.ratingLess);
+        if (payload.avgRatingLess) {
+            conditions["avgRating"] = LessThanOrEqual(payload.avgRatingLess);
         }
 
         const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
@@ -187,10 +189,11 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
                 finishedDate: vw.finishedDate,
                 status: vw.status,
                 images: vw.images,
-                rating: vw.rating,
+                avgRating: vw.avgRating,
                 feedback: vw.feedback,
                 capacity: vw.capacity,
                 skillTags: vw.skillTags.map(st => { return { name: st.name } }),
+                rating: vw.rating,
                 volunteers,
                 volunteerNumbers: volunteers.length,
                 creatorId: vw.creatorId,
@@ -211,38 +214,50 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
     }
 }
 
-const putRating = async (id: number, rating: number) => {
+const putRating = async (id: number, rating: number, volunteerName: string) => {
     try {
         let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
         if (voluntaryWork) {
-            if (voluntaryWork.rating) {
-                voluntaryWork.rating += rating;
-                voluntaryWork.rating /= 2;
+            const existingRating = voluntaryWork.rating.find(item => item.volunteerName === volunteerName);
+            if (existingRating) {
+                existingRating.rating = rating;
             } else {
-                voluntaryWork.rating = rating;
+                voluntaryWork.rating.push({ volunteerName, rating });
             }
-            return voluntaryWork.save();
+
+            await voluntaryWork.save();
+            voluntaryWork.avgRating = await calculateAvgRating(id) || 0;
+            await voluntaryWork.save();
+        } else {
+            throw createError(404, "Voluntary work not found");
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404,);
+        throw createError(500, "Internal Server Error");
     }
 }
 
-const putFeedback = async (id: number, feedback: string) => {
+
+const putFeedback = async (id: number, feedbackText: string, volunteerName: string) => {
     try {
         let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
         if (voluntaryWork) {
-            voluntaryWork.feedback.push(feedback);
+            const existingFeedback = voluntaryWork.feedback.find(item => item.volunteerName === volunteerName);
+            if (existingFeedback) {
+                existingFeedback.feedback = feedbackText;
+            } else {
+                voluntaryWork.feedback.push({ volunteerName, feedback: feedbackText });
+            }
             await voluntaryWork.save();
         } else {
-            throw createError({ status: 404, message: "Voluntary work" });
+            throw createError(404, "Voluntary work not found");
         }
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to add Feedback";
+        throw createError(500, ", when trying to add Feedback");
     }
 }
+
 
 const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["volunteerProfile"]) => {
     try {
@@ -508,11 +523,11 @@ const deleteImage = async (voluntaryWorkId: number, imageName: string) => {
     try {
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: voluntaryWorkId } });
         console.log(imageName);
-        
+
         if (voluntaryWork) {
             const imagesToDelete = voluntaryWork.images.filter((img) => img.endsWith(imageName));
             console.log(imagesToDelete);
-            
+
             if (imagesToDelete.length > 0) {
                 for (const imageUrl of imagesToDelete) {
                     const imageIndex = voluntaryWork.images.findIndex((img) => img === imageUrl);
@@ -527,11 +542,93 @@ const deleteImage = async (voluntaryWorkId: number, imageName: string) => {
         throw new Error('Error when trying to delete an image');
     }
 }
+
+const calculateAvgRating = async (voluntaryWorkId: number) => {
+    const voluntaryWork = await VoluntaryWork.findOne({ where: { id: voluntaryWorkId } });
+    if (voluntaryWork) {
+        const avgRating = voluntaryWork.rating.reduce((acc, item) => { return (acc + item.rating) }, 0) / voluntaryWork.rating.length;
+        return parseFloat(avgRating.toFixed(1));
+    }
+}
+
+const getFeedbackAndRating = async (id: number) => {
+    const voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+    if (voluntaryWork) {
+        const feedback = voluntaryWork.feedback;
+        const rating = voluntaryWork.rating;
+        const result: any = [];
+
+        rating.forEach(item => {
+            const volunteerFeedback = feedback.find(f => f.volunteerName === item.volunteerName);
+            result.push({
+                volunteerName: item.volunteerName,
+                rating: item.rating,
+                feedback: volunteerFeedback ? volunteerFeedback.feedback : ''
+            });
+        });
+
+        feedback.forEach(item => {
+            if (!rating.some(ratingItem => ratingItem.volunteerName === item.volunteerName)) {
+                result.push({
+                    volunteerName: item.volunteerName,
+                    rating: '',
+                    feedback: item.feedback
+                });
+            }
+        });
+
+        const avgRating = voluntaryWork.avgRating;
+        return { avgRating, data: result };
+    }
+}
+
+const deleteRating = async (id: number, volunteerName: string) => {
+    try {
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+        if (voluntaryWork) {
+            const existingRatingIndex = voluntaryWork.rating.findIndex(item => item.volunteerName === volunteerName);
+            if (existingRatingIndex !== -1) {
+                voluntaryWork.rating.splice(existingRatingIndex, 1);
+                await voluntaryWork.save();
+                voluntaryWork.avgRating = await calculateAvgRating(id) || 0;
+                await voluntaryWork.save();
+            } else {
+                throw createError(404, "Rating not found for the volunteer");
+            }
+        } else {
+            throw createError(404, "Voluntary work not found");
+        }
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError(500, "Internal Server Error");
+    }
+};
+
+const deleteFeedback = async (id: number, volunteerName: string) => {
+    try {
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+        if (voluntaryWork) {
+            const existingFeedbackIndex = voluntaryWork.feedback.findIndex(item => item.volunteerName === volunteerName);
+            if (existingFeedbackIndex !== -1) {
+                voluntaryWork.feedback.splice(existingFeedbackIndex, 1);
+                await voluntaryWork.save();
+            } else {
+                throw createError(404, "Feedback not found");
+            }
+        } else {
+            throw createError(404, "Voluntary work not found");
+        }
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError(500, "Internal Server Error");
+    }
+};
+
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
-    registerByVolunteer, createVoluntaryWork,
+    registerByVolunteer, createVoluntaryWork, deleteRating,
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
-    getVoluntaryWorks, deleteVoluntaryWork,
+    getVoluntaryWorks, deleteVoluntaryWork, getFeedbackAndRating,
     generateCertificate, getImages, getVoluntaryWorksForVolunteer,
-    volunteerReminder, getRecommendation, deleteImage
+    volunteerReminder, getRecommendation, deleteImage, deleteFeedback
 }

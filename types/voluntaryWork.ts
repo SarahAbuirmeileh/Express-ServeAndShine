@@ -17,8 +17,9 @@ export namespace NSVoluntaryWork {
         location?: string;
         time?: NSVolunteer.AvailableTime[];
         images?: string[];
-        rating?: number[];
-        feedback?: string[];
+        avgRating?: number;
+        feedback?: NSVoluntaryWork.Feedback[];
+        rating: NSVoluntaryWork.Rating[];
         status?: StatusType;
         days?: NSVolunteer.AvailableDays[];
         startedDate?: string;
@@ -37,7 +38,7 @@ export namespace NSVoluntaryWork {
         time: NSVolunteer.AvailableTime[],
         location: string,
         days: NSVolunteer.AvailableDays[],
-        rating: number,
+        avgRating: number,
         status: NSVoluntaryWork.StatusType,
         skills: string[],
         startedDate: string;
@@ -47,8 +48,8 @@ export namespace NSVoluntaryWork {
         finishedBefore: string;
         startedAfter: string;
         startedBefore: string;
-        ratingMore: number;
-        ratingLess: number;
+        avgRatingMore: number;
+        avgRatingLess: number;
         creatorId: string;
     }
 
@@ -65,8 +66,9 @@ export namespace NSVoluntaryWork {
         location: string;
         time: NSVolunteer.AvailableTime[];
         images?: string[];
-        rating?: number[];
-        feedback?: string[];
+        avgRating?: number;
+        feedback?: NSVoluntaryWork.Feedback[];
+        rating: NSVoluntaryWork.Rating[];
         status: StatusType;
         createdAt?: Date;
         days: NSVolunteer.AvailableDays[];
@@ -85,5 +87,15 @@ export namespace NSVoluntaryWork {
         days: NSVolunteer.AvailableDays[],
         status: NSVoluntaryWork.StatusType,
         skillTags: number[]
+    }
+
+    export interface Rating {
+        volunteerName: string,
+        rating: number
+    }
+
+    export interface Feedback {
+        volunteerName: string,
+        feedback: string
     }
 }
