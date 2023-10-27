@@ -687,7 +687,7 @@ router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), chec
 });
 
 router.put("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_feedback"), checkParticipation, async (req, res, next) => {
-    putFeedback(Number(req.params.id), req.body.feedback).then(() => {
+    putFeedback(Number(req.params.id), req.body.feedback, res.locals.volunteer?.name).then(() => {
         log({
             userId: res.locals.volunteer?.id,
             userName: res.locals.volunteer?.name,

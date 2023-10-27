@@ -229,11 +229,11 @@ const putRating = async (id: number, rating: number) => {
     // }
 }
 
-const putFeedback = async (id: number, feedback: string) => {
+const putFeedback = async (id: number, feedback: string, volunteerName:string) => {
     try {
         let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
         if (voluntaryWork) {
-            voluntaryWork.feedback.push(feedback);
+            voluntaryWork.feedback.push({volunteerName,feedback});
             await voluntaryWork.save();
         } else {
             throw createError({ status: 404, message: "Voluntary work" });

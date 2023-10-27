@@ -3,6 +3,7 @@ import { SkillTag } from "./SkillTag.js";
 import { VolunteerProfile } from "./VolunteerProfile.js";
 import { OrganizationProfile } from "./OrganizationProfile.js";
 import { NSVolunteer } from "../../../types/volunteer.js";
+import { NSVoluntaryWork } from "../../../types/voluntaryWork.js";
 
 @Entity()
 export class VoluntaryWork extends BaseEntity {
@@ -50,7 +51,7 @@ export class VoluntaryWork extends BaseEntity {
     avgRating: number;
 
     @Column({ type: 'json', nullable: true })
-    feedback: string[];
+    feedback: NSVoluntaryWork.Feedback[];
 
     @Column({nullable:false})
     capacity: number;
