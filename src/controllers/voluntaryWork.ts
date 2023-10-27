@@ -536,11 +536,20 @@ const calculateAvgRating = async (voluntaryWorkId: number) => {
     }
 }
 
+const getFeedbackAndRating = async (id: number) => {
+    const voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+    if (voluntaryWork) {
+        const feedback = voluntaryWork.feedback;
+        const rating = voluntaryWork.rating;
+        return rating.map(item => { return { ...item, feedback: feedback.find(f => f.volunteerName === item.volunteerName)?.feedback } })
+    }
+}
+
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
     registerByVolunteer, createVoluntaryWork,
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
-    getVoluntaryWorks, deleteVoluntaryWork,
+    getVoluntaryWorks, deleteVoluntaryWork, getFeedbackAndRating,
     generateCertificate, getImages, getVoluntaryWorksForVolunteer,
     volunteerReminder, getRecommendation, deleteImage
 }

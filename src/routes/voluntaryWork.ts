@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteImage, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getImages, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteImage, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getFeedbackAndRating, getImages, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -250,8 +250,8 @@ router.delete('/certificate/:id', validateVoluntaryWorkId, authorize("DELETE_vol
 router.delete('/template/:id', validateOrganizationProfile, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
 
     const id = (req.params.id?.toString());
-    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id, name: "", adminName:'' });
-    const key = `templates/${organizationProfile?.name }/${req.body.imageName || "certificate_template"}.html`
+    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id, name: "", adminName: '' });
+    const key = `templates/${organizationProfile?.name}/${req.body.imageName || "certificate_template"}.html`
 
     deleteFromS3(key, "template")
         .then(data => {
@@ -350,11 +350,11 @@ router.get('/search', authorize("GET_voluntaryWorks"), async (req, res, next) =>
         startedDate: req.query.startedDate?.toString() || "",
         finishedDate: req.query.finishedDate?.toString() || "",
         capacity: Number(req.query.capacity) || 0,
-        finishedAfter: "",finishedBefore: "",
-        startedAfter: "",startedBefore: "", creatorId: "",
+        finishedAfter: "", finishedBefore: "",
+        startedAfter: "", startedBefore: "", creatorId: "",
         avgRatingMore: Number(req.query.avgRatingMore) || 0,
         avgRatingLess: Number(req.query.avgRatingLess) || 0,
-       
+
     };
 
     getVoluntaryWorks(payload)
@@ -645,6 +645,49 @@ router.get('/volunteer/:id', validateVolunteerId, async (req, res, next) => {
             next(err);
         });
 });
+
+router.get('/rating-and-feedback/:id', validateVoluntaryWorkId, async (req, res, next) => {
+    getFeedbackAndRating(Number(req.params.id.toString()))
+        .then(data => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Get rating and feedback for  voluntary work with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Get rating and feedback for  voluntary work',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Get rating and feedback for voluntary work with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Get rating and feedback for  voluntary work',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+});
+
 
 router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), checkParticipation, async (req, res, next) => {
     putRating(Number(req.params.id), Number(req.body.rating), res.locals.volunteer?.name).then(() => {
@@ -1117,7 +1160,7 @@ export default router;
  *         finishedDate: "2023-10-28"
  *         capacity: 10
  *         skillTagIds: [1, 2]
- */ 
+ */
 
 /**
  * @swagger
@@ -2363,3 +2406,47 @@ export default router;
  *         description: Something went wrong
  */
 
+/**
+ * @swagger
+ * /voluntaryWork/rating-and-feedback/{id}:
+ *   get:
+ *     summary: Get ratings and feedback for a voluntary work
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the voluntary work for which to get ratings and feedback
+ *     responses:
+ *       200:
+ *         description: Ratings and feedback retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   volunteerName:
+ *                     type: string
+ *                     description: Name of the volunteer
+ *                   rating:
+ *                     type: number
+ *                     description: Rating given by the volunteer
+ *                   feedback:
+ *                     type: string
+ *                     description: Feedback provided by the volunteer
+ *           example:
+ *             - volunteerName: "John Doe"
+ *               rating: 4
+ *               feedback: "Great experience!"
+ *             - volunteerName: "Alice Smith"
+ *               rating: 5
+ *               feedback: "Wonderful opportunity!"
+ *       404:
+ *         description: Voluntary work not found.
+ *       500:
+ *         description: Something went wrong
+ */
