@@ -26,6 +26,7 @@ export namespace NSVoluntaryWork {
         finishedDate?: string;
         capacity?: number;
         skillTagIds?: number[];
+        isSkillsRequired?: boolean;
         createdAt?: Date;
 
     }
@@ -50,6 +51,7 @@ export namespace NSVoluntaryWork {
         startedBefore: string;
         avgRatingMore: number;
         avgRatingLess: number;
+        isSkillsRequired: boolean;
         creatorId: string;
     }
 
@@ -76,6 +78,7 @@ export namespace NSVoluntaryWork {
         finishedDate: string;
         capacity: number;
         skillTagIds: number[];
+        isSkillsRequired: boolean;
         creatorId: string;
     }
 

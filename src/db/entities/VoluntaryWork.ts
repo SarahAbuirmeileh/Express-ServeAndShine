@@ -56,10 +56,13 @@ export class VoluntaryWork extends BaseEntity {
     @Column({ type: 'json', nullable: true })
     rating: NSVoluntaryWork.Rating[];
 
-    @Column({nullable:false})
+    @Column({ nullable: false })
     capacity: number;
 
-    @Column({nullable:false})
+    @Column({ nullable: false })
+    isSkillsRequired: boolean
+
+    @Column({ nullable: false })
     creatorId: string;
 
     @ManyToMany(() => SkillTag)

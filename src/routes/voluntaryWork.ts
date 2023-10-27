@@ -434,7 +434,7 @@ router.get('/search', authorize("GET_voluntaryWorks"), async (req, res, next) =>
         startedAfter: "", startedBefore: "", creatorId: "",
         avgRatingMore: Number(req.query.avgRatingMore) || 0,
         avgRatingLess: Number(req.query.avgRatingLess) || 0,
-
+        isSkillsRequired: (req.query.startedDate?.toString() || false) as boolean
     };
 
     getVoluntaryWorks(payload)
@@ -500,7 +500,8 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
         startedBefore: req.query.startedBefore?.toString() || "",
         avgRatingMore: Number(req.query.avgRatingMore) || 0,
         avgRatingLess: Number(req.query.avgRatingLess) || 0,
-        creatorId: req.query.creatorId?.toString() || ""
+        creatorId: req.query.creatorId?.toString() || "",
+        isSkillsRequired: (req.query.startedDate?.toString() || false) as boolean
     };
 
     getVoluntaryWorks(payload)

@@ -266,12 +266,20 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
         if (!voluntaryWork) {
             throw createError({ status: 404, message: "Voluntary work" });
         }
+        
 
+        let skillsMatching = false;
+        if (voluntaryWork.isSkillsRequired){
+            skillsMatching= (voluntaryWork.skillTags?.every(skillTag => volunteerProfile.skillTags.some(workSkill => workSkill.id === skillTag.id)))
+        }else{
+            skillsMatching =(voluntaryWork.skillTags?.some(skillTag => volunteerProfile.skillTags.some(workSkill => workSkill.id === skillTag.id)))
+        }
+        
         if (
-            volunteerProfile.availableLocation !== voluntaryWork.location ||
+            volunteerProfile.availableLocation !== voluntaryWork.location || !skillsMatching ||
             !(volunteerProfile.availableDays?.length > 0 && volunteerProfile.availableDays?.every(day => voluntaryWork.days.includes(day))) ||
-            !(volunteerProfile.availableTime?.length > 0 && volunteerProfile.availableTime?.every(time => voluntaryWork.time.includes(time))) ||
-            !(voluntaryWork.skillTags?.every(skillTag => volunteerProfile.skillTags.some(workSkill => workSkill.id === skillTag.id)))
+            !(volunteerProfile.availableTime?.length > 0 && volunteerProfile.availableTime?.every(time => voluntaryWork.time.includes(time))) 
+           
         ) {
             throw new Error("Volunteer's profile information does not align with the VoluntaryWork information");
         }
