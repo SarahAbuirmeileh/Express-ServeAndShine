@@ -478,7 +478,7 @@ router.get('/search', authorize("GET_voluntaryWorks"), async (req, res, next) =>
         });
 });
 
-router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
+router.get('/advanced-search', authorize("GET_analysis"), async (req, res, next) => {
 
     const payload = {
         page: req.query.page?.toString() || '1',
@@ -511,13 +511,13 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
                 userName: res.locals.organizationAdmin?.name,
                 userType: 'root' as NSLogs.userType,
                 type: 'success' as NSLogs.Type,
-                request: 'Analysis Voluntary Work/s'
+                request: 'Advanced search for Voluntary Work/s'
             }).then().catch()
 
             logToCloudWatch(
                 'success',
                 'voluntary work',
-                'Analysis Voluntary Work/s',
+                'Advanced search for Voluntary Work/s',
                 res.locals.organizationAdmin?.id,
                 res.locals.organizationAdmin?.name
             ).then().catch()
@@ -530,13 +530,13 @@ router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
                 userName: res.locals.organizationAdmin?.name,
                 userType: "root" as NSLogs.userType,
                 type: 'failed' as NSLogs.Type,
-                request: 'Analysis Voluntary Work/s'
+                request: 'Advanced search for Voluntary Work/s'
             }).then().catch()
 
             logToCloudWatch(
                 'failed',
                 'voluntary work',
-                'Analysis Voluntary Work/s',
+                'Advanced search for Voluntary Work/s',
                 res.locals.organizationAdmin?.id,
                 res.locals.organizationAdmin?.name
             ).then().catch()
@@ -1815,9 +1815,9 @@ export default router;
 
 /**
  * @swagger
- * /voluntaryWork/analysis:
+ * /voluntaryWork/advanced-search:
  *   get:
- *     summary: Analyze and search for voluntary work entries based on various filters
+ *     summary: Advanced search with a lot of details for voluntary work entries based on various filters
  *     tags: [VoluntaryWork]
  *     parameters:
  *       - in: query

@@ -478,7 +478,6 @@ const getRecommendation = async (payload: NSVoluntaryWork.Recommendation) => {
         if (payload.skillTags?.length > 0) {
             conditions["skillTags"] = { id: payload.skillTags };
         }
-        console.log(conditions);
 
         const [voluntaryWorks, total] = await VoluntaryWork.findAndCount({
             where: conditions,
