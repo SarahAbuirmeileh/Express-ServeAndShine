@@ -2425,26 +2425,41 @@ export default router;
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   volunteerName:
- *                     type: string
- *                     description: Name of the volunteer
- *                   rating:
- *                     type: number
- *                     description: Rating given by the volunteer
- *                   feedback:
- *                     type: string
- *                     description: Feedback provided by the volunteer
+ *               type: object
+ *               properties:
+ *                 avgRating:
+ *                   type: number
+ *                   description: Average rating for the voluntary work
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       volunteerName:
+ *                         type: string
+ *                         description: Name of the volunteer
+ *                       rating:
+ *                         type: number
+ *                         description: Rating given by the volunteer
+ *                       feedback:
+ *                         type: string
+ *                         description: Feedback provided by the volunteer
  *           example:
- *             - volunteerName: "John Doe"
- *               rating: 4
- *               feedback: "Great experience!"
- *             - volunteerName: "Alice Smith"
- *               rating: 5
- *               feedback: "Wonderful opportunity!"
+ *             avgRating: 4.5
+ *             data:
+ *               - volunteerName: "John Doe"
+ *                 rating: 4
+ *                 feedback: "Great experience!"
+ *               - volunteerName: "Alice Smith"
+ *                 rating: 5
+ *                 feedback: "Wonderful opportunity!"
+ *               - volunteerName: "Eve Johnson"
+ *                 rating: 4
+ *                 feedback: "Enjoyed the work but could be improved."
+ *       401:
+ *         description: Unauthorized. You do not have permission to access ratings and feedback.
+ *       403:
+ *         description: Forbidden. You don't have the permission.
  *       404:
  *         description: Voluntary work not found.
  *       500:

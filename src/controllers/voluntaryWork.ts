@@ -254,7 +254,7 @@ const putFeedback = async (id: number, feedbackText: string, volunteerName: stri
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(500, "Internal Server Error when trying to add Feedback");
+        throw createError(500, ", when trying to add Feedback");
     }
 }
 
