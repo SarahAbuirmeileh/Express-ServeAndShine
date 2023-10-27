@@ -4,13 +4,15 @@ import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import createError from 'http-errors';
 
+const error = { status: 500, message: 'when trying to manage organization profile' };
+
 const createOrganizationProfile = async (payload: NSOrganizationProfile.Item) => {
     try {
         const newOrganizationProfile = OrganizationProfile.create({ name: payload.name, description: payload.description });
         return newOrganizationProfile.save();
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to create Organization profile";
+        throw createError(error.status, error.message);
     }
 }
 
@@ -19,13 +21,12 @@ const editOrganizationProfile = async (payload: { id: string, name: string, desc
         let profile = await OrganizationProfile.findOne({ where: { id: payload.id } });
 
         if (profile) {
-
             profile = Object.assign(profile, payload);
             return profile.save();
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Organization" });
+        throw createError(error.status, error.message);
     }
 }
 
@@ -34,7 +35,7 @@ const deleteOrganizationProfile = async (profileId: string) => {
         return OrganizationProfile.delete(profileId);
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Organization" });
+        throw createError(error.status, error.message);
     }
 }
 
@@ -46,30 +47,46 @@ const searchOrganizationProfile = async (payload: {
     adminName: string
 }) => {
     try {
-        const page = parseInt(payload.page);
-        const pageSize = parseInt(payload.pageSize);
 
         if (payload.id) {
-            return OrganizationProfile.findOne({ where: { id: payload.id } })
+            const organization = await OrganizationProfile.findOne({ where: { id: payload.id } })
+
+            if (organization) {
+                return organization;
+            } else {
+                error.status = 404;
+                error.message = "Organization";
+                throw error;
+            }
         }
 
         if (payload.name) {
-            return OrganizationProfile.findOne({ where: { name: payload.name } })
+            const organization = await OrganizationProfile.findOne({ where: { name: payload.name } })
+
+            if (organization) {
+                return organization;
+            } else {
+                error.status = 404;
+                error.message = "Organization";
+                throw error;
+            }
         }
 
         if (payload.adminName) {
-            const admin = await OrganizationAdmin.findOne({ where: { name: payload.adminName }, relations:["orgProfile"] });
-            
+            const admin = await OrganizationAdmin.findOne({ where: { name: payload.adminName }, relations: ["orgProfile"] });
+
             if (admin) {
                 return admin.orgProfile;
             } else {
-                throw createError({ status: 404, message: "Admin" });
+                error.status = 404;
+                error.message = "Organization";
+                throw error;
             }
         }
 
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Organization" });
+        throw createError(error.status, error.message);
     }
 }
 
@@ -98,7 +115,7 @@ const getOrganizationProfile = async (payload: {
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Organization" });
+        throw createError(error.status, error.message);
     }
 }
 

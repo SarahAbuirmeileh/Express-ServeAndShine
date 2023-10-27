@@ -7,6 +7,8 @@ import { Role } from "../db/entities/Role.js";
 import { Not } from "typeorm";
 import baseLogger from "../../logger.js";
 
+const error = { status: 500, message: 'when trying to manage organization admin' };
+
 const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
     try {
         const newOrganizationAdmin = OrganizationAdmin.create(payload);
@@ -23,11 +25,13 @@ const createOrganizationAdmin = async (payload: NSOrganizationAdmin.Item) => {
             newOrganizationAdmin.orgProfile = organization;
             return newOrganizationAdmin.save();
         } else {
-            throw createError({status: 404, message: "Organization"});
+            error.status = 404;
+            error.message = "Organization";
+            throw error;
         }
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to create Organization admin";
+        throw createError(error.status, error.message);
     }
 }
 
@@ -44,22 +48,43 @@ const getOrganizationAdmins = async (payload: {
 
     try {
         if (payload.id) {
-            return OrganizationAdmin.findOne({
+            const admin = await OrganizationAdmin.findOne({
                 where: { id: payload.id, name: Not("root") },
                 select: ["name", "email", "createdAt"]
             })
+            if (admin) {
+                return admin;
+            } else {
+                error.status = 404;
+                error.message = "Admin";
+                throw error;
+            }
         }
         if (payload.name) {
-            return OrganizationAdmin.findOne({
+            const admin = await OrganizationAdmin.findOne({
                 where: { name: payload.name === 'root' ? "" : payload.name },
                 select: ["name", "email", "createdAt"]
             })
+            if (admin) {
+                return admin;
+            } else {
+                error.status = 404;
+                error.message = "Admin";
+                throw error;
+            }
         }
         if (payload.email) {
-            return OrganizationAdmin.findOne({
+            const admin = await OrganizationAdmin.findOne({
                 where: { email: payload.email, name: Not("root") },
                 select: ["name", "email", "createdAt"]
             })
+            if (admin) {
+                return admin;
+            } else {
+                error.status = 404;
+                error.message = "Admin";
+                throw error;
+            }
         }
         if (payload.organizationName) {
 
@@ -68,7 +93,9 @@ const getOrganizationAdmins = async (payload: {
                 const admin = await OrganizationAdmin.findOne({ where: { orgProfile: { id: organization.id } } });
                 return { name: admin?.name, createdAt: admin?.createdAt, email: admin?.email };
             } else {
-                throw createError({status: 404, message: "Organization"});
+                error.status = 404;
+                error.message = "Organization";
+                throw error;
             }
         }
 
@@ -92,7 +119,7 @@ const getOrganizationAdmins = async (payload: {
         };
     } catch (err) {
         baseLogger.error(err)
-        throw createError({status: 404, message: "Organization admin"});
+        throw createError(error.status, error.message);
     }
 }
 
@@ -101,7 +128,9 @@ const deleteOrganizationAdmin = async (adminId: string) => {
         return OrganizationAdmin.delete(adminId);
     } catch (err) {
         baseLogger.error(err);
-        throw createError({status: 404, message: "Organization admin"});
+        error.status = 500;
+        error.message = "when trying to delete the admin";
+        throw createError(error.status, error.message);
     }
 }
 
@@ -117,14 +146,18 @@ const editOrganizationAdmin = async (payload: { id: string, name: string, email:
 
             if (payload.newPassword) {
                 if (!payload.oldPassword) {
-                    throw "Old password is needed !";
+                    error.status = 400;
+                    error.message = "old password is required";
+                    throw error;
                 }
 
                 const passwordMatching = await bcrypt.compare(payload.oldPassword, admin?.password || '');
                 if (passwordMatching) {
                     admin.password = await bcrypt.hash(payload.newPassword, 10);
                 } else {
-                    throw "The old password isn't correct !"
+                    error.status = 400;
+                    error.message = "the old password isn't correct";
+                    throw error;
                 }
             }
             if (payload.organizationName) {
@@ -138,11 +171,13 @@ const editOrganizationAdmin = async (payload: { id: string, name: string, email:
 
 
         } else {
-            throw createError({status: 404, message: "Organization admin"});
+            error.status = 404;
+            error.message = "Organization";
+            throw error;
         }
     } catch (err) {
         baseLogger.error(err)
-        throw createError(404);
+        throw createError(error.status, error.message);
     }
 }
 

@@ -52,7 +52,7 @@ const validateAdminEdited = async (req: express.Request,
             type: 'failed' as NSLogs.Type,
             request: 'Bad Organization Admin Request'
         }).then().catch()
-        next(createError(404));
+        next(createError(404, "Organization admin"));
     }
 
     if (organizationAdmin.email) {
@@ -91,7 +91,7 @@ const validateAdminId = async (req: express.Request,
             type: 'failed' as NSLogs.Type,
             request: 'Bad Organization Admin Request'
         }).then().catch()
-        next(createError(404));
+        next(createError(404, "Organization admin"));
     } else {
         next();
     }
