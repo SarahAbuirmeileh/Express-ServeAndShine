@@ -546,7 +546,7 @@ const deleteImage = async (voluntaryWorkId: number, imageName: string) => {
 const calculateAvgRating = async (voluntaryWorkId: number) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: voluntaryWorkId } });
     if (voluntaryWork) {
-        const avgRating =  voluntaryWork.rating.reduce((acc, item) => { return (acc + item.rating) }, 0) / voluntaryWork.rating.length;
+        const avgRating = voluntaryWork.rating.reduce((acc, item) => { return (acc + item.rating) }, 0) / voluntaryWork.rating.length;
         return parseFloat(avgRating.toFixed(1));
     }
 }
@@ -556,7 +556,7 @@ const getFeedbackAndRating = async (id: number) => {
     if (voluntaryWork) {
         const feedback = voluntaryWork.feedback;
         const rating = voluntaryWork.rating;
-        const result:any = [];
+        const result: any = [];
 
         rating.forEach(item => {
             const volunteerFeedback = feedback.find(f => f.volunteerName === item.volunteerName);
@@ -576,15 +576,38 @@ const getFeedbackAndRating = async (id: number) => {
                 });
             }
         });
-        
+
         const avgRating = voluntaryWork.avgRating;
         return { avgRating, data: result };
     }
 }
 
+const deleteRating = async (id: number, volunteerName: string) => {
+    try {
+        let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
+        if (voluntaryWork) {
+            const existingRatingIndex = voluntaryWork.rating.findIndex(item => item.volunteerName === volunteerName);
+            if (existingRatingIndex !== -1) {
+                voluntaryWork.rating.splice(existingRatingIndex, 1);
+                await voluntaryWork.save();
+                voluntaryWork.avgRating = await calculateAvgRating(id) || 0;
+                await voluntaryWork.save();
+            } else {
+                throw createError(404, "Rating not found for the volunteer");
+            }
+        } else {
+            throw createError(404, "Voluntary work not found");
+        }
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError(500, "Internal Server Error");
+    }
+};
+
+
 export {
     deregisterVoluntaryWork, registerByOrganizationAdmin,
-    registerByVolunteer, createVoluntaryWork,
+    registerByVolunteer, createVoluntaryWork, deleteRating,
     putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
     getVoluntaryWorks, deleteVoluntaryWork, getFeedbackAndRating,
     generateCertificate, getImages, getVoluntaryWorksForVolunteer,
