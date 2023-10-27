@@ -702,7 +702,7 @@ router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), chec
         logToCloudWatch(
             'success',
             'voluntary work',
-            'Add Rating to voluntary work with id' + req.params.id,
+            'Add or update Rating to voluntary work with id' + req.params.id,
             res.locals.volunteer?.id,
             res.locals.volunteer?.name
         ).then().catch()
@@ -714,13 +714,13 @@ router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), chec
             userName: res.locals.volunteer?.name,
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Add Rating to voluntary work with id' + req.params.id
+            request: 'Add or update Rating to voluntary work with id' + req.params.id
         }).then().catch()
 
         logToCloudWatch(
             'failed',
             'voluntary work',
-            'Add Rating to voluntary work with id' + req.params.id,
+            'Add or update Rating to voluntary work with id' + req.params.id,
             res.locals.volunteer?.id,
             res.locals.volunteer?.name
         ).then().catch()
@@ -736,31 +736,31 @@ router.put("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_feedback"), 
             userName: res.locals.volunteer?.name,
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Add feedback to voluntary work with id' + req.params.id
+            request: 'Add or update feedback to voluntary work with id' + req.params.id
         }).then().catch()
 
         logToCloudWatch(
             'success',
             'voluntary work',
-            'Add feedback to voluntary work with id' + req.params.id,
+            'Add or update feedback to voluntary work with id' + req.params.id,
             res.locals.volunteer?.id,
             res.locals.volunteer?.name
         ).then().catch()
 
-        res.status(201).send("Feedback added successfully!!")
+        res.status(201).send("Feedback or update added successfully!!")
     }).catch(err => {
         log({
             userId: res.locals.volunteer?.id,
             userName: res.locals.organizationAdmin?.name,
             userType: res.locals.volunteer?.type as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Add feedback to voluntary work with id' + req.params.id
+            request: 'Add or update feedback to voluntary work with id' + req.params.id
         }).then().catch()
 
         logToCloudWatch(
             'failed',
             'voluntary work',
-            'Add feedback to voluntary work with id' + req.params.id,
+            'Add or update feedback to voluntary work with id' + req.params.id,
             res.locals.volunteer?.id,
             res.locals.volunteer?.name
         ).then().catch()

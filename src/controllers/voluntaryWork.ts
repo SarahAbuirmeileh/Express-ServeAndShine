@@ -218,32 +218,46 @@ const putRating = async (id: number, rating: number, volunteerName: string) => {
     try {
         let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
         if (voluntaryWork) {
-            voluntaryWork.rating.push({ volunteerName, rating });
+            const existingRating = voluntaryWork.rating.find(item => item.volunteerName === volunteerName);
+            if (existingRating) {
+                existingRating.rating = rating;
+            } else {
+                voluntaryWork.rating.push({ volunteerName, rating });
+            }
+
+            await voluntaryWork.save();
             voluntaryWork.avgRating = await calculateAvgRating(id) || 0;
             await voluntaryWork.save();
         } else {
-            throw createError({ status: 404, message: "Voluntary work" });
+            throw createError(404, "Voluntary work not found");
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404,);
+        throw createError(500, "Internal Server Error");
     }
 }
 
-const putFeedback = async (id: number, feedback: string, volunteerName: string) => {
+
+const putFeedback = async (id: number, feedbackText: string, volunteerName: string) => {
     try {
         let voluntaryWork = await VoluntaryWork.findOne({ where: { id } });
         if (voluntaryWork) {
-            voluntaryWork.feedback.push({ volunteerName, feedback });
+            const existingFeedback = voluntaryWork.feedback.find(item => item.volunteerName === volunteerName);
+            if (existingFeedback) {
+                existingFeedback.feedback = feedbackText;
+            } else {
+                voluntaryWork.feedback.push({ volunteerName, feedback: feedbackText });
+            }
             await voluntaryWork.save();
         } else {
-            throw createError({ status: 404, message: "Voluntary work" });
+            throw createError(404, "Voluntary work not found");
         }
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to add Feedback";
+        throw createError(500, "Internal Server Error when trying to add Feedback");
     }
 }
+
 
 const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["volunteerProfile"]) => {
     try {
@@ -532,7 +546,8 @@ const deleteImage = async (voluntaryWorkId: number, imageName: string) => {
 const calculateAvgRating = async (voluntaryWorkId: number) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: voluntaryWorkId } });
     if (voluntaryWork) {
-        return voluntaryWork.rating.reduce((acc, item) => { return acc + item.rating }, 0) / voluntaryWork.rating.length;
+        const avgRating =  voluntaryWork.rating.reduce((acc, item) => { return (acc + item.rating) }, 0) / voluntaryWork.rating.length;
+        return parseFloat(avgRating.toFixed(1));
     }
 }
 
@@ -541,7 +556,29 @@ const getFeedbackAndRating = async (id: number) => {
     if (voluntaryWork) {
         const feedback = voluntaryWork.feedback;
         const rating = voluntaryWork.rating;
-        return rating.map(item => { return { ...item, feedback: feedback.find(f => f.volunteerName === item.volunteerName)?.feedback } })
+        const result:any = [];
+
+        rating.forEach(item => {
+            const volunteerFeedback = feedback.find(f => f.volunteerName === item.volunteerName);
+            result.push({
+                volunteerName: item.volunteerName,
+                rating: item.rating,
+                feedback: volunteerFeedback ? volunteerFeedback.feedback : ''
+            });
+        });
+
+        feedback.forEach(item => {
+            if (!rating.some(ratingItem => ratingItem.volunteerName === item.volunteerName)) {
+                result.push({
+                    volunteerName: item.volunteerName,
+                    rating: '',
+                    feedback: item.feedback
+                });
+            }
+        });
+        
+        const avgRating = voluntaryWork.avgRating;
+        return { avgRating, data: result };
     }
 }
 

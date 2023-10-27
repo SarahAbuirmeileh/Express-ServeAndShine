@@ -47,7 +47,7 @@ export class VoluntaryWork extends BaseEntity {
     @Column({ type: 'json', nullable: true })
     images: string[];
 
-    @Column({ nullable: true, default:0 })
+    @Column({ nullable: true, default: 0.0, type: 'float' })
     avgRating: number;
 
     @Column({ type: 'json', nullable: true })
