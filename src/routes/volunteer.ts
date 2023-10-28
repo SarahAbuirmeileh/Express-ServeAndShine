@@ -1,7 +1,7 @@
 import express from 'express';
 import { authorize, checkMe } from '../middleware/auth/authorize.js';
 import { authenticate } from '../middleware/auth/authenticate.js';
-import { validateEditedVolunteer, validateVolunteer, validateVolunteerId } from '../middleware/validation/volunteer.js';
+import { validateEditedVolunteer, validateLogin, validateVolunteer, validateVolunteerId } from '../middleware/validation/volunteer.js';
 import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login } from '../controllers/volunteer.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { log } from '../controllers/dataBaseLogger.js';
@@ -90,7 +90,7 @@ router.post('/signup', validateVolunteer, (req, res, next) => {
     });
 });
 
-router.post('/login', (req, res, next) => {
+router.post('/login',validateLogin, (req, res, next) => {
     const email = req.body.email;
     const name = req.body.name;
     const id = req.body.id;
