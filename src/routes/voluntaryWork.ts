@@ -2638,4 +2638,72 @@ export default router;
  *         description: Something went wrong
  */
 
+/**
+ * @swagger
+ * /voluntaryWork/analysis:
+ *   get:
+ *     summary: Get analysis of the voluntary work system
+ *     tags: [VoluntaryWork]
+ *     responses:
+ *       200:
+ *         description: Analysis of the voluntary work system
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 avgRating:
+ *                   type: object
+ *                   description: Distribution of average ratings.
+ *                   example:
+ *                     '0-1': 10,
+ *                     '1-2': 20,
+ *                     '2-3': 30,
+ *                     '3-4': 40,
+ *                     '4-5': 50
+ *                 status:
+ *                   type: object
+ *                   description: Distribution of voluntary work statuses.
+ *                   example:
+ *                     'Pending': 5,
+ *                     'In Progress': 10,
+ *                     'Finished': 20,
+ *                     'Canceled': 3
+ *                 location:
+ *                   type: object
+ *                   description: Distribution of voluntary work locations.
+ *                   example:
+ *                     'Location A': 15,
+ *                     'Location B': 25,
+ *                     'Location C': 10
+ *                 capacity:
+ *                   type: object
+ *                   description: Distribution of voluntary work capacities.
+ *                   example:
+ *                     20: 15,
+ *                     30: 25,
+ *                     40: 10
+ *                 startedDates:
+ *                   type: object
+ *                   description: Distribution of when voluntary works were started.
+ *                   example:
+ *                     'Last Week': 5,
+ *                     'Last Month': 10,
+ *                     'Last Year': 20
+ *                 finishedDates:
+ *                   type: object
+ *                   description: Distribution of when voluntary works were finished.
+ *                   example:
+ *                     'Last Week': 3,
+ *                     'Last Month': 7,
+ *                     'Last Year': 15
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description:  You don't have the permission.
+ *       500:
+ *         description: Something went wrong 
+ */
+
+
 
