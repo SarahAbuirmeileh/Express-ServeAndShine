@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteFeedback, deleteImage, deleteRating, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getFeedbackAndRating, getImages, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteFeedback, deleteImage, deleteRating, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getAnalysis, getFeedbackAndRating, getImages, getOrganizationAnalysis, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -15,7 +15,7 @@ import { VoluntaryWork } from '../db/entities/VoluntaryWork.js';
 import { Volunteer } from '../db/entities/Volunteer.js';
 import { SkillTag } from '../db/entities/SkillTag.js';
 import baseLogger from '../../logger.js';
-import { validateOrganizationProfile } from '../middleware/validation/organizationProfile.js';
+import { validateOrgId, validateOrganizationProfile } from '../middleware/validation/organizationProfile.js';
 
 var router = express.Router();
 
@@ -537,6 +537,90 @@ router.get('/advanced-search', authorize("GET_analysis"), async (req, res, next)
                 'failed',
                 'voluntary work',
                 'Advanced search for Voluntary Work/s',
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+});
+
+router.get('/analysis', authorize("GET_analysis"), async (req, res, next) => {
+    getAnalysis()
+        .then(data => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: 'root' as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Analyze the system '
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Analyze the system ',
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: "root" as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Analyze the system '
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Analyze the system ',
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+});
+
+router.get('/analysis/:id', authorize("DELETE_organizationProfile"), validateOrgId, async (req, res, next) => {
+    getOrganizationAnalysis(req.params.id.toString())
+        .then(data => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: 'root' as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Analyze the organization voluntary works with id ' + req.params.id.toString()
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Analyze the organization voluntary works ',
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: "root" as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Analyze the organization voluntary works with id ' + req.params.id.toString()
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Analyze the organization voluntary works ',
                 res.locals.organizationAdmin?.id,
                 res.locals.organizationAdmin?.name
             ).then().catch()
@@ -2596,4 +2680,153 @@ export default router;
  *         description: Something went wrong
  */
 
+/**
+ * @swagger
+ * /voluntaryWork/analysis:
+ *   get:
+ *     summary: Get analysis of the voluntary work system
+ *     tags: [VoluntaryWork]
+ *     responses:
+ *       200:
+ *         description: Analysis of the voluntary work system
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 avgRating:
+ *                   type: object
+ *                   description: Distribution of average ratings.
+ *                   example:
+ *                     '0-1': 10,
+ *                     '1-2': 20,
+ *                     '2-3': 30,
+ *                     '3-4': 40,
+ *                     '4-5': 50
+ *                 status:
+ *                   type: object
+ *                   description: Distribution of voluntary work statuses.
+ *                   example:
+ *                     'Pending': 5,
+ *                     'In Progress': 10,
+ *                     'Finished': 20,
+ *                     'Canceled': 3
+ *                 location:
+ *                   type: object
+ *                   description: Distribution of voluntary work locations.
+ *                   example:
+ *                     'Location A': 15,
+ *                     'Location B': 25,
+ *                     'Location C': 10
+ *                 capacity:
+ *                   type: object
+ *                   description: Distribution of voluntary work capacities.
+ *                   example:
+ *                     20: 15,
+ *                     30: 25,
+ *                     40: 10
+ *                 startedDates:
+ *                   type: object
+ *                   description: Distribution of when voluntary works were started.
+ *                   example:
+ *                     'Last Week': 5,
+ *                     'Last Month': 10,
+ *                     'Last Year': 20
+ *                 finishedDates:
+ *                   type: object
+ *                   description: Distribution of when voluntary works were finished.
+ *                   example:
+ *                     'Last Week': 3,
+ *                     'Last Month': 7,
+ *                     'Last Year': 15
+ *                 voluntaryWorkNumbers:
+ *                   type: integer
+ *                   description: Total number of voluntary works.
+ *                   example: 100
+ *       401:
+ *         description: You are unauthorized
+ *       403:
+ *         description: You don't have the permission.
+ *       500:
+ *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /voluntaryWork/analysis/{id}:
+ *   get:
+ *     summary: Get analysis of an organization's voluntary works
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Organization ID
+ *         schema:
+ *           type: string
+ *         example: "12345"
+ *     responses:
+ *       200:
+ *         description: Analysis of the organization's voluntary works
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 voluntaryWorkNumbers:
+ *                   type: integer
+ *                   description: Total number of voluntary works within the organization.
+ *                   example: 100
+ *                 avgRating:
+ *                   type: object
+ *                   description: Distribution of average ratings within the organization's voluntary works.
+ *                   example:
+ *                     '0-1': 10,
+ *                     '1-2': 20,
+ *                     '2-3': 30,
+ *                     '3-4': 40,
+ *                     '4-5': 50
+ *                 status:
+ *                   type: object
+ *                   description: Distribution of voluntary work statuses within the organization.
+ *                   example:
+ *                     'Pending': 5,
+ *                     'In Progress': 10,
+ *                     'Finished': 20,
+ *                     'Canceled': 3
+ *                 location:
+ *                   type: object
+ *                   description: Distribution of voluntary work locations within the organization.
+ *                   example:
+ *                     'Location A': 15,
+ *                     'Location B': 25,
+ *                     'Location C': 10
+ *                 capacity:
+ *                   type: object
+ *                   description: Distribution of voluntary work capacities within the organization.
+ *                   example:
+ *                     20: 15,
+ *                     30: 25,
+ *                     40: 10
+ *                 startedDates:
+ *                   type: object
+ *                   description: Distribution of when voluntary works were started within the organization.
+ *                   example:
+ *                     'Last Week': 5,
+ *                     'Last Month': 10,
+ *                     'Last Year': 20
+ *                 finishedDates:
+ *                   type: object
+ *                   description: Distribution of when voluntary works were finished within the organization.
+ *                   example:
+ *                     'Last Week': 3,
+ *                     'Last Month': 7,
+ *                     'Last Year': 15
+ *       401:
+ *         description: You are unauthorized.
+ *       403:
+ *         description: You don't have the permission.
+ *       500:
+ *         description: Something went wrong
+ */
 
