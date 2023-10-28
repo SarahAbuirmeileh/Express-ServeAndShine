@@ -3,14 +3,16 @@ import { NSPermission } from "../../types/permission.js";
 import { Permission } from "../db/entities/Permission.js"
 import createError from 'http-errors';
 
+const error = { status: 500, message: 'when trying to manage permission' };
+
 const createPermission = async (payload: NSPermission.Item) => {
   try {
     const newPermission = Permission.create(payload)
     return newPermission.save();
   }
-  catch (error) {
-    baseLogger.error(error);
-    throw ", when trying to create Permission";
+  catch (err) {
+    baseLogger.error(err);
+    throw createError(error.status, error.message);
   }
 }
 
@@ -19,7 +21,7 @@ const deletePermission = async (permissionId: number) => {
     return Permission.delete(permissionId);
   } catch (err) {
     baseLogger.error(err);
-    throw createError({status: 404, message: "Permission"});
+    throw createError(error.status, error.message);
   }
 }
 
@@ -34,7 +36,7 @@ const editPermission = async (payload: { name: string, id: number }) => {
     }
   } catch (err) {
     baseLogger.error(err);
-    throw createError({status: 404, message: "Permission"});
+    throw createError(error.status, error.message);
   }
 }
 
@@ -73,7 +75,7 @@ const getPermissions = async (payload: {
     };
   } catch (err) {
     baseLogger.error(err);
-    throw createError({status: 404, message: "Permission"});
+    throw createError(error.status, error.message);
   }
 }
 

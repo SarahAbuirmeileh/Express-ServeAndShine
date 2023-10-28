@@ -204,12 +204,6 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
             return true;
         });
 
-        if (filteredVolunteers.length == 0) {
-            error.status = 404;
-            error.message = "Volunteer";
-            throw error;
-        }
-
         const finalFilteredVolunteers = filteredVolunteers.filter((volunteer) => {
             if (payload.availableTime && payload.availableTime.length > 0) {
                 if (!volunteer.volunteerProfile || !volunteer.volunteerProfile.availableTime) {
@@ -227,6 +221,12 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
 
             return true;
         });
+
+        if (finalFilteredVolunteers.length == 0) {
+            error.status = 404;
+            error.message = "Volunteer";
+            throw error;
+        }
 
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;

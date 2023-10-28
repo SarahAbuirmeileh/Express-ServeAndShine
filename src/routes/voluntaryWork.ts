@@ -2829,4 +2829,3 @@ export default router;
  *       500:
  *         description: Something went wrong
  */
-

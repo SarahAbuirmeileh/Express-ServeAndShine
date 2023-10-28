@@ -33,8 +33,8 @@ app.get("/health", function (req, res) {
 })
 
 app.use('/', indexRouter);
-app.use('/permission', authenticate, permissionRouter);
-app.use('/role', authenticate, roleRouter);
+app.use('/permission', /*authenticate, */permissionRouter);
+app.use('/role', /*authenticate, */roleRouter);
 app.use('/voluntaryWork', authenticate, voluntaryWorkRouter);
 app.use('/organizationAdmin', organizationAdminRouter);
 app.use('/organizationProfile', authenticate, organizationProfileRouter);
@@ -42,7 +42,7 @@ app.use("/volunteer", volunteerRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  next(createError(404));
+  next(createError(404, "The page"));
 });
 app.use(errorHandler);
 

@@ -9,7 +9,7 @@ import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
 
 var router = express.Router();
 
-router.post('/', authorize("POST_role"), validateRole, (req, res, next) => {
+router.post('/', /*authorize("POST_role"), */validateRole, (req, res, next) => {
     createRole(req.body).then((data) => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -49,7 +49,7 @@ router.post('/', authorize("POST_role"), validateRole, (req, res, next) => {
     });
 });
 
-router.delete('/:id', validateRoleId, authorize("DELETE_role"), async (req, res, next) => {
+router.delete('/:id', validateRoleId, /*authorize("DELETE_role"),*/ async (req, res, next) => {
     const id = Number(req.params.id?.toString());
 
     deleteRole(id)
@@ -93,7 +93,7 @@ router.delete('/:id', validateRoleId, authorize("DELETE_role"), async (req, res,
         });
 })
 
-router.put("/:id", authorize("PUT_role"), validateEditedRole, async (req, res, next) => {
+router.put("/:id", /*authorize("PUT_role"), */validateEditedRole, async (req, res, next) => {
     editRole({ ...req.body, id: req.params.id?.toString() }).then(() => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -133,7 +133,7 @@ router.put("/:id", authorize("PUT_role"), validateEditedRole, async (req, res, n
     });
 });
 
-router.get('/', authorize("GET_roles"), async (req, res, next) => {
+router.get('/',/* authorize("GET_roles"),*/ async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
