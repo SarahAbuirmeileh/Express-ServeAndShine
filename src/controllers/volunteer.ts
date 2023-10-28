@@ -40,12 +40,12 @@ const createVolunteer = async (payload: NSVolunteer.Item) => {
             newVolunteer.volunteerProfile = profile;
 
             const role = await Role.findOne({ where: { name: payload.type } });
-            if (role) {                
+            if (role) {
                 newVolunteer.roles = [role];
             }
 
             await transaction.save(newVolunteer);
-            profile.volunteer=newVolunteer;
+            profile.volunteer = newVolunteer;
             await transaction.save(profile);
             return newVolunteer
         });
@@ -141,7 +141,6 @@ const login = async (email: string, name: string, id: string) => {
 
 const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSize: string }) => {
     try {
-
         const page = parseInt(payload.page);
         const pageSize = parseInt(payload.pageSize);
         const conditions: Record<string, any> = {};
@@ -155,17 +154,11 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
         if (payload.email) {
             conditions["email"] = payload.email;
         }
-        if (payload.availableTime.length > 0) {
-            conditions["availableTime"] = In(payload.availableTime);
-        }
         if (payload.availableLocation) {
-            conditions["availableLocation"] = Like(`%${payload.availableLocation}%`);
+            conditions["volunteerProfile"] = {availableLocation:Like(`%${payload.availableLocation}%`)};
         }
         if (payload.type) {
             conditions["type"] = payload.type;
-        }
-        if (payload.availableDays.length > 0) {
-            conditions["availableDays"] = In(payload.availableDays);
         }
         const [volunteers, total] = await Volunteer.findAndCount({
             where: conditions,
@@ -185,7 +178,6 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
         });
 
         const processedVolunteers = volunteers.map((volunteer) => {
-            // Create a new volunteer object with the desired properties
             return {
                 name: volunteer.name,
                 email: volunteer.email,
@@ -204,7 +196,6 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
             };
         });
 
-
         const filteredVolunteers = processedVolunteers.filter((volunteer) => {
             if (payload.skills.length > 0) {
                 const hasMatchingSkill = volunteer.volunteerProfile.skillTags.some((skillTag) => payload.skills.includes(skillTag.name));
@@ -213,19 +204,38 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
             return true;
         });
 
-        if (filteredVolunteers.length==0) {
+        if (filteredVolunteers.length == 0) {
             error.status = 404;
             error.message = "Volunteer";
             throw error;
         }
+
+        const finalFilteredVolunteers = filteredVolunteers.filter((volunteer) => {
+            if (payload.availableTime && payload.availableTime.length > 0) {
+                if (!volunteer.volunteerProfile || !volunteer.volunteerProfile.availableTime) {
+                    return false;
+                }
+                return payload.availableTime.every(time => volunteer.volunteerProfile.availableTime.includes(time));
+            }
+
+            if (payload.availableDays && payload.availableDays.length > 0) {
+                if (!volunteer.volunteerProfile || !volunteer.volunteerProfile.availableDays) {
+                    return false;
+                }
+                return payload.availableDays.every(day => volunteer.volunteerProfile.availableDays.includes(day));
+            }
+
+            return true;
+        });
+
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;
-        const paginatedVolunteers = filteredVolunteers.slice(startIndex, endIndex);
+        const paginatedVolunteers = finalFilteredVolunteers.slice(startIndex, endIndex);
 
         return {
             page,
             pageSize: paginatedVolunteers.length,
-            total: filteredVolunteers.length,
+            total: finalFilteredVolunteers.length,
             volunteers: paginatedVolunteers,
         };
     } catch (err) {
@@ -233,6 +243,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
         throw createError(error.status, error.message);
     }
 }
+
 
 export { getVolunteers, login, createVolunteer, deleteVolunteer, editVolunteer }
 
