@@ -8,6 +8,9 @@ import createError from 'http-errors';
 import baseLogger from "../../logger.js";
 import { invokeLambdaFunction } from "./AWSServices/LambdaFunction.js";
 import { sendEmail } from "./AWSServices/SES.js";
+import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
+import { searchOrganizationProfile } from "./OrganizationProfile .js";
+import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
     try {
@@ -17,6 +20,11 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
         const skillTags = await SkillTag.find({
             where: { id: In(payload.skillTagIds) },
         });
+        const organizationAdmin = await OrganizationAdmin.findOne({ where: { id: payload.creatorId } });
+        const organization = await searchOrganizationProfile({ page: '', pageSize: '', id: "", name: "", adminName: organizationAdmin?.name || "" })
+        organization?.voluntaryWork.push(newVoluntaryWork);
+        await organization?.save();
+
         newVoluntaryWork.skillTags = skillTags;
         newVoluntaryWork.feedback = [];
         newVoluntaryWork.rating = [];
@@ -633,7 +641,7 @@ const deleteFeedback = async (id: number, volunteerName: string) => {
 
 const getAnalysis = async () => {
     const voluntaryWorks = await VoluntaryWork.find();
-    
+
     const avgRating: Record<string, number> = {
         '0-1': 0, '1-2': 0, '2-3': 0, '3-4': 0, '4-5': 0,
     };
@@ -652,7 +660,7 @@ const getAnalysis = async () => {
         'Last Month': 0,
         'Last Year': 0,
     };
-    
+
     const finishedDates: Record<string, number> = {
         'Last Week': 0,
         'Last Month': 0,
@@ -710,6 +718,7 @@ const getAnalysis = async () => {
     });
 
     return {
+        voluntaryWorkNumbers: voluntaryWorks.length,
         avgRating,
         status,
         location,
@@ -719,11 +728,108 @@ const getAnalysis = async () => {
     };
 }
 
+const getOrganizationAnalysis = async (organizationId: string) => {
+    try {
+
+        const organization = await OrganizationProfile.findOne({ where: { id: organizationId }, relations: ["voluntaryWork"] });
+        const voluntaryWorks = organization?.voluntaryWork;
+
+        const avgRating: Record<string, number> = {
+            '0-1': 0, '1-2': 0, '2-3': 0, '3-4': 0, '4-5': 0,
+        };
+
+        const status: Record<string, number> = {
+            'Pending': 0,
+            'In Progress': 0,
+            'Finished': 0,
+            'Canceled': 0,
+        };
+
+        const location: Record<string, number> = {};
+        const capacity: Record<number, number> = {};
+        const startedDates: Record<string, number> = {
+            'Last Week': 0,
+            'Last Month': 0,
+            'Last Year': 0,
+        };
+
+        const finishedDates: Record<string, number> = {
+            'Last Week': 0,
+            'Last Month': 0,
+            'Last Year': 0,
+        };
+
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+        voluntaryWorks?.forEach(work => {
+            const range = Math.floor(work.avgRating);
+            if (range >= 0 && range <= 4) {
+                avgRating[`${range}-${range + 1}`]++;
+            }
+
+            status[work.status]++;
+
+            if (location[work.location]) {
+                location[work.location]++;
+            } else {
+                location[work.location] = 1;
+            }
+
+            if (capacity[work.capacity]) {
+                capacity[work.capacity]++;
+            } else {
+                capacity[work.capacity] = 1;
+            }
+
+            const startedDate = new Date(work.startedDate);
+            if (startedDate >= oneWeekAgo) {
+                startedDates['Last Week']++;
+            } else if (startedDate >= oneMonthAgo) {
+                startedDates['Last Month']++;
+            } else if (startedDate >= oneYearAgo) {
+                startedDates['Last Year']++;
+            }
+
+            if (work.finishedDate) {
+                const finishedDate = new Date(work.finishedDate);
+                if (finishedDate >= oneWeekAgo) {
+                    finishedDates['Last Week']++;
+                } else if (finishedDate >= oneMonthAgo) {
+                    finishedDates['Last Month']++;
+                } else if (finishedDate >= oneYearAgo) {
+                    finishedDates['Last Year']++;
+                }
+            }
+        });
+
+        return {
+            voluntaryWorkNumbers: voluntaryWorks?.length,
+            avgRating,
+            status,
+            location,
+            capacity,
+            startedDates,
+            finishedDates
+        };
+
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError(500, "Internal Server Error");
+    }
+}
+
 export {
-    registerByVolunteer, createVoluntaryWork, deleteRating,
-    putFeedback, editVoluntaryWork, putRating, getVoluntaryWork,
     getVoluntaryWorks, deleteVoluntaryWork, getFeedbackAndRating,
     generateCertificate, getImages, getVoluntaryWorksForVolunteer,
-    volunteerReminder, getRecommendation, deleteImage, deleteFeedback,
+    registerByVolunteer, createVoluntaryWork, getOrganizationAnalysis,
     deregisterVoluntaryWork, registerByOrganizationAdmin, getAnalysis,
+    putFeedback, editVoluntaryWork, putRating, deleteImage, deleteRating,
+    volunteerReminder, getRecommendation, getVoluntaryWork, deleteFeedback,
 }
