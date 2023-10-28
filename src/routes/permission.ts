@@ -8,7 +8,7 @@ import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
 
 var router = express.Router();
 
-router.post('/', /*authorize("POST_permission"), */validatePermission, (req, res, next) => {
+router.post('/', authorize("POST_permission"), validatePermission, (req, res, next) => {
     createPermission(req.body).then((data) => {
 
         log({
@@ -49,7 +49,7 @@ router.post('/', /*authorize("POST_permission"), */validatePermission, (req, res
     });
 });
 
-router.delete('/:id', validatePermissionId, /*authorize("DELETE_permission"), */async (req, res, next) => {
+router.delete('/:id', validatePermissionId, authorize("DELETE_permission"), async (req, res, next) => {
     const id = Number(req.params.id?.toString());
 
     deletePermission(id)
@@ -93,7 +93,7 @@ router.delete('/:id', validatePermissionId, /*authorize("DELETE_permission"), */
         });
 })
 
-router.put("/:id",/* authorize("PUT_permission"),*/ validatePermissionId, async (req, res, next) => {
+router.put("/:id", authorize("PUT_permission"), validatePermissionId, async (req, res, next) => {
     editPermission({ ...req.body, id: req.params.id?.toString() }).then(() => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -133,7 +133,7 @@ router.put("/:id",/* authorize("PUT_permission"),*/ validatePermissionId, async 
     });
 });
 
-router.get('/',/* authorize("GET_permissions"),*/ async (req, res, next) => {
+router.get('/', authorize("GET_permissions"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',

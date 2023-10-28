@@ -101,6 +101,32 @@ router.post('/login', (req, res, next) => {
         })
 });
 
+router.get("/logout", authenticate, (req, res, next) => {
+    res.cookie("name", '', {
+        maxAge: -1
+    })
+    res.cookie("myApp", '', {
+        maxAge: -1
+    })
+    log({
+        userId: res.locals.organizationAdmin?.id,
+        userName: res.locals.organizationAdmin?.name,
+        userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+        type: 'success' as NSLogs.Type,
+        request: 'Logout ' + (res.locals.organizationAdmin?.name)
+    }).then().catch()
+
+    logToCloudWatch(
+        'success',
+        'volunteer',
+        'Logout ' + (res.locals.organizationAdmin?.name),
+        res.locals.organizationAdmin?.id,
+        res.locals.organizationAdmin?.name
+    ).then().catch()
+
+    res.send("You logged out successfully !");
+})
+
 router.delete('/:id',/*authenticate, */validateAdminId, /*authorize("DELETE_organizationAdmin"), */async (req, res, next) => {
     const id = req.params.id?.toString();
 
@@ -270,6 +296,19 @@ router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ asyn
  *     responses:
  *       200:
  *         description: Organization admin loged in successfully
+ *       401:
+ *         description: Organization admin unauthorized
+ */
+
+/**
+ * @swagger
+ * /organizationAdmin/logout:
+ *   get:
+ *     summary: Log out an organization admin
+ *     tags: [OrganizationAdmin]
+ *     responses:
+ *       200:
+ *         description: Organization admin loged out successfully
  *       401:
  *         description: Organization admin unauthorized
  */

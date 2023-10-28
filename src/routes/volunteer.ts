@@ -305,7 +305,7 @@ router.get("/logout", authenticate, (req, res, next) => {
     ).then().catch()
 
     res.send("You logged out successfully !");
-})
+});
 
 router.get('/me', authenticate, async (req, res, next) => {
     if (res.locals.volunteer) {

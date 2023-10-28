@@ -130,11 +130,13 @@ const login = async (email: string, name: string, id: string) => {
             );
             return { token, organizationAdmin, volunteer: null };
         } else {
-            throw ("Invalid email or name or id !");
+            error.status = 400;
+            error.message = 'Invalid email or name or id !';
+            throw error;
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Something" });
+        throw createError(error.status, error.message);
     }
 
 }
