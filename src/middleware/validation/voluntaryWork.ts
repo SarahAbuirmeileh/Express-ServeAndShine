@@ -213,9 +213,25 @@ const validateDeleteFromS3 = async (req: express.Request,
     }
 }
 
+const validateRating = (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => {
+    const values = ["rating"];
+    const voluntaryWork = req.body;
+    const errorList = values.map(key => !voluntaryWork[key] && `${key} is Required!`).filter(Boolean);
+
+    if (req.body.rating < 1 || req.body.rating > 5) {
+        errorList.push("Rating should be between 1 and 5")
+    }else{
+        next()
+    }
+}
+
 export {
     validateVoluntaryWork,
     validateEditedVoluntaryWork,
     validateVoluntaryWorkId,
-    validateDeleteFromS3
+    validateDeleteFromS3,
+    validateRating
 }

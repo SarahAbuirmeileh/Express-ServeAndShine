@@ -3,7 +3,7 @@ import { createVoluntaryWork, deleteFeedback, deleteImage, deleteRating, deleteV
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
-import { validateDeleteFromS3, validateEditedVoluntaryWork, validateVoluntaryWork, validateVoluntaryWorkId } from '../middleware/validation/voluntaryWork.js';
+import { validateDeleteFromS3, validateEditedVoluntaryWork, validateRating, validateVoluntaryWork, validateVoluntaryWorkId } from '../middleware/validation/voluntaryWork.js';
 import { log } from '../controllers/dataBaseLogger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
@@ -854,7 +854,7 @@ router.get('/rating-and-feedback/:id', validateVoluntaryWorkId, async (req, res,
 });
 
 
-router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), checkParticipation, async (req, res, next) => {
+router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), checkParticipation,validateRating, async (req, res, next) => {
     putRating(Number(req.params.id), Number(req.body.rating), res.locals.volunteer?.name).then(() => {
         log({
             userId: res.locals.volunteer?.id,
@@ -895,6 +895,7 @@ router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), chec
 });
 
 router.put("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_feedback"), checkParticipation, async (req, res, next) => {
+    if (!req.body.feedback)res.status(400).send("Feedback is required!")
     putFeedback(Number(req.params.id), req.body.feedback, res.locals.volunteer?.name).then(() => {
         log({
             userId: res.locals.volunteer?.id,
