@@ -890,7 +890,6 @@ router.get('/sufficient-team/:id', validateVoluntaryWorkId, async (req, res, nex
         });
 });
 
-
 router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
     const voluntaryWork = await VoluntaryWork.findOne({ where: { id: Number(req.params.id) } })
     if (res.locals.volunteer) {
