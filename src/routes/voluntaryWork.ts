@@ -59,41 +59,41 @@ router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, r
     });
 });
 
-router.post("/rating/:id", validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), async (req, res, next) => {
-    volunteerReminder(Number(req.params.id)).then(() => {
+router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, async (req, res, next) => {
+    editVoluntaryWork({ ...req.body, id: req.params.id?.toString() }).then(() => {
         log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'success' as NSLogs.Type,
-            request: 'Reminder to add rating and feedback for voluntary work with id: ' + req.params.id,
-
+            request: 'Edit Voluntary Work with id: ' + req.params.id
         }).then().catch()
 
         logToCloudWatch(
             'success',
             'voluntary work',
-            'Reminder to add rating and feedback for voluntary work with id: ' + req.params.id,
-            res.locals.organizationAdmin?.id,
-            res.locals.organizationAdmin?.name
-        ).then().catch()
+            'Edit Voluntary Work with id: ' + req.params.id,
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
 
-        res.status(201).send("Create remainder for rate and feedback  successfully!!")
-    }).catch(err => {
+            res.status(201).send("Voluntary Work edited successfully!!")
+        }).catch(err => {
         log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
             type: 'failed' as NSLogs.Type,
-            request: 'Reminder to add rating and feedback for voluntary work with id: ' + req.params.id
+            request: 'Edit Voluntary Work with id: ' + req.params.id
         }).then().catch()
 
         logToCloudWatch(
             'failed',
             'voluntary work',
-            'Reminder to add rating and feedback for voluntary work with id: ' + req.params.id,
-            res.locals.organizationAdmin?.id,
-            res.locals.organizationAdmin?.name
+            
+            'Edit Voluntary Work with id: ' + req.params.id,
+            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
         ).then().catch()
 
         next(err);
@@ -278,47 +278,6 @@ router.delete("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_rating"),
 
             next(err);
         });
-});
-
-router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, async (req, res, next) => {
-    editVoluntaryWork({ ...req.body, id: req.params.id?.toString() }).then(() => {
-        log({
-            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Edit Voluntary Work with id: ' + req.params.id
-        }).then().catch()
-
-        logToCloudWatch(
-            'success',
-            'voluntary work',
-            'Edit Voluntary Work with id: ' + req.params.id,
-            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-            ).then().catch()
-
-            res.status(201).send("Voluntary Work edited successfully!!")
-        }).catch(err => {
-        log({
-            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Edit Voluntary Work with id: ' + req.params.id
-        }).then().catch()
-
-        logToCloudWatch(
-            'failed',
-            'voluntary work',
-            
-            'Edit Voluntary Work with id: ' + req.params.id,
-            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-        ).then().catch()
-
-        next(err);
-    });
 });
 
 router.get('/search', authorize("GET_voluntaryWorks"), async (req, res, next) => {
@@ -534,6 +493,47 @@ router.get('/analysis/:id', authorize("DELETE_organizationProfile"), validateOrg
 
             next(err);
         });
+});
+
+router.post("/rating/:id", validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), async (req, res, next) => {
+    volunteerReminder(Number(req.params.id)).then(() => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Reminder to add rating and feedback for voluntary work with id: ' + req.params.id,
+
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Reminder to add rating and feedback for voluntary work with id: ' + req.params.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.status(201).send("Create remainder for rate and feedback  successfully!!")
+    }).catch(err => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Reminder to add rating and feedback for voluntary work with id: ' + req.params.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Reminder to add rating and feedback for voluntary work with id: ' + req.params.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        next(err);
+    });
 });
 
 router.get('/recommendation', authorize("GET_recommendation"), async (req, res, next) => {
