@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteFeedback, deleteImage, deleteRating, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, generateCertificate, getAnalysis, getFeedbackAndRating, getImages, getOrganizationAnalysis, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteFeedback, deleteImage, deleteRating, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, findSmallestSufficientTeam, generateCertificate, getAnalysis, getFeedbackAndRating, getImages, getOrganizationAnalysis, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -853,6 +853,47 @@ router.get('/rating-and-feedback/:id', validateVoluntaryWorkId, async (req, res,
         });
 });
 
+router.get('/sufficient-team/:id', validateVoluntaryWorkId, async (req, res, next) => {
+    findSmallestSufficientTeam(Number(req.params.id.toString()))
+        .then(data => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Get smallest sufficient team for  voluntary work with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Get smallest sufficient team for  voluntary work',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Get smallest sufficient team for voluntary work with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Get smallest sufficient team for  voluntary work',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+});
 
 router.put("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), checkParticipation,validateRating, async (req, res, next) => {
     putRating(Number(req.params.id), Number(req.body.rating), res.locals.volunteer?.name).then(() => {
@@ -2831,3 +2872,56 @@ export default router;
  *         description: Something went wrong
  */
 
+/**
+ * @swagger
+ * /voluntaryWork/sufficient-team/{id}:
+ *   get:
+ *     summary: Find the smallest sufficient team for a voluntary work
+ *     tags: [VoluntaryWork]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Voluntary work ID
+ *         schema:
+ *           type: integer
+ *         example: 5
+ *     responses:
+ *       200:
+ *         description: Smallest sufficient team for the voluntary work
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 smallestSufficientTeamNumber:
+ *                   type: integer
+ *                   description: Number of volunteers in the smallest sufficient team.
+ *                   example: 1
+ *                 smallestSufficientTeam:
+ *                   type: array
+ *                   description: List of volunteers in the smallest sufficient team.
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         description: Volunteer ID
+ *                         example: 123
+ *                       name:
+ *                         type: string
+ *                         description: Volunteer's name
+ *                         example: John Doe
+ *                       email:
+ *                         type: string
+ *                         description: Volunteer's email
+ *                         example: john@example.com
+ *       401:
+ *         description: You are unauthorized.
+ *       403:
+ *         description: You don't have the permission.
+ *       404:
+ *         description: Voluntary work not found.
+ *       500:
+ *         description: Internal Server Error
+ */
