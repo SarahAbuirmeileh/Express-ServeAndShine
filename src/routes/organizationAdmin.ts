@@ -1,6 +1,6 @@
 import express from "express";
-import { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins } from "../controllers/organizationAdmin.js";
-import { authorize, checkMe } from "../middleware/auth/authorize.js";
+import { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, forgetPassword, getOrganizationAdmins, resetPassword, verifyToken } from "../controllers/organizationAdmin.js";
+import { authorize } from "../middleware/auth/authorize.js";
 import { validateAdminEdited, validateAdminId, validateOrganizationAdmin } from "../middleware/validation/organizationAdmin.js";
 import { log } from "../controllers/dataBaseLogger.js";
 import { NSLogs } from "../../types/logs.js";
@@ -11,7 +11,7 @@ import { validateLogin } from "../middleware/validation/volunteer.js";
 
 const router = express.Router();
 
-router.post('/signup', /*authorize("POST_organizationAdmin"), */validateOrganizationAdmin, (req, res, next) => {
+router.post('/signup', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
     createOrganizationAdmin(req.body).then(async (data) => {
         log({
             userId: data.id,
@@ -51,10 +51,10 @@ router.post('/signup', /*authorize("POST_organizationAdmin"), */validateOrganiza
     });
 });
 
-router.post('/login',validateLogin, (req, res, next) => {
+router.post('/login', validateLogin, (req, res, next) => {
     const email = req.body.email;
     const name = req.body.name;
-    const id = req.body.id;    
+    const id = req.body.id;
     login(email, name, id)
         .then(data => {
             res.cookie('myApp', data.token, {
@@ -102,7 +102,7 @@ router.post('/login',validateLogin, (req, res, next) => {
         })
 });
 
-router.delete('/:id',/*authenticate, */validateAdminId, /*authorize("DELETE_organizationAdmin"), */async (req, res, next) => {
+router.delete('/:id', authenticate, validateAdminId, authorize("DELETE_organizationAdmin"), async (req, res, next) => {
     const id = req.params.id?.toString();
 
     deleteOrganizationAdmin(id)
@@ -146,7 +146,7 @@ router.delete('/:id',/*authenticate, */validateAdminId, /*authorize("DELETE_orga
         });
 });
 
-router.put("/:id",/*authenticate, authorize("PUT_organizationAdmin"),*/ validateAdminEdited, async (req, res, next) => {
+router.put("/:id", authenticate, authorize("PUT_organizationAdmin"), validateAdminEdited, async (req, res, next) => {
     editOrganizationAdmin({ ...req.body, id: req.params.id }).then(async () => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -186,7 +186,7 @@ router.put("/:id",/*authenticate, authorize("PUT_organizationAdmin"),*/ validate
     });
 });
 
-router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ async (req, res, next) => {
+router.get('/search', authenticate, authorize("GET_organizationAdmins"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
@@ -237,7 +237,136 @@ router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ asyn
         });
 });
 
+router.get("/forget-password", authenticate, authorize("POST_voluntaryWork"), (req, res, next) => {
+    forgetPassword(res.locals.organizationAdmin?.id, res.locals.organizationAdmin?.email).then(() => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Forget  password organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
 
+        logToCloudWatch(
+            'success',
+            'organization admin',
+            'Forget  password organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.send("Password reset link has been sent to your email")
+    }).catch(err => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Forget  password organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'organization admin',
+            'Forget  password organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        next(err);
+    })
+})
+
+router.get("/reset-password/:id/:token", authenticate, authorize("POST_voluntaryWork"), validateAdminId, async (req, res, next) => {
+    const { id, token } = req.params;
+
+    try {
+        await verifyToken(id, token);
+        res.cookie('reset-password', token, {
+            httpOnly: true,
+            maxAge: 15 * 60 * 1000,
+            sameSite: "lax"
+        });
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Validate token to reset password for organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'organization admin',
+            'Validate token to reset password for organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+        res.send("You can now set your new password by making a POST request to /reset-password/:id with your new password in the request body.");
+    } catch (error) {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Validate token to reset password for organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'organization admin',
+            'Validate token to reset password for organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.status(500).send("Invalid or expired token.");
+    }
+});
+
+router.post("/reset-password/:id", authenticate, authorize("POST_voluntaryWork"), validateAdminId, async (req, res, next) => {
+    const id = req.params.id;
+    const token = req.cookies['reset-password'] || '';
+    const password = req.body.password;
+    //  if(!password || !isValidPassword(password) )next() bad request
+    resetPassword(id, token, password).then(data => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Reset password for organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'organization admin',
+            'Reset password for organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.status(200).send(data)
+    }).catch(err => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Reset password for organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'organization admin',
+            'Reset password for organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        // res.send(err)
+    })
+});
 
 /**
  * @swagger

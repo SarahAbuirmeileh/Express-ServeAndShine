@@ -9,9 +9,6 @@ import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
 import { sendEmail } from '../controllers/AWSServices/SES.js';
 import { Volunteer } from '../db/entities/Volunteer.js';
-import bcrypt from 'bcrypt';
-import { isValidPassword } from '../controllers/index.js';
-
 
 var router = express.Router();
 
@@ -390,7 +387,7 @@ router.get("/forget-password", authenticate, authorize("PUT_rating"), (req, res,
     })
 })
 
-router.get("/reset-password/:id/:token", authenticate, authorize("PUT_rating"), async (req, res, next) => {
+router.get("/reset-password/:id/:token", authenticate, authorize("PUT_rating"), validateVolunteerId, async (req, res, next) => {
     const { id, token } = req.params;
 
     try {
@@ -437,7 +434,7 @@ router.get("/reset-password/:id/:token", authenticate, authorize("PUT_rating"), 
     }
 });
 
-router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), async (req, res, next) => {
+router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), validateVolunteerId, async (req, res, next) => {
     const id = req.params.id;
     const token = req.cookies['reset-password'] || '';
     const password = req.body.password;
