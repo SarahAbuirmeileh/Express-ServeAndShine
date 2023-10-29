@@ -8,7 +8,7 @@ import { logToCloudWatch } from "../controllers/AWSServices/CloudWatchLogs.js";
 
 const router = express.Router();
 
-router.post('/', /*authorize("POST_organizationProfile"), */validateOrganizationProfile, (req, res, next) => {
+router.post('/', authorize("POST_organizationProfile"), validateOrganizationProfile, (req, res, next) => {
     createOrganizationProfile(req.body).then((data) => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -48,7 +48,7 @@ router.post('/', /*authorize("POST_organizationProfile"), */validateOrganization
     });
 });
 
-router.delete('/:id', validateOrgId, /*authorize("DELETE_organizationProfile"), */async (req, res, next) => {
+router.delete('/:id', validateOrgId, authorize("DELETE_organizationProfile"), async (req, res, next) => {
     const id = (req.params.id?.toString());
 
     deleteOrganizationProfile(id)
@@ -92,7 +92,7 @@ router.delete('/:id', validateOrgId, /*authorize("DELETE_organizationProfile"), 
         });
 });
 
-router.put("/:id", validateOrgId, /*authorize("PUT_organizationProfile"),*/ async (req, res, next) => {
+router.put("/:id", validateOrgId, authorize("PUT_organizationProfile"), async (req, res, next) => {
     editOrganizationProfile(req.body).then(() => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -132,7 +132,7 @@ router.put("/:id", validateOrgId, /*authorize("PUT_organizationProfile"),*/ asyn
     });
 });
 
-router.get('/search', /*authorize("GET_organizationProfiles"), */async (req, res, next) => {
+router.get('/search', authorize("GET_organizationProfiles"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
@@ -182,7 +182,7 @@ router.get('/search', /*authorize("GET_organizationProfiles"), */async (req, res
         });
 });
 
-router.get('/', /*authorize("GET_organizationProfiles"), */async (req, res, next) => {
+router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
