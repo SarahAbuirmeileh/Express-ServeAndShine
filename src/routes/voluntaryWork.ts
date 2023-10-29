@@ -144,6 +144,101 @@ router.delete('/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork")
         });
 })
 
+router.put("/image/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
+    const images = req.files?.image;
+    if (!images) {
+        return res.status(400).send("No images provided.");
+    }
+
+    try {
+        const uploadedFiles = Array.isArray(images) ? images : [images];
+
+        const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
+        const organization = await searchOrganizationProfile(payload);
+        const organizationName = organization?.name || req.body.organizationName;
+
+        await putImages(Number(req.params.id), uploadedFiles, organizationName);
+
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Add images to voluntary work with id ' + req.params.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Add images to voluntary work with id ' + req.params.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.status(201).send("Images added successfully!!");
+    } catch (err) {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Add images to voluntary work with id ' + req.params.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Add images to voluntary work with id ' + req.params.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        next(err);
+    }
+});
+
+router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
+    getImages(Number(req.params.id))
+        .then(data => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Get image/s for voluntary work with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Get image/s',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
+                userType: res.locals.volunteer?.type as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Get image/s for voluntary work with id: ' + req.params.id
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Get image/s',
+                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
+                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+});
+
 router.delete('/image/:id', validateVoluntaryWorkId, authorize("PUT_images"), validateDeleteFromS3, async (req, res, next) => {
 
     const id = Number(req.params.id?.toString());
@@ -588,48 +683,6 @@ router.get('/recommendation', authorize("GET_recommendation"), async (req, res, 
         });
 });
 
-router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
-    getImages(Number(req.params.id))
-        .then(data => {
-            log({
-                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
-                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Get image/s for voluntary work with id: ' + req.params.id
-            }).then().catch()
-
-            logToCloudWatch(
-                'success',
-                'voluntary work',
-                'Get image/s',
-                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
-                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
-            ).then().catch()
-
-            res.send(data);
-        })
-        .catch(err => {
-            log({
-                userId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
-                userName: res.locals.volunteer?.name || res.locals.organizationAdmin?.name,
-                userType: res.locals.volunteer?.type as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Get image/s for voluntary work with id: ' + req.params.id
-            }).then().catch()
-
-            logToCloudWatch(
-                'failed',
-                'voluntary work',
-                'Get image/s',
-                res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
-                res.locals.volunteer?.name || res.locals.organizationAdmin?.name
-            ).then().catch()
-
-            next(err);
-        });
-});
-
 router.get('/volunteer/:id', validateVolunteerId, async (req, res, next) => {
     getVoluntaryWorksForVolunteer(req.params.id)
         .then(data => {
@@ -835,59 +888,6 @@ router.put("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_feedback"), 
 
         next(err);
     });
-});
-
-router.put("/image/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
-    const images = req.files?.image;
-    if (!images) {
-        return res.status(400).send("No images provided.");
-    }
-
-    try {
-        const uploadedFiles = Array.isArray(images) ? images : [images];
-
-        const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
-        const organization = await searchOrganizationProfile(payload);
-        const organizationName = organization?.name || req.body.organizationName;
-
-        await putImages(Number(req.params.id), uploadedFiles, organizationName);
-
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Add images to voluntary work with id ' + req.params.id
-        }).then().catch()
-
-        logToCloudWatch(
-            'success',
-            'voluntary work',
-            'Add images to voluntary work with id ' + req.params.id,
-            res.locals.organizationAdmin?.id,
-            res.locals.organizationAdmin?.name
-        ).then().catch()
-
-        res.status(201).send("Images added successfully!!");
-    } catch (err) {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Add images to voluntary work with id ' + req.params.id
-        }).then().catch()
-
-        logToCloudWatch(
-            'failed',
-            'voluntary work',
-            'Add images to voluntary work with id ' + req.params.id,
-            res.locals.organizationAdmin?.id,
-            res.locals.organizationAdmin?.name
-        ).then().catch()
-
-        next(err);
-    }
 });
 
 router.put("/register/:id", validateVoluntaryWorkId, authorize("REGISTER_voluntaryWork"), async (req, res, next) => {
