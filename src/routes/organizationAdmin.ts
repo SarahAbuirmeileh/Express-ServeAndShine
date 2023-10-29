@@ -7,6 +7,7 @@ import { NSLogs } from "../../types/logs.js";
 import { logToCloudWatch } from "../controllers/AWSServices/CloudWatchLogs.js";
 import { login } from "../controllers/volunteer.js";
 import { authenticate } from "../middleware/auth/authenticate.js";
+import { validateLogin } from "../middleware/validation/volunteer.js";
 
 const router = express.Router();
 
@@ -50,7 +51,7 @@ router.post('/signup', /*authorize("POST_organizationAdmin"), */validateOrganiza
     });
 });
 
-router.post('/login', (req, res, next) => {
+router.post('/login',validateLogin, (req, res, next) => {
     const email = req.body.email;
     const name = req.body.name;
     const id = req.body.id;    
