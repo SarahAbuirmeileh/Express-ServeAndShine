@@ -237,6 +237,8 @@ router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ asyn
         });
 });
 
+
+
 /**
  * @swagger
  * tags:

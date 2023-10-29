@@ -10,6 +10,7 @@ import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
 import { sendEmail } from '../controllers/AWSServices/SES.js';
 import { Volunteer } from '../db/entities/Volunteer.js';
 import bcrypt from 'bcrypt';
+import { isValidPassword } from '../controllers/index.js';
 
 
 var router = express.Router();
@@ -389,7 +390,7 @@ router.get("/forget-password", authenticate, authorize("PUT_rating"), (req, res,
     })
 })
 
-router.get("/reset-password/:id/:token", async (req, res, next) => {
+router.get("/reset-password/:id/:token", authenticate, authorize("PUT_rating"), async (req, res, next) => {
     const { id, token } = req.params;
 
     try {
@@ -436,10 +437,11 @@ router.get("/reset-password/:id/:token", async (req, res, next) => {
     }
 });
 
-router.post("/reset-password/:id", async (req, res, next) => {
+router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), async (req, res, next) => {
     const id = req.params.id;
     const token = req.cookies['reset-password'] || '';
     const password = req.body.password;
+    //  if(!password || !isValidPassword(password) )next() bad request
     resetPassword(id, token, password).then(data => {
         log({
             userId: res.locals.volunteer?.id,
@@ -475,7 +477,7 @@ router.post("/reset-password/:id", async (req, res, next) => {
             res.locals.volunteer?.name
         ).then().catch()
 
-        res.send(err)
+        // res.send(err)
     })
 });
 
@@ -789,6 +791,107 @@ router.post("/reset-password/:id", async (req, res, next) => {
  * 
  *       404:
  *         description: Volunteer not found
+ */
+
+/**
+ * @swagger
+ * /volunteer/forget-password:
+ *   get:
+ *     summary: Send a password reset link to a volunteer's email
+ *     tags: [Volunteer]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Password reset link sent successfully
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: Password reset link has been sent to your email
+ *       401:
+ *         description: Volunteer unauthorized
+ *       403:
+ *         description: You don't have the permission.
+ *       500:
+ *         description: Internal Server Error
+ */
+
+/**
+ * @swagger
+ * /volunteer/reset-password/{id}/{token}:
+ *   get:
+ *     summary: Validate a password reset token for a volunteer
+ *     tags: [Volunteer]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the volunteer.
+ *         schema:
+ *           type: string
+ *       - name: token
+ *         in: path
+ *         required: true
+ *         description: The password reset token.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Token validated successfully
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: You can now set your new password by making a POST request to /reset-password/{id} with your new password in the request body.
+ *       401:
+ *          description: Volunteer unauthorized
+ *       403:
+ *          description: You don't have the permission.
+ 
+ *       500:
+ *          description: Invalid or expired token.
+ */
+
+/**
+ * @swagger
+ * /volunteer/reset-password/{id}:
+ *   post:
+ *     summary: Reset the password for a volunteer
+ *     tags: [Volunteer]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the volunteer.
+ *         schema:
+ *           type: string
+
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: Password updated successfully!!
+ *       401:
+ *          description: Volunteer unauthorized
+ *       403:
+ *          description: You don't have the permission.
+ *       400:
+ *         description: Your request is BAD,
+ *       500:
+ *         description: Internal Server Error
  */
 
 export default router;
