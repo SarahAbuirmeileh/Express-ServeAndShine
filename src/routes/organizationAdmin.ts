@@ -298,6 +298,10 @@ router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ asyn
  *         description: Organization admin loged in successfully
  *       401:
  *         description: Organization admin unauthorized
+ *       400:
+ *         description: Bad request
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -358,6 +362,12 @@ router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ asyn
  *                     
  *       404:
  *         description: Organization Admin not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -378,6 +388,12 @@ router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ asyn
  *         description: Organization admin deleted successfully
  *       404:
  *         description: Organization admin not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -438,6 +454,8 @@ router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ asyn
  *                   createdAt: "2023-10-26T20:07:06.810Z"
  *       400:
  *         description: Bad request, validation failed
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -489,6 +507,12 @@ router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ asyn
  * 
  *       404:
  *         description: Organization admin not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 export default router;

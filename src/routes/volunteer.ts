@@ -382,7 +382,9 @@ router.get('/me', authenticate, async (req, res, next) => {
  *       200:
  *         description: Volunteer loged in successfully
  *       401:
- *         description: Volunteer unauthorized
+ *         description: You are unauthorized
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -395,7 +397,7 @@ router.get('/me', authenticate, async (req, res, next) => {
  *       200:
  *         description: Volunteer loged out successfully
  *       401:
- *         description: Volunteer unauthorized
+ *         description: You are unauthorized
  */
 
 /**
@@ -470,6 +472,12 @@ router.get('/me', authenticate, async (req, res, next) => {
  *                     
  *       404:
  *         description: Volunteer not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -490,6 +498,12 @@ router.get('/me', authenticate, async (req, res, next) => {
  *         description: Volunteer deleted successfully
  *       404:
  *         description: Volunteer not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -541,7 +555,11 @@ router.get('/me', authenticate, async (req, res, next) => {
  *                             createdAt: "2023-10-27T08:56:15.498Z"
  *                         voluntaryWorks: []
  *       401:
- *         description: Volunteer unauthorized
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -609,6 +627,8 @@ router.get('/me', authenticate, async (req, res, next) => {
  *                   createdAt: "2023-10-27T08:56:15.827Z"
  *       400:
  *         description: Bad request, validation failed
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -657,6 +677,12 @@ router.get('/me', authenticate, async (req, res, next) => {
  * 
  *       404:
  *         description: Volunteer not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 export default router;

@@ -216,7 +216,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
             error.message = "voluntary work";
             throw error;
         }
-        
+
         return {
             page,
             pageSize: voluntaryWorks.length,
@@ -302,14 +302,14 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
             !(volunteerProfile.availableTime?.length > 0 && volunteerProfile.availableTime?.every(time => voluntaryWork.time.includes(time)))
 
         ) {
-            error.status = 500;
+            error.status = 406;
             error.message = "Volunteer's profile information does not align with the VoluntaryWork information";
             throw error;
         }
 
         if (voluntaryWork.volunteerProfiles?.length >= voluntaryWork.capacity) {
 
-            error.status = 500;
+            error.status = 406;
             error.message = "VoluntaryWork is already at full capacity";
             throw error;
         }
@@ -407,7 +407,7 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
 
             return "Deregistration successful!";
         } else {
-            error.status = 500;
+            error.status = 406;
             error.message = "Volunteer is not registered for this voluntary work";
             throw error;
         }

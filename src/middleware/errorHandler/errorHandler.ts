@@ -13,6 +13,8 @@ const errorHandler = (
         res.status(403).send("You don't have the permission");
     } else if (error.status == 400) {
         res.status(400).send("Your request is BAD, " + error.message);
+    } else if (error.status == 406) {
+        res.status(400).send("Your request is NOT acceptable, " + error.message);
     } else {
         res.status(500).send('Something went wrong, ' + error.message);
     }
