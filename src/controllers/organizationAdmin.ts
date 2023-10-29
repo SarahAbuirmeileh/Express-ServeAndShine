@@ -6,6 +6,9 @@ import createError from 'http-errors';
 import { Role } from "../db/entities/Role.js";
 import { Not } from "typeorm";
 import baseLogger from "../../logger.js";
+import { sendEmail } from "./AWSServices/SES.js";
+import jwt from 'jsonwebtoken';
+
 
 const error = { status: 500, message: 'when trying to manage organization admin' };
 
@@ -181,5 +184,51 @@ const editOrganizationAdmin = async (payload: { id: string, name: string, email:
     }
 }
 
+const forgetPassword = async (id: string, email: string) => {
+    const organizationAdmin = await OrganizationAdmin.findOne({ where: { id, email } });
+    if (!organizationAdmin) throw "OrganizationAdmin Not exists"
 
-export { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins }
+    const secret = process.env.SECRET_KEY + organizationAdmin.password;
+    const payload = { email, id }
+
+    const token = jwt.sign(payload, secret, { expiresIn: '15m' });
+
+    const link = `http://localhost:3000/organizationAdmin/reset-password/${id}/${token}`
+    return sendEmail(email, organizationAdmin.name, "Reset the password", `Use this one time link ${link}`)
+}
+
+const verifyToken = async (id: string, token: string) => {
+    const organizationAdmin = await OrganizationAdmin.findOne({ where: { id } });
+    if (!organizationAdmin) {
+        throw "OrganizationAdmin not found";
+    }
+
+    const secret = process.env.SECRET_KEY + organizationAdmin.password;
+
+    try {
+        const payload = jwt.verify(token, secret);
+    } catch (err) {
+        baseLogger.error(err);
+        throw "Invalid or expired token";
+    }
+}
+
+const resetPassword = async (id: string, token: string, password: string) => {
+    try {
+        await verifyToken(id, token);
+        const organizationAdmin = await OrganizationAdmin.findOne({ where: { id } });
+        if (organizationAdmin) {
+            if (password) {
+                const hashedPassword = await bcrypt.hash(password, 10);
+                organizationAdmin.password = hashedPassword;
+                await organizationAdmin.save();
+                return "Password updated successfully!!"
+            }
+        }
+    } catch (err) {
+        baseLogger.error(err);
+        throw err;
+    }
+}
+
+export { forgetPassword, resetPassword, verifyToken, createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins }

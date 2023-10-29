@@ -867,11 +867,47 @@ const getOrganizationAnalysis = async (organizationId: string) => {
     }
 }
 
+const findSmallestSufficientTeam = async (voluntaryWorkId: number) => {
+    const voluntaryWork = await VoluntaryWork.findOne({ where: { id: voluntaryWorkId }, relations:["skillTags"] });
+
+    const requiredSkills: string[] = [];
+    voluntaryWork?.skillTags.forEach((skillTag) => {
+        requiredSkills.push(skillTag.name);
+    });
+    
+    const volunteers = await Volunteer.find({ relations: ['volunteerProfile', 'volunteerProfile.skillTags'] });
+    const volunteersWithSkills = volunteers.filter((volunteer) => {
+        return requiredSkills.every((requiredSkill) =>
+            volunteer.volunteerProfile.skillTags.some((skillTag) => skillTag.name === requiredSkill)
+        );
+    });
+
+    const selectedVolunteers: Volunteer[] = [];
+    for (const skill of requiredSkills) {
+        const matchingVolunteer = volunteersWithSkills.find((volunteer) =>
+            volunteer.volunteerProfile.skillTags.some((volunteerSkill) => volunteerSkill.name === skill)
+        );
+        if (matchingVolunteer) {
+            selectedVolunteers.push(matchingVolunteer);
+            const index = volunteersWithSkills.indexOf(matchingVolunteer);
+            volunteersWithSkills.splice(index, 1);
+        }
+    }
+
+    const smallestSufficientTeam = selectedVolunteers.map((volunteer) => ({
+        id: volunteer.id,
+        name: volunteer.name,
+        email: volunteer.email,
+    }));
+
+    return {smallestSufficientTeamNumber:selectedVolunteers.length , smallestSufficientTeam};
+}
+
 export {
     getVoluntaryWorks, deleteVoluntaryWork, getFeedbackAndRating,
-    generateCertificate, getImages, getVoluntaryWorksForVolunteer,
+    generateCertificate, getImages, getVoluntaryWorksForVolunteer, getAnalysis,
     registerByVolunteer, createVoluntaryWork, getOrganizationAnalysis,
-    deregisterVoluntaryWork, registerByOrganizationAdmin, getAnalysis,
+    deregisterVoluntaryWork, registerByOrganizationAdmin, findSmallestSufficientTeam,
     putFeedback, editVoluntaryWork, putRating, deleteImage, deleteRating,
     volunteerReminder, getRecommendation, getVoluntaryWork, deleteFeedback,
 }

@@ -10,6 +10,7 @@ import { In, Like } from "typeorm";
 import createError from 'http-errors';
 import { Role } from "../db/entities/Role.js";
 import baseLogger from "../../logger.js";
+import { sendEmail } from "./AWSServices/SES.js";
 
 const error = { status: 500, message: 'when trying to manage volunteer' };
 
@@ -157,7 +158,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
             conditions["email"] = payload.email;
         }
         if (payload.availableLocation) {
-            conditions["volunteerProfile"] = {availableLocation:Like(`%${payload.availableLocation}%`)};
+            conditions["volunteerProfile"] = { availableLocation: Like(`%${payload.availableLocation}%`) };
         }
         if (payload.type) {
             conditions["type"] = payload.type;
@@ -246,6 +247,53 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
     }
 }
 
+const forgetPassword = async (id: string, email: string) => {
+    const volunteer = await Volunteer.findOne({ where: { id, email } });
+    if (!volunteer) throw "Volunteer Not exists"
 
-export { getVolunteers, login, createVolunteer, deleteVolunteer, editVolunteer }
+    const secret = process.env.SECRET_KEY + volunteer.password;
+    const payload = { email, id }
+
+    const token = jwt.sign(payload, secret, { expiresIn: '15m' });
+
+    const link = `http://localhost:3000/volunteer/reset-password/${id}/${token}`
+    return sendEmail(email, volunteer.name, "Reset the password", `Use this one time link ${link}`)
+
+}
+
+const verifyToken = async (id: string, token: string) => {
+    const volunteer = await Volunteer.findOne({ where: { id } });
+    if (!volunteer) {
+        throw "Volunteer not found";
+    }
+
+    const secret = process.env.SECRET_KEY + volunteer.password;
+
+    try {
+        const payload = jwt.verify(token, secret);
+    } catch (err) {
+        baseLogger.error(err);
+        throw "Invalid or expired token";
+    }
+}
+
+const resetPassword = async (id: string, token: string, password: string) => {
+    try {
+        await verifyToken(id, token);
+        const volunteer = await Volunteer.findOne({ where: { id } });
+        if (volunteer) {
+            if (password) {
+                const hashedPassword = await bcrypt.hash(password, 10);
+                volunteer.password = hashedPassword;
+                await volunteer.save(); 
+                return "Password updated successfully!!"
+            }
+        } 
+    } catch (err) {
+        baseLogger.error(err);
+        throw err;
+    }
+}
+
+export {resetPassword, verifyToken, forgetPassword, getVolunteers, login, createVolunteer, deleteVolunteer, editVolunteer }
 

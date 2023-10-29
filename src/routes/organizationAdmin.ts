@@ -1,16 +1,17 @@
 import express from "express";
-import { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, getOrganizationAdmins } from "../controllers/organizationAdmin.js";
-import { authorize, checkMe } from "../middleware/auth/authorize.js";
+import { createOrganizationAdmin, deleteOrganizationAdmin, editOrganizationAdmin, forgetPassword, getOrganizationAdmins, resetPassword, verifyToken } from "../controllers/organizationAdmin.js";
+import { authorize } from "../middleware/auth/authorize.js";
 import { validateAdminEdited, validateAdminId, validateOrganizationAdmin } from "../middleware/validation/organizationAdmin.js";
 import { log } from "../controllers/dataBaseLogger.js";
 import { NSLogs } from "../../types/logs.js";
 import { logToCloudWatch } from "../controllers/AWSServices/CloudWatchLogs.js";
 import { login } from "../controllers/volunteer.js";
 import { authenticate } from "../middleware/auth/authenticate.js";
+import { validateLogin } from "../middleware/validation/volunteer.js";
 
 const router = express.Router();
 
-router.post('/signup', /*authorize("POST_organizationAdmin"), */validateOrganizationAdmin, (req, res, next) => {
+router.post('/signup', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
     createOrganizationAdmin(req.body).then(async (data) => {
         log({
             userId: data.id,
@@ -50,10 +51,10 @@ router.post('/signup', /*authorize("POST_organizationAdmin"), */validateOrganiza
     });
 });
 
-router.post('/login', (req, res, next) => {
+router.post('/login', validateLogin, (req, res, next) => {
     const email = req.body.email;
     const name = req.body.name;
-    const id = req.body.id;    
+    const id = req.body.id;
     login(email, name, id)
         .then(data => {
             res.cookie('myApp', data.token, {
@@ -127,7 +128,7 @@ router.get("/logout", authenticate, (req, res, next) => {
     res.send("You logged out successfully !");
 })
 
-router.delete('/:id',/*authenticate, */validateAdminId, /*authorize("DELETE_organizationAdmin"), */async (req, res, next) => {
+router.delete('/:id', authenticate, validateAdminId, authorize("DELETE_organizationAdmin"), async (req, res, next) => {
     const id = req.params.id?.toString();
 
     deleteOrganizationAdmin(id)
@@ -171,7 +172,7 @@ router.delete('/:id',/*authenticate, */validateAdminId, /*authorize("DELETE_orga
         });
 });
 
-router.put("/:id",/*authenticate, authorize("PUT_organizationAdmin"),*/ validateAdminEdited, async (req, res, next) => {
+router.put("/:id", authenticate, authorize("PUT_organizationAdmin"), validateAdminEdited, async (req, res, next) => {
     editOrganizationAdmin({ ...req.body, id: req.params.id }).then(async () => {
         log({
             userId: res.locals.organizationAdmin?.id,
@@ -211,7 +212,7 @@ router.put("/:id",/*authenticate, authorize("PUT_organizationAdmin"),*/ validate
     });
 });
 
-router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ async (req, res, next) => {
+router.get('/search', authenticate, authorize("GET_organizationAdmins"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
@@ -260,6 +261,137 @@ router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ asyn
 
             next(err);
         });
+});
+
+router.get("/forget-password", authenticate, authorize("POST_voluntaryWork"), (req, res, next) => {
+    forgetPassword(res.locals.organizationAdmin?.id, res.locals.organizationAdmin?.email).then(() => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Forget  password organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'organization admin',
+            'Forget  password organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.send("Password reset link has been sent to your email")
+    }).catch(err => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Forget  password organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'organization admin',
+            'Forget  password organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        next(err);
+    })
+})
+
+router.get("/reset-password/:id/:token", authenticate, authorize("POST_voluntaryWork"), validateAdminId, async (req, res, next) => {
+    const { id, token } = req.params;
+
+    try {
+        await verifyToken(id, token);
+        res.cookie('reset-password', token, {
+            httpOnly: true,
+            maxAge: 15 * 60 * 1000,
+            sameSite: "lax"
+        });
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Validate token to reset password for organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'organization admin',
+            'Validate token to reset password for organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+        res.send("You can now set your new password by making a POST request to /reset-password/:id with your new password in the request body.");
+    } catch (error) {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Validate token to reset password for organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'organization admin',
+            'Validate token to reset password for organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.status(500).send("Invalid or expired token.");
+    }
+});
+
+router.post("/reset-password/:id", authenticate, authorize("POST_voluntaryWork"), validateAdminId, async (req, res, next) => {
+    const id = req.params.id;
+    const token = req.cookies['reset-password'] || '';
+    const password = req.body.password;
+    //  if(!password || !isValidPassword(password) )next() bad request
+    resetPassword(id, token, password).then(data => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Reset password for organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'organization admin',
+            'Reset password for organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.status(200).send(data)
+    }).catch(err => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Reset password for organization admin id ' + res.locals.organizationAdmin?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'organization admin',
+            'Reset password for organization admin id ' + res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        // res.send(err)
+    })
 });
 
 /**
@@ -513,6 +645,107 @@ router.get('/search',/*authenticate, authorize("GET_organizationAdmins"),*/ asyn
  *         description: You don't have the permission
  *       500: 
  *         description: Something went wrong
+ */
+
+/**
+ * @swagger
+ * /organizationAdmin/forget-password:
+ *   get:
+ *     summary: Send a password reset link to a organizationAdmin's email
+ *     tags: [OrganizationAdmin]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Password reset link sent successfully
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: Password reset link has been sent to your email
+ *       401:
+ *         description: OrganizationAdmin unauthorized
+ *       403:
+ *         description: You don't have the permission.
+ *       500:
+ *         description: Internal Server Error
+ */
+
+/**
+ * @swagger
+ * /organizationAdmin/reset-password/{id}/{token}:
+ *   get:
+ *     summary: Validate a password reset token for a organizationAdmin
+ *     tags: [OrganizationAdmin]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the organizationAdmin.
+ *         schema:
+ *           type: string
+ *       - name: token
+ *         in: path
+ *         required: true
+ *         description: The password reset token.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Token validated successfully
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: You can now set your new password by making a POST request to /reset-password/{id} with your new password in the request body.
+ *       401:
+ *          description: OrganizationAdmin unauthorized
+ *       403:
+ *          description: You don't have the permission.
+ 
+ *       500:
+ *          description: Invalid or expired token.
+ */
+
+/**
+ * @swagger
+ * /organizationAdmin/reset-password/{id}:
+ *   post:
+ *     summary: Reset the password for a organizationAdmin
+ *     tags: [OrganizationAdmin]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the organizationAdmin.
+ *         schema:
+ *           type: string
+
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: Password updated successfully!!
+ *       401:
+ *          description: OrganizationAdmin unauthorized
+ *       403:
+ *          description: You don't have the permission.
+ *       400:
+ *         description: Your request is BAD,
+ *       500:
+ *         description: Internal Server Error
  */
 
 export default router;

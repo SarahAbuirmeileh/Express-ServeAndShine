@@ -6,29 +6,29 @@ export class Logs extends BaseEntity {
     id: number;
 
     @Column({
-        nullable:false,
+        nullable:true,
     })
     userId: string;
 
     @Column({
-        nullable:false
+        nullable:true
     })
     userName: string;
 
     @Column({
-        nullable:false
+        nullable:true
     })
     userType: string;
 
     @Column({
         type: 'enum',
         enum: ['success', 'failed'],
-        nullable: false
+        nullable: true
     })
     type: 'success' | 'failed';
 
     @Column({
-        nullable:false
+        nullable:true
     })
     request: string
 

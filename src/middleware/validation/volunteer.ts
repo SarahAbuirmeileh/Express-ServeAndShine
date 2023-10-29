@@ -157,8 +157,31 @@ const validateVolunteerId = async (req: express.Request,
     }
 }
 
+const validateLogin = async (req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) => { 
+    const values = ["name", "id", "email"];
+    const voluntaryWork = req.body;
+    const errorList = values.map(key => !voluntaryWork[key] && `${key} is Required!`).filter(Boolean);
+
+    if (errorList.length) {
+        log({
+            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Bad login Request'
+        }).then().catch()
+        res.status(400).send({ errors: errorList });
+    } else {
+        next();
+    }
+}
+
 export {
     validateVolunteer,
     validateEditedVolunteer,
-    validateVolunteerId
+    validateVolunteerId,
+    validateLogin
 }
