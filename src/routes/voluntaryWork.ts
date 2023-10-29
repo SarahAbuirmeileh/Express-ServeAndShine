@@ -200,100 +200,6 @@ router.delete('/image/:id', validateVoluntaryWorkId, authorize("PUT_images"), va
 
 })
 
-router.delete('/certificate/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
-    const id = Number(req.params.id?.toString());
-    const voluntaryWork = await getVoluntaryWork({ id });
-    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name });
-    const key = `certificates/${organizationProfile?.name || req.body.organizationName}/${voluntaryWork?.name}/${req.body.imageName}.pdf`
-
-    deleteFromS3(key, "certificate")
-        .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Delete certificate for volunteer: ' + req.body.volunteerName
-            }).then().catch()
-
-            logToCloudWatch(
-                'success',
-                'voluntary work',
-                'Delete certificate for volunteer: ' + req.body.volunteerName,
-                res.locals.organizationAdmin?.id,
-                res.locals.organizationAdmin?.name
-            ).then().catch()
-
-            res.send(data);
-        })
-        .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Delete image for volunteer: ' + req.body.volunteerName
-            }).then().catch()
-
-            logToCloudWatch(
-                'failed',
-                'voluntary work',
-                'Delete image for volunteer: ' + req.body.volunteerName,
-                res.locals.organizationAdmin?.id,
-                res.locals.organizationAdmin?.name
-            ).then().catch()
-
-            next(err);
-        });
-})
-
-router.delete('/template/:id', validateOrganizationProfile, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
-
-    const id = (req.params.id?.toString());
-    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id, name: "", adminName: '' });
-    const key = `templates/${organizationProfile?.name}/${req.body.imageName || "certificate_template"}.html`
-
-    deleteFromS3(key, "template")
-        .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Delete template for organization :' + req.body.organizationName
-            }).then().catch()
-
-            logToCloudWatch(
-                'success',
-                'voluntary work',
-                'Delete template for organization :' + req.body.organizationName,
-                res.locals.organizationAdmin?.id,
-                res.locals.organizationAdmin?.name
-            ).then().catch()
-
-            res.send(data);
-        })
-        .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Delete template for organization :' + req.body.organizationName
-            }).then().catch()
-
-            logToCloudWatch(
-                'failed',
-                'voluntary work',
-                'Delete template for organization :' + req.body.organizationName,
-                res.locals.organizationAdmin?.id,
-                res.locals.organizationAdmin?.name
-            ).then().catch()
-
-            next(err);
-        });
-})
-
 router.delete("/rating/:id", validateVoluntaryWorkId, authorize("PUT_rating"), checkParticipation, async (req, res, next) => {
     deleteRating(Number(req.params.id), res.locals.volunteer?.name).then(() => {
         log({
@@ -350,7 +256,7 @@ router.delete("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_rating"),
             'Delete Feedback to voluntary work with id' + req.params.id,
             res.locals.volunteer?.id,
             res.locals.volunteer?.name
-        ).then().catch()
+            ).then().catch()
 
         res.status(200).send("Feedback deleted successfully!!")
     }).catch(err => {
@@ -368,10 +274,10 @@ router.delete("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_rating"),
             'Delete Feedback to voluntary work with id' + req.params.id,
             res.locals.volunteer?.id,
             res.locals.volunteer?.name
-        ).then().catch()
+            ).then().catch()
 
-        next(err);
-    });
+            next(err);
+        });
 });
 
 router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, async (req, res, next) => {
@@ -390,10 +296,10 @@ router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, 
             'Edit Voluntary Work with id: ' + req.params.id,
             res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-        ).then().catch()
+            ).then().catch()
 
-        res.status(201).send("Voluntary Work edited successfully!!")
-    }).catch(err => {
+            res.status(201).send("Voluntary Work edited successfully!!")
+        }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
@@ -405,6 +311,7 @@ router.put("/:id", authorize("PUT_voluntaryWork"), validateEditedVoluntaryWork, 
         logToCloudWatch(
             'failed',
             'voluntary work',
+            
             'Edit Voluntary Work with id: ' + req.params.id,
             res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             res.locals.organizationAdmin?.name || res.locals.volunteer?.name
@@ -717,52 +624,6 @@ router.get('/image/:id', validateVoluntaryWorkId, async (req, res, next) => {
                 'Get image/s',
                 res.locals.volunteer?.id || res.locals.organizationAdmin?.id,
                 res.locals.volunteer?.name || res.locals.organizationAdmin?.name
-            ).then().catch()
-
-            next(err);
-        });
-});
-
-router.get('/template/:id', authorize("PUT_images"), async (req, res, next) => {
-    const payload = { page: '', pageSize: '', id: '', name: '', adminName: res.locals.organizationAdmin.name }
-    const organizationProfile = await searchOrganizationProfile(payload);
-
-    const prefix = `templates/${organizationProfile?.name || req.body.organizationName}`
-    loadFromS3(process.env.AWS_CERTIFICATES_BUCKET_NAME || '', prefix)
-        .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Get template/s for organization: ' + req.body.organizationName
-            }).then().catch()
-
-            logToCloudWatch(
-                'success',
-                'voluntary work',
-                'Get template/s',
-                res.locals.organizationAdmin?.id,
-                res.locals.organizationAdmin?.name
-            ).then().catch()
-
-            res.send(data);
-        })
-        .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Get template/s for organization: ' + req.body.organizationName
-            }).then().catch()
-
-            logToCloudWatch(
-                'failed',
-                'voluntary work',
-                'Get template/s',
-                res.locals.organizationAdmin?.id,
-                res.locals.organizationAdmin?.name
             ).then().catch()
 
             next(err);
@@ -1177,6 +1038,55 @@ router.put("/deregister/:id", validateVoluntaryWorkId, authorize("DEREGISTER_vol
     });
 });
 
+router.post("/generate-certificate/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
+    const currentDate = new Date();
+    const date = `${currentDate.getDate()} ${currentDate.getMonth() + 1} ${currentDate.getFullYear()}`
+
+    const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
+    const organization = await searchOrganizationProfile(payload);
+    const organizationName = organization?.name || '';
+
+    generateCertificate(Number(req.params.id), organizationName, req.body.date || date).then(() => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Certifications generated successfully for organization: ' + organizationName
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'voluntary work',
+            'Certifications generated successfully for organization: ' + organizationName,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        res.status(201).send("Certifications generated and sent successfully!!")
+
+    }).catch((err) => {
+        log({
+            userId: res.locals.organizationAdmin?.id,
+            userName: res.locals.organizationAdmin?.name,
+            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Generating certifications for organization: ' + organizationName
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'voluntary work',
+            'Generating certifications for organization: ' + organizationName,
+            res.locals.organizationAdmin?.id,
+            res.locals.organizationAdmin?.name
+        ).then().catch()
+
+        next(err);
+    })
+
+});
+
 router.put("/template/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
     const templates = req.files?.template;
     if (!templates) {
@@ -1230,53 +1140,144 @@ router.put("/template/:id", validateVoluntaryWorkId, authorize("PUT_images"), as
 
 });
 
-router.post("/generate-certificate/:id", validateVoluntaryWorkId, authorize("PUT_images"), async (req, res, next) => {
-    const currentDate = new Date();
-    const date = `${currentDate.getDate()} ${currentDate.getMonth() + 1} ${currentDate.getFullYear()}`
+router.delete('/certificate/:id', validateVoluntaryWorkId, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
+    const id = Number(req.params.id?.toString());
+    const voluntaryWork = await getVoluntaryWork({ id });
+    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name });
+    const key = `certificates/${organizationProfile?.name || req.body.organizationName}/${voluntaryWork?.name}/${req.body.imageName}.pdf`
 
-    const payload = { page: "", pageSize: "", id: "", name: "", adminName: res.locals.organizationAdmin.name };
-    const organization = await searchOrganizationProfile(payload);
-    const organizationName = organization?.name || '';
+    deleteFromS3(key, "certificate")
+        .then(data => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Delete certificate for volunteer: ' + req.body.volunteerName
+            }).then().catch()
 
-    generateCertificate(Number(req.params.id), organizationName, req.body.date || date).then(() => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Certifications generated successfully for organization: ' + organizationName
-        }).then().catch()
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Delete certificate for volunteer: ' + req.body.volunteerName,
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
 
-        logToCloudWatch(
-            'success',
-            'voluntary work',
-            'Certifications generated successfully for organization: ' + organizationName,
-            res.locals.organizationAdmin?.id,
-            res.locals.organizationAdmin?.name
-        ).then().catch()
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Delete image for volunteer: ' + req.body.volunteerName
+            }).then().catch()
 
-        res.status(201).send("Certifications generated and sent successfully!!")
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Delete image for volunteer: ' + req.body.volunteerName,
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
 
-    }).catch((err) => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Generating certifications for organization: ' + organizationName
-        }).then().catch()
+            next(err);
+        });
+})
 
-        logToCloudWatch(
-            'failed',
-            'voluntary work',
-            'Generating certifications for organization: ' + organizationName,
-            res.locals.organizationAdmin?.id,
-            res.locals.organizationAdmin?.name
-        ).then().catch()
+router.delete('/template/:id', validateOrganizationProfile, authorize("DELETE_voluntaryWork"), validateDeleteFromS3, async (req, res, next) => {
 
-        next(err);
-    })
+    const id = (req.params.id?.toString());
+    const organizationProfile = await searchOrganizationProfile({ page: "", pageSize: "", id, name: "", adminName: '' });
+    const key = `templates/${organizationProfile?.name}/${req.body.imageName || "certificate_template"}.html`
 
+    deleteFromS3(key, "template")
+        .then(data => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Delete template for organization :' + req.body.organizationName
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Delete template for organization :' + req.body.organizationName,
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Delete template for organization :' + req.body.organizationName
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Delete template for organization :' + req.body.organizationName,
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
+})
+
+router.get('/template/:id', authorize("PUT_images"), async (req, res, next) => {
+    const payload = { page: '', pageSize: '', id: '', name: '', adminName: res.locals.organizationAdmin.name }
+    const organizationProfile = await searchOrganizationProfile(payload);
+
+    const prefix = `templates/${organizationProfile?.name || req.body.organizationName}`
+    loadFromS3(process.env.AWS_CERTIFICATES_BUCKET_NAME || '', prefix)
+        .then(data => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Get template/s for organization: ' + req.body.organizationName
+            }).then().catch()
+
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Get template/s',
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            res.send(data);
+        })
+        .catch(err => {
+            log({
+                userId: res.locals.organizationAdmin?.id,
+                userName: res.locals.organizationAdmin?.name,
+                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Get template/s for organization: ' + req.body.organizationName
+            }).then().catch()
+
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Get template/s',
+                res.locals.organizationAdmin?.id,
+                res.locals.organizationAdmin?.name
+            ).then().catch()
+
+            next(err);
+        });
 });
 
 export default router;
