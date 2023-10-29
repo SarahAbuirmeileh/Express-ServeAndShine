@@ -2,13 +2,15 @@ import express from 'express';
 import { authorize, checkMe } from '../middleware/auth/authorize.js';
 import { authenticate } from '../middleware/auth/authenticate.js';
 import { validateEditedVolunteer, validateLogin, validateVolunteer, validateVolunteerId } from '../middleware/validation/volunteer.js';
-import { createVolunteer, deleteVolunteer, editVolunteer, getVolunteers, login } from '../controllers/volunteer.js';
+import { createVolunteer, deleteVolunteer, editVolunteer, forgetPassword, getVolunteers, login, resetPassword, verifyToken } from '../controllers/volunteer.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { log } from '../controllers/dataBaseLogger.js';
 import { NSLogs } from '../../types/logs.js';
 import { logToCloudWatch } from '../controllers/AWSServices/CloudWatchLogs.js';
 import { sendEmail } from '../controllers/AWSServices/SES.js';
 import { Volunteer } from '../db/entities/Volunteer.js';
+import bcrypt from 'bcrypt';
+
 
 var router = express.Router();
 
@@ -90,7 +92,7 @@ router.post('/signup', validateVolunteer, (req, res, next) => {
     });
 });
 
-router.post('/login',validateLogin, (req, res, next) => {
+router.post('/login', validateLogin, (req, res, next) => {
     const email = req.body.email;
     const name = req.body.name;
     const id = req.body.id;
@@ -185,7 +187,7 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), validateVolun
         });
 })
 
-router.put("/:id",authenticate, authorize("PUT_volunteer"), validateEditedVolunteer, async (req, res, next) => {
+router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolunteer, async (req, res, next) => {
     editVolunteer({ ...req.body, id: req.params.id?.toString() }).then(() => {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
@@ -225,7 +227,7 @@ router.put("/:id",authenticate, authorize("PUT_volunteer"), validateEditedVolunt
     });
 });
 
-router.get('/search', authenticate, authorize("GET_volunteers"), async (req, res, next) => {    
+router.get('/search', authenticate, authorize("GET_volunteers"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
@@ -345,6 +347,136 @@ router.get('/me', authenticate, async (req, res, next) => {
 
         res.send(res.locals.organizationAdmin);
     }
+});
+
+router.get("/forget-password", authenticate, authorize("PUT_rating"), (req, res, next) => {
+    forgetPassword(res.locals.volunteer?.id, res.locals.volunteer?.email).then(() => {
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: (res.locals.volunteer?.type) as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Forget  password volunteer id ' + res.locals.volunteer?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'volunteer',
+            'Forget  password volunteer id ' + res.locals.volunteer?.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
+        res.send("Password reset link has been sent to your email")
+    }).catch(err => {
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: (res.locals.volunteer?.type) as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Forget  password volunteer id ' + res.locals.volunteer?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'volunteer',
+            'Forget  password volunteer id ' + res.locals.volunteer?.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
+        next(err);
+    })
+})
+
+router.get("/reset-password/:id/:token", async (req, res, next) => {
+    const { id, token } = req.params;
+
+    try {
+        await verifyToken(id, token);
+        res.cookie('reset-password', token, {
+            httpOnly: true,
+            maxAge: 15 * 60 * 1000,
+            sameSite: "lax"
+        });
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: (res.locals.volunteer?.type) as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Validate token to reset password for volunteer id ' + res.locals.volunteer?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'volunteer',
+            'Validate token to reset password for volunteer id ' + res.locals.volunteer?.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+        res.send("You can now set your new password by making a POST request to /reset-password/:id with your new password in the request body.");
+    } catch (error) {
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: (res.locals.volunteer?.type) as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Validate token to reset password for volunteer id ' + res.locals.volunteer?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'volunteer',
+            'Validate token to reset password for volunteer id ' + res.locals.volunteer?.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
+        res.status(500).send("Invalid or expired token.");
+    }
+});
+
+router.post("/reset-password/:id", async (req, res, next) => {
+    const id = req.params.id;
+    const token = req.cookies['reset-password'] || '';
+    const password = req.body.password;
+    resetPassword(id, token, password).then(data => {
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: (res.locals.volunteer?.type) as NSLogs.userType,
+            type: 'success' as NSLogs.Type,
+            request: 'Reset password for volunteer id ' + res.locals.volunteer?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'success',
+            'volunteer',
+            'Reset password for volunteer id ' + res.locals.volunteer?.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
+        res.status(200).send(data)
+    }).catch(err => {
+        log({
+            userId: res.locals.volunteer?.id,
+            userName: res.locals.volunteer?.name,
+            userType: (res.locals.volunteer?.type) as NSLogs.userType,
+            type: 'failed' as NSLogs.Type,
+            request: 'Reset password for volunteer id ' + res.locals.volunteer?.id
+        }).then().catch()
+
+        logToCloudWatch(
+            'failed',
+            'volunteer',
+            'Reset password for volunteer id ' + res.locals.volunteer?.id,
+            res.locals.volunteer?.id,
+            res.locals.volunteer?.name
+        ).then().catch()
+
+        res.send(err)
+    })
 });
 
 /**
