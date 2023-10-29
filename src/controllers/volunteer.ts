@@ -131,11 +131,13 @@ const login = async (email: string, name: string, id: string) => {
             );
             return { token, organizationAdmin, volunteer: null };
         } else {
-            throw ("Invalid email or name or id !");
+            error.status = 400;
+            error.message = 'Invalid email or name or id !';
+            throw error;
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Something" });
+        throw createError(error.status, error.message);
     }
 
 }
@@ -205,12 +207,6 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
             return true;
         });
 
-        if (filteredVolunteers.length == 0) {
-            error.status = 404;
-            error.message = "Volunteer";
-            throw error;
-        }
-
         const finalFilteredVolunteers = filteredVolunteers.filter((volunteer) => {
             if (payload.availableTime && payload.availableTime.length > 0) {
                 if (!volunteer.volunteerProfile || !volunteer.volunteerProfile.availableTime) {
@@ -228,6 +224,12 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
 
             return true;
         });
+
+        if (finalFilteredVolunteers.length == 0) {
+            error.status = 404;
+            error.message = "Volunteer";
+            throw error;
+        }
 
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;

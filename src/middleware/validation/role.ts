@@ -55,7 +55,7 @@ const validateEditedRole = async (req: express.Request,
         }).catch(err => {
             console.log('NOT logged');
         })
-        next(createError(404));
+        next(createError(404, "Role"));
     }
 
     if (role.name) {
@@ -99,7 +99,7 @@ const validateRoleId = async (req: express.Request,
         }).catch(err => {
             console.log('NOT logged');
         })
-        next(createError(404));
+        next(createError(404, "Role"));
     } else {
         next();
     }

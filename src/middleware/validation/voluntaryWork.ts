@@ -85,7 +85,7 @@ const validateEditedVoluntaryWork = async (req: express.Request,
         }).catch(err => {
             console.log('NOT logged');
         })
-        next(createError(404));
+        next(createError(404, "Voluntary work"));
     }
 
     if (voluntaryWork.status) {
@@ -177,7 +177,7 @@ const validateVoluntaryWorkId = async (req: express.Request,
             res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
             res.locals.organizationAdmin?.name || res.locals.volunteer?.name
         ).then().catch()
-        next(createError(404));
+        next(createError(404, "Voluntary work"));
     } else {
         next();
     }

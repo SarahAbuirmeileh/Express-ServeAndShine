@@ -42,8 +42,9 @@ app.use("/volunteer", volunteerRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  next(createError(404));
+  next(createError(404, "The page"));
 });
+
 app.use(errorHandler);
 
 app.listen(PORT, () => {

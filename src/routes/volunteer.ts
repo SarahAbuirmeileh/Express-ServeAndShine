@@ -305,7 +305,7 @@ router.get("/logout", authenticate, (req, res, next) => {
     ).then().catch()
 
     res.send("You logged out successfully !");
-})
+});
 
 router.get('/me', authenticate, async (req, res, next) => {
     if (res.locals.volunteer) {
@@ -513,7 +513,9 @@ router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), valida
  *       200:
  *         description: Volunteer loged in successfully
  *       401:
- *         description: Volunteer unauthorized
+ *         description: You are unauthorized
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -526,7 +528,7 @@ router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), valida
  *       200:
  *         description: Volunteer loged out successfully
  *       401:
- *         description: Volunteer unauthorized
+ *         description: You are unauthorized
  */
 
 /**
@@ -601,6 +603,12 @@ router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), valida
  *                     
  *       404:
  *         description: Volunteer not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -621,6 +629,12 @@ router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), valida
  *         description: Volunteer deleted successfully
  *       404:
  *         description: Volunteer not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -672,7 +686,11 @@ router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), valida
  *                             createdAt: "2023-10-27T08:56:15.498Z"
  *                         voluntaryWorks: []
  *       401:
- *         description: Volunteer unauthorized
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -740,6 +758,8 @@ router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), valida
  *                   createdAt: "2023-10-27T08:56:15.827Z"
  *       400:
  *         description: Bad request, validation failed
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -788,6 +808,12 @@ router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), valida
  * 
  *       404:
  *         description: Volunteer not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**

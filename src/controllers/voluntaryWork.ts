@@ -12,6 +12,8 @@ import { OrganizationProfile } from "../db/entities/OrganizationProfile.js";
 import { searchOrganizationProfile } from "./OrganizationProfile .js";
 import { OrganizationAdmin } from "../db/entities/OrganizationAdmin.js";
 
+const error = { status: 500, message: 'when trying to manage voluntary work' };
+
 const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
     try {
         let payloadDate = { ...payload, startedDate: getDate(payload.startedDate), finishedDate: getDate(payload.finishedDate) };
@@ -33,7 +35,7 @@ const createVoluntaryWork = async (payload: NSVoluntaryWork.Item) => {
         return newVoluntaryWork.save();
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to create Voluntary work";
+        throw createError(error.status, error.message);
     }
 }
 
@@ -43,7 +45,7 @@ const deleteVoluntaryWork = async (voluntaryWorkId: number) => {
         return "Voluntary work entry deleted successfully!"
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Voluntary work" });
+        throw createError(error.status, error.message);
     }
 }
 
@@ -78,9 +80,9 @@ const editVoluntaryWork = async (payload: NSVoluntaryWork.Edit) => {
 
             return voluntaryWork.save();
         }
-    } catch (error) {
-        baseLogger.error(error);
-        throw createError({ status: 404, message: "Voluntary work" });
+    } catch (err) {
+        baseLogger.error(err);
+        throw createError(error.status, error.message);
     }
 }
 
@@ -89,7 +91,7 @@ const getVoluntaryWork = (payload: { id: number }) => {
         return VoluntaryWork.findOne({ where: { id: payload.id } })
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Voluntary work" });
+        throw createError(error.status, error.message);
     }
 }
 
@@ -209,6 +211,11 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
             };
         }));
 
+        if (processedVW.length == 0) {
+            error.status = 404;
+            error.message = "voluntary work";
+            throw error;
+        }
 
         return {
             page,
@@ -218,7 +225,7 @@ const getVoluntaryWorks = async (payload: NSVoluntaryWork.GetVoluntaryWorks) => 
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ message: err });
+        throw createError(error.status, error.message);
     }
 }
 
@@ -237,11 +244,13 @@ const putRating = async (id: number, rating: number, volunteerName: string) => {
             voluntaryWork.avgRating = await calculateAvgRating(id) || 0;
             await voluntaryWork.save();
         } else {
-            throw createError(404, "Voluntary work not found");
+            error.status = 404;
+            error.message = "voluntary work";
+            throw error;
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(500, "Internal Server Error");
+        throw createError(error.status, error.message);
     }
 }
 
@@ -258,11 +267,13 @@ const putFeedback = async (id: number, feedbackText: string, volunteerName: stri
             }
             await voluntaryWork.save();
         } else {
-            throw createError(404, "Voluntary work not found");
+            error.status = 404;
+            error.message = "voluntary work";
+            throw error;
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(500, ", when trying to add Feedback");
+        throw createError(error.status, error.message);
     }
 }
 
@@ -272,7 +283,9 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
 
         const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["skillTags"] });
         if (!voluntaryWork) {
-            throw createError({ status: 404, message: "Voluntary work" });
+            error.status = 404;
+            error.message = "voluntary work";
+            throw error;
         }
 
 
@@ -289,11 +302,16 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
             !(volunteerProfile.availableTime?.length > 0 && volunteerProfile.availableTime?.every(time => voluntaryWork.time.includes(time)))
 
         ) {
-            throw new Error("Volunteer's profile information does not align with the VoluntaryWork information");
+            error.status = 406;
+            error.message = "Volunteer's profile information does not align with the VoluntaryWork information";
+            throw error;
         }
 
         if (voluntaryWork.volunteerProfiles?.length >= voluntaryWork.capacity) {
-            throw new Error("VoluntaryWork is already at full capacity");
+
+            error.status = 406;
+            error.message = "VoluntaryWork is already at full capacity";
+            throw error;
         }
 
         if (voluntaryWork.volunteerProfiles) {
@@ -314,7 +332,7 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
         return "Registration successful!";
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to register by Volunteer: " + err;
+        throw createError(error.status, error.message); // when trying to register by Volunteer
     }
 }
 
@@ -328,10 +346,14 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
         });
 
         if (!voluntaryWork) {
-            throw "Voluntary work not found";
+            error.status = 404;
+            error.message = "voluntary work";
+            throw error;
         }
         if (!volunteer) {
-            throw "Volunteer not found";
+            error.status = 404;
+            error.message = "volunteer";
+            throw error;
         }
 
         if (voluntaryWork.volunteerProfiles) {
@@ -352,7 +374,7 @@ const registerByOrganizationAdmin = async (workId: number, volunteerId: string) 
         return "Registration successful!";
     } catch (err) {
         baseLogger.error(err);
-        throw ", when trying to register by organization admin";
+        throw createError(error.status, error.message); // when trying to register by organization admin
     }
 }
 
@@ -362,11 +384,15 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
         const volunteer = await Volunteer.findOne({ where: { id: volunteerId }, relations: ["volunteerProfile", "volunteerProfile.voluntaryWorks"] });
 
         if (!voluntaryWork) {
-            throw createError({ status: 404, message: "Voluntary work" });
+            error.status = 404;
+            error.message = "voluntary work";
+            throw error;
         }
 
         if (!volunteer) {
-            throw createError({ status: 404, message: "Volunteer" });
+            error.status = 404;
+            error.message = "volunteer";
+            throw error;
         }
 
         const index = voluntaryWork.volunteerProfiles.findIndex(profile => profile.id === volunteer.volunteerProfile.id);
@@ -381,11 +407,13 @@ const deregisterVoluntaryWork = async (workId: number, volunteerId: string) => {
 
             return "Deregistration successful!";
         } else {
-            throw new Error("Volunteer is not registered for this voluntary work");
+            error.status = 406;
+            error.message = "Volunteer is not registered for this voluntary work";
+            throw error;
         }
     } catch (err) {
         baseLogger.error(err);
-        throw "Error when trying to deregister voluntary work";
+        throw createError(error.status, error.message); // Error when trying to deregister voluntary work
     }
 }
 
@@ -396,7 +424,9 @@ const generateCertificate = async (voluntaryWorkId: number, organizationName: st
     });
 
     if (!voluntaryWork) {
-        throw new Error(`Voluntary work with id ${voluntaryWorkId} not found.`);
+        error.status = 404;
+        error.message = `Voluntary work with id ${voluntaryWorkId}`;
+        throw error;
     }
 
     const volunteerData = voluntaryWork.volunteerProfiles.map(({ volunteer }) => ({ name: volunteer.name, email: volunteer.email }));
@@ -430,12 +460,14 @@ const getVoluntaryWorksForVolunteer = async (volunteerId: string) => {
         });
 
         if (!volunteer) {
-            throw createError({ status: 404, message: 'Volunteer not found' });
+            error.status = 404;
+            error.message = "volunteer";
+            throw error;
         }
         return volunteer.volunteerProfile.voluntaryWorks;
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: 'Voluntary Works not found' });
+        throw createError(error.status, error.message);
     }
 };
 
@@ -444,7 +476,9 @@ const volunteerReminder = async (id: number) => {
 
         let voluntaryWork = await VoluntaryWork.findOne({ where: { id }, relations: ["volunteerProfiles", "volunteerProfiles.volunteer"] });
         if (!voluntaryWork) {
-            throw new Error(`Voluntary work with id ${id} not found.`);
+            error.status = 404;
+            error.message = `Voluntary work with id ${id}`;
+            throw error;
         }
 
         const volunteerData = voluntaryWork.volunteerProfiles?.map((volunteer) => ({ name: volunteer.volunteer.name, email: volunteer.volunteer.email }));
@@ -459,7 +493,7 @@ const volunteerReminder = async (id: number) => {
 
     } catch (err) {
         baseLogger.error(err);
-        throw createError(404);
+        throw createError(error.status, error.message);
     }
 }
 
@@ -530,7 +564,7 @@ const getRecommendation = async (payload: NSVoluntaryWork.Recommendation) => {
         };
     } catch (err) {
         baseLogger.error(err);
-        throw createError({ status: 404, message: "Voluntary work" });
+        throw createError(error.status, error.message);
     }
 }
 
@@ -554,7 +588,7 @@ const deleteImage = async (voluntaryWorkId: number, imageName: string) => {
         };
     } catch (err) {
         baseLogger.error(err);
-        throw new Error('Error when trying to delete an image');
+        throw createError(error.status, error.message); // Error when trying to delete an image
     }
 }
 
@@ -608,14 +642,18 @@ const deleteRating = async (id: number, volunteerName: string) => {
                 voluntaryWork.avgRating = await calculateAvgRating(id) || 0;
                 await voluntaryWork.save();
             } else {
-                throw createError(404, "Rating not found for the volunteer");
+                error.status = 404;
+                error.message = 'Rating for the volunteer';
+                throw error;
             }
         } else {
-            throw createError(404, "Voluntary work not found");
+            error.status = 404;
+            error.message = 'Voluntary work';
+            throw error;
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(500, "Internal Server Error");
+        throw createError(error.status, error.message);
     }
 };
 
@@ -628,14 +666,18 @@ const deleteFeedback = async (id: number, volunteerName: string) => {
                 voluntaryWork.feedback.splice(existingFeedbackIndex, 1);
                 await voluntaryWork.save();
             } else {
-                throw createError(404, "Feedback not found");
+                error.status = 404;
+                error.message = 'Feedback';
+                throw error;
             }
         } else {
-            throw createError(404, "Voluntary work not found");
+            error.status = 404;
+            error.message = 'Voluntary work';
+            throw error;
         }
     } catch (err) {
         baseLogger.error(err);
-        throw createError(500, "Internal Server Error");
+        throw createError(error.status, error.message);
     }
 };
 
@@ -821,7 +863,7 @@ const getOrganizationAnalysis = async (organizationId: string) => {
 
     } catch (err) {
         baseLogger.error(err);
-        throw createError(500, "Internal Server Error");
+        throw createError(error.status, 'when trying to manage organization analysis');
     }
 }
 

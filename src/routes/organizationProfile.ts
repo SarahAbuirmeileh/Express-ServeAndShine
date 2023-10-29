@@ -289,6 +289,12 @@ router.get('/', /*authorize("GET_organizationProfiles"), */async (req, res, next
  *                   - name: "Organization 3"
  *                     description: "this is a test"
  *                     createdAt: 2023-10-26T09:59:23.481Z
+ *         401:
+ *         description: You are unauthorized  
+ *         403:  
+ *         description: You don't have the permission
+ *         500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -332,6 +338,12 @@ router.get('/', /*authorize("GET_organizationProfiles"), */async (req, res, next
  *                     
  *       404:
  *         description: Organization Profile not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -352,6 +364,12 @@ router.get('/', /*authorize("GET_organizationProfiles"), */async (req, res, next
  *         description: Organization profile deleted successfully
  *       404:
  *         description: Organization profile not found
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -397,6 +415,12 @@ router.get('/', /*authorize("GET_organizationProfiles"), */async (req, res, next
  *                   createdAt: 2023-10-26T10:03:30.233Z
  *       400:
  *         description: Bad request, validation failed
+ *       401:
+ *         description: You are unauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 /**
@@ -439,6 +463,12 @@ router.get('/', /*authorize("GET_organizationProfiles"), */async (req, res, next
  *                  name: "Updated Organization Profile Name"
  *       404:
  *         description: Organization Profile not found
+ *       401:
+ *         description: You are nauthorized
+ *       403:  
+ *         description: You don't have the permission
+ *       500: 
+ *         description: Something went wrong
  */
 
 export default router;

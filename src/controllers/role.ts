@@ -5,6 +5,8 @@ import { Role } from "../db/entities/Role.js";
 import createError from 'http-errors';
 import baseLogger from "../../logger.js";
 
+const error = { status: 500, message: 'when trying to manage role' };
+
 const createRole = async (payload: NSRole.Item) => {
   try {
     const newRole = Role.create(payload);
@@ -15,9 +17,9 @@ const createRole = async (payload: NSRole.Item) => {
     newRole.permissions = permissions
     return newRole.save();
   }
-  catch (error) {
-    baseLogger.error(error);
-    throw ", when trying to create Role";
+  catch (err) {
+    baseLogger.error(err);
+    throw createError(error.status, error.message);
   }
 }
 
@@ -26,7 +28,7 @@ const deleteRole = async (roleId: number) => {
     return Role.delete(roleId);
   } catch (err) {
     baseLogger.error(err);
-    throw createError({status: 404, message: "Role"});
+    throw createError(error.status, error.message);
   }
 }
 
@@ -40,7 +42,7 @@ const editRole = async (payload: { name: NSRole.Type, id: number }) => {
     }
   } catch (err) {
     baseLogger.error(err);
-    throw createError({status: 404, message: "Role"});
+    throw createError(error.status, error.message);
   }
 }
 
@@ -78,7 +80,7 @@ const getRoles = async (payload: {
     };
   } catch (err) {
     baseLogger.error(err);
-    throw createError({status: 404, message: "Role"});
+    throw createError(error.status, error.message);
   }
 }
 
