@@ -584,4 +584,105 @@ router.post("/reset-password/:id", authenticate, authorize("POST_voluntaryWork")
  *         description: Organization admin not found
  */
 
+/**
+ * @swagger
+ * /organizationAdmin/forget-password:
+ *   get:
+ *     summary: Send a password reset link to a organizationAdmin's email
+ *     tags: [OrganizationAdmin]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Password reset link sent successfully
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: Password reset link has been sent to your email
+ *       401:
+ *         description: OrganizationAdmin unauthorized
+ *       403:
+ *         description: You don't have the permission.
+ *       500:
+ *         description: Internal Server Error
+ */
+
+/**
+ * @swagger
+ * /organizationAdmin/reset-password/{id}/{token}:
+ *   get:
+ *     summary: Validate a password reset token for a organizationAdmin
+ *     tags: [OrganizationAdmin]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the organizationAdmin.
+ *         schema:
+ *           type: string
+ *       - name: token
+ *         in: path
+ *         required: true
+ *         description: The password reset token.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Token validated successfully
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: You can now set your new password by making a POST request to /reset-password/{id} with your new password in the request body.
+ *       401:
+ *          description: OrganizationAdmin unauthorized
+ *       403:
+ *          description: You don't have the permission.
+ 
+ *       500:
+ *          description: Invalid or expired token.
+ */
+
+/**
+ * @swagger
+ * /organizationAdmin/reset-password/{id}:
+ *   post:
+ *     summary: Reset the password for a organizationAdmin
+ *     tags: [OrganizationAdmin]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: The ID of the organizationAdmin.
+ *         schema:
+ *           type: string
+
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: Password updated successfully!!
+ *       401:
+ *          description: OrganizationAdmin unauthorized
+ *       403:
+ *          description: You don't have the permission.
+ *       400:
+ *         description: Your request is BAD,
+ *       500:
+ *         description: Internal Server Error
+ */
+
 export default router;
