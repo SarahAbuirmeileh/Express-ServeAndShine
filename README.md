@@ -58,7 +58,7 @@ Following best practices in continuous delivery, the platform remains up-to-date
 
 
 ## Technical information
-### Development
+### 👉Development
 1. Entities:
 
    ![image](https://github.com/SarahAbuirmeileh/Serve-and-Shine/assets/127000629/d31ff035-c662-4454-868d-7cb7e37de76b)
@@ -67,7 +67,7 @@ Following best practices in continuous delivery, the platform remains up-to-date
 
   click [here](http://localhost:3000/api-docs/) to see documintations.
 
-### Deployment
+### 👉Deployment
    
 
 
