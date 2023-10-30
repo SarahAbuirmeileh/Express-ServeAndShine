@@ -23,6 +23,13 @@ export class OrganizationAdmin extends BaseEntity {
     @Column({ nullable: false })
     password: string;
 
+    @Column({
+        type: 'enum',
+        enum: ['male', 'female'],
+        nullable: false
+    })
+    gender: 'male' | 'female'
+
     @OneToOne(() => OrganizationProfile, {cascade: true, onDelete:"SET NULL", onUpdate:"CASCADE"})
     @JoinColumn()
     orgProfile: OrganizationProfile;

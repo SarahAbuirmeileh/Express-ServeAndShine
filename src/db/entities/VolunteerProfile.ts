@@ -19,7 +19,7 @@ export class VolunteerProfile extends BaseEntity {
         type: 'json',
         nullable: false
     })
-    availableDays:NSVolunteer.AvailableDays[];
+    availableDays: NSVolunteer.AvailableDays[];
 
     @Column({ nullable: false })
     availableLocation: string;
@@ -42,6 +42,13 @@ export class VolunteerProfile extends BaseEntity {
     @ManyToMany(() => VoluntaryWork)
     @JoinTable()
     voluntaryWorks: VoluntaryWork[];
+
+    @Column({
+        type: 'enum',
+        enum: ['male', 'female'],
+        nullable: false
+    })
+    gender: 'male' | 'female'
 
     @CreateDateColumn({
         type: 'timestamp',

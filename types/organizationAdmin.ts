@@ -1,3 +1,5 @@
+import { NSVolunteer } from "./volunteer.js";
+
 export namespace NSOrganizationAdmin {
 
     export interface Item {
@@ -7,5 +9,6 @@ export namespace NSOrganizationAdmin {
         password: string;
         organizationId: string;
         createdAt?: Date;
+        gender:NSVolunteer.Gender;
     }
 }

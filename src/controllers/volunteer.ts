@@ -65,7 +65,7 @@ const deleteVolunteer = async (volunteerId: string) => {
     }
 }
 
-const editVolunteer = async (payload: { name: string, id: string, email: string, oldPassword: string, newPassword: string }) => {
+const editVolunteer = async (payload: { name: string, id: string, email: string }) => {
     try {
         const volunteer = await Volunteer.findOne({ where: { id: payload.id } });
         if (volunteer) {
@@ -74,23 +74,6 @@ const editVolunteer = async (payload: { name: string, id: string, email: string,
 
             if (payload.email)
                 volunteer.email = payload.email;
-
-            if (payload.newPassword) {
-                if (!payload.oldPassword) {
-                    error.status = 400;
-                    error.message = "old password is required";
-                    throw error;
-                }
-
-                const passwordMatching = await bcrypt.compare(payload.oldPassword, volunteer?.password || '');
-                if (passwordMatching) {
-                    volunteer.password = await bcrypt.hash(payload.newPassword, 10);
-                } else {
-                    error.status = 400;
-                    error.message = "the old password isn't correct";
-                    throw error;
-                }
-            }
 
             return volunteer.save();
         }
@@ -285,15 +268,15 @@ const resetPassword = async (id: string, token: string, password: string) => {
             if (password) {
                 const hashedPassword = await bcrypt.hash(password, 10);
                 volunteer.password = hashedPassword;
-                await volunteer.save(); 
+                await volunteer.save();
                 return "Password updated successfully!!"
             }
-        } 
+        }
     } catch (err) {
         baseLogger.error(err);
         throw err;
     }
 }
 
-export {resetPassword, verifyToken, forgetPassword, getVolunteers, login, createVolunteer, deleteVolunteer, editVolunteer }
+export { resetPassword, verifyToken, forgetPassword, getVolunteers, login, createVolunteer, deleteVolunteer, editVolunteer }
 

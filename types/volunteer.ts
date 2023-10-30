@@ -14,6 +14,11 @@ export namespace NSVolunteer {
         Saturday = 'Saturday',
     }
 
+    export enum Gender {
+        male = 'male',
+        female = "female"
+    }
+
     export enum AvailableTime {
         Morning = 'Morning',
         Afternoon = 'Afternoon'
@@ -35,6 +40,7 @@ export namespace NSVolunteer {
         availableLocation: string;
         availableDays: AvailableDays[];
         skills: string[];
+        gender:Gender;
     }
 
     export interface IVolunteer {

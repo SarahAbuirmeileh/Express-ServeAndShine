@@ -8,6 +8,7 @@ import { Not } from "typeorm";
 import baseLogger from "../../logger.js";
 import { sendEmail } from "./AWSServices/SES.js";
 import jwt from 'jsonwebtoken';
+import { NSVolunteer } from "../../types/volunteer.js";
 
 
 const error = { status: 500, message: 'when trying to manage organization admin' };
@@ -137,7 +138,7 @@ const deleteOrganizationAdmin = async (adminId: string) => {
     }
 }
 
-const editOrganizationAdmin = async (payload: { id: string, name: string, email: string, newPassword: string, oldPassword: string, organizationName: string }) => {
+const editOrganizationAdmin = async (payload: { id: string, name: string, email: string, organizationName: string }) => {
     try {
         const admin = await OrganizationAdmin.findOne({ where: { id: payload.id } });
         if (admin) {
@@ -147,22 +148,6 @@ const editOrganizationAdmin = async (payload: { id: string, name: string, email:
             if (payload.email)
                 admin.email = payload.email;
 
-            if (payload.newPassword) {
-                if (!payload.oldPassword) {
-                    error.status = 400;
-                    error.message = "old password is required";
-                    throw error;
-                }
-
-                const passwordMatching = await bcrypt.compare(payload.oldPassword, admin?.password || '');
-                if (passwordMatching) {
-                    admin.password = await bcrypt.hash(payload.newPassword, 10);
-                } else {
-                    error.status = 400;
-                    error.message = "the old password isn't correct";
-                    throw error;
-                }
-            }
             if (payload.organizationName) {
 
                 const profile = await OrganizationProfile.findOne({ where: { name: payload.organizationName } });
@@ -171,7 +156,6 @@ const editOrganizationAdmin = async (payload: { id: string, name: string, email:
                 }
             }
             return admin.save();
-
 
         } else {
             error.status = 404;
