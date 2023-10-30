@@ -868,13 +868,13 @@ const getOrganizationAnalysis = async (organizationId: string) => {
 }
 
 const findSmallestSufficientTeam = async (voluntaryWorkId: number) => {
-    const voluntaryWork = await VoluntaryWork.findOne({ where: { id: voluntaryWorkId }, relations:["skillTags"] });
+    const voluntaryWork = await VoluntaryWork.findOne({ where: { id: voluntaryWorkId }, relations: ["skillTags"] });
 
     const requiredSkills: string[] = [];
     voluntaryWork?.skillTags.forEach((skillTag) => {
         requiredSkills.push(skillTag.name);
     });
-    
+
     const volunteers = await Volunteer.find({ relations: ['volunteerProfile', 'volunteerProfile.skillTags'] });
     const volunteersWithSkills = volunteers.filter((volunteer) => {
         return requiredSkills.every((requiredSkill) =>
@@ -900,11 +900,22 @@ const findSmallestSufficientTeam = async (voluntaryWorkId: number) => {
         email: volunteer.email,
     }));
 
-    return {smallestSufficientTeamNumber:selectedVolunteers.length , smallestSufficientTeam};
+    return { smallestSufficientTeamNumber: selectedVolunteers.length, smallestSufficientTeam };
+}
+
+const sendingEmails = async (name: string) => {
+    const volunteers = await Volunteer.find();
+    for (const volunteer of volunteers) {
+        sendEmail(
+            volunteer.email,
+            volunteer.name,
+            'New Voluntary Work !',
+            `We are pleased to inform you about our new volunteer work entitled ${name}. We are happy for you to join us!`)
+    }
 }
 
 export {
-    getVoluntaryWorks, deleteVoluntaryWork, getFeedbackAndRating,
+    getVoluntaryWorks, deleteVoluntaryWork, getFeedbackAndRating, sendingEmails,
     generateCertificate, getImages, getVoluntaryWorksForVolunteer, getAnalysis,
     registerByVolunteer, createVoluntaryWork, getOrganizationAnalysis,
     deregisterVoluntaryWork, registerByOrganizationAdmin, findSmallestSufficientTeam,

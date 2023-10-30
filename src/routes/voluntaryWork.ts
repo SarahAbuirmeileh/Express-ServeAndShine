@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVoluntaryWork, deleteFeedback, deleteImage, deleteRating, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, findSmallestSufficientTeam, generateCertificate, getAnalysis, getFeedbackAndRating, getImages, getOrganizationAnalysis, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, volunteerReminder } from '../controllers/voluntaryWork.js';
+import { createVoluntaryWork, deleteFeedback, deleteImage, deleteRating, deleteVoluntaryWork, deregisterVoluntaryWork, editVoluntaryWork, findSmallestSufficientTeam, generateCertificate, getAnalysis, getFeedbackAndRating, getImages, getOrganizationAnalysis, getRecommendation, getVoluntaryWork, getVoluntaryWorks, getVoluntaryWorksForVolunteer, putFeedback, putRating, registerByOrganizationAdmin, registerByVolunteer, sendingEmails, volunteerReminder } from '../controllers/voluntaryWork.js';
 import { NSVolunteer } from '../../types/volunteer.js';
 import { NSVoluntaryWork } from '../../types/voluntaryWork.js';
 import { authorize, checkParticipation } from '../middleware/auth/authorize.js';
@@ -21,23 +21,44 @@ var router = express.Router();
 
 router.post('/', authorize("POST_voluntaryWork"), validateVoluntaryWork, (req, res, next) => {
     createVoluntaryWork({ ...req.body, creatorId: res.locals.volunteer?.id || res.locals.organizationAdmin?.id }).then((data) => {
-        log({
-            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Create Voluntary Work ' + req.body.name
-        }).then().catch()
+        sendingEmails(data.name).then(()=>{
+            log({
+                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'success' as NSLogs.Type,
+                request: 'Create Voluntary Work ' + req.body.name
+            }).then().catch()
+    
+            logToCloudWatch(
+                'success',
+                'voluntary work',
+                'Create Voluntary Work ' + req.body.name,
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
+    
+            res.status(201).send({ message: "Voluntary work created successfully!!", data })
+        }).catch(err=>{
+            log({
+                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
+                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
+                type: 'failed' as NSLogs.Type,
+                request: 'Sending emails to announce new voluntary work  ' + req.body.name
+            }).then().catch()
+    
+            logToCloudWatch(
+                'failed',
+                'voluntary work',
+                'Sending emails to announce new voluntary work ' + req.body.name,
+                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
+                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
+            ).then().catch()
 
-        logToCloudWatch(
-            'success',
-            'voluntary work',
-            'Create Voluntary Work ' + req.body.name,
-            res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-        ).then().catch()
-
-        res.status(201).send({ message: "Voluntary work created successfully!!", data })
+            next(err); 
+        })
+               
     }).catch(err => {
         log({
             userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
