@@ -31,10 +31,6 @@ export class VolunteerProfile extends BaseEntity {
     @JoinTable()
     skillTags: SkillTag[];
 
-    @ManyToMany(() => VoluntaryWork)
-    @JoinTable()
-    roles: VoluntaryWork[];
-
     @OneToOne(() => Volunteer, (volunteer) => volunteer.volunteerProfile, { onDelete: 'SET NULL' })
     @JoinColumn()
     volunteer: NSVolunteer.IVolunteer;

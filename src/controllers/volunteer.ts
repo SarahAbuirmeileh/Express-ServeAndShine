@@ -174,7 +174,7 @@ const getVolunteers = async (payload: NSVolunteer.Item & { page: string; pageSiz
                     availableDays: volunteer.volunteerProfile?.availableDays,
                     availableLocation: volunteer.volunteerProfile?.availableLocation,
                     dateOfBirth: volunteer.volunteerProfile?.dateOfBirth,
-                    roles: volunteer.volunteerProfile?.roles,
+                    roles: volunteer.roles,
                     skillTags: volunteer.volunteerProfile?.skillTags?.map((skillTag) => {
                         return { name: skillTag.name };
                     }),

@@ -8,8 +8,6 @@ import { Not } from "typeorm";
 import baseLogger from "../../logger.js";
 import { sendEmail } from "./AWSServices/SES.js";
 import jwt from 'jsonwebtoken';
-import { NSVolunteer } from "../../types/volunteer.js";
-
 
 const error = { status: 500, message: 'when trying to manage organization admin' };
 
