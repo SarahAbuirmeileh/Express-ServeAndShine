@@ -9,6 +9,5 @@ export namespace NSOrganizationAdmin {
         password: string;
         organizationId: string;
         createdAt?: Date;
-        gender:NSVolunteer.Gender;
     }
 }

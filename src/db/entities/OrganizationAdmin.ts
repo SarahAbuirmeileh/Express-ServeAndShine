@@ -26,7 +26,7 @@ export class OrganizationAdmin extends BaseEntity {
     @Column({
         type: 'enum',
         enum: ['male', 'female'],
-        nullable: false
+        nullable: true
     })
     gender: 'male' | 'female'
 

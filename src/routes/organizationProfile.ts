@@ -257,7 +257,7 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
  *         description: Number of items per page
  *     responses:
  *       200:
- *         description: List of organization profiles
+ *         description: Success
  *         content:
  *           application/json:
  *             schema:
@@ -277,23 +277,21 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
  *                 page: 1
  *                 pageSize: 10
  *                 total: 3
- *                 permissions:
+ *                 organizationProfiles:
  *                   - name: "Organization 1"
  *                     description: "this is a test"
  *                     createdAt: 2023-10-26T09:58:16.590Z
- *           
  *                   - name: "Organization 2"
  *                     description: "this is a test"
  *                     createdAt: 2023-10-26T09:58:55.481Z
- * 
  *                   - name: "Organization 3"
  *                     description: "this is a test"
  *                     createdAt: 2023-10-26T09:59:23.481Z
- *         401:
- *         description: You are unauthorized  
- *         403:  
+ *       401:
+ *         description:  You are unauthorized
+ *       403:  
  *         description: You don't have the permission
- *         500: 
+ *       500: 
  *         description: Something went wrong
  */
 

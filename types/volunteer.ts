@@ -40,7 +40,6 @@ export namespace NSVolunteer {
         availableLocation: string;
         availableDays: AvailableDays[];
         skills: string[];
-        gender:Gender;
     }
 
     export interface IVolunteer {
