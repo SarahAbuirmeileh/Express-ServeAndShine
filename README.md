@@ -68,7 +68,7 @@ Following best practices in continuous delivery, the platform remains up-to-date
 
 2. Documintation: 📚
 
-  click [here](http://localhost:3000/api-docs/) to see documintations.
+  click [here](serve-and-shine-lb-1409256843.eu-west-2.elb.amazonaws.com/api-docs/) to see documintations.
 
 ### Deployment pocess: 💻
 ![Screenshot from 2023-10-31 08-25-42](https://github.com/SarahAbuirmeileh/test/assets/127017088/a7480af5-0190-468d-b979-6b0857f49931)
