@@ -11,7 +11,7 @@ import { validateLogin } from "../middleware/validation/volunteer.js";
 
 const router = express.Router();
 
-router.post('/signup', authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
+router.post('/signup', authenticate, authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
     createOrganizationAdmin(req.body).then(async (data) => {
         log({
             userId: data.id,
