@@ -1,18 +1,18 @@
-# ✨Serve & Shine✨
+# ✨ Serve & Shine 🕊✨
 
-> **Team Members:**
+> **Team Members: 👩🏻‍💻**
 >
 > + Sarah Abu irmeileh
 >
 > + Tarteel Tamimi
 
-## **Overview:**
+## **Overview:💎**
 
 Our project is an online tool designed to connect people who want to volunteer their time and skills with organizations and projects that need help. It acts as a virtual bridge, making it simple for volunteers to find valuable opportunities and for organizations to efficiently manage their volunteers, and hence put the right person in the right place. This platform contributes to the humanitarian sector by improving the volunteer experience and increasing the impact of volunteer efforts.
 
-## General information
+## General information 📑
 
-### 👉Key Features:
+### Key Features: 🔑🎯
 
 1. **User Authentication and Profiles:**
     - Users can register and create profiles. Two primary user roles are supported: volunteers(normal, premium) and organizations.
@@ -38,36 +38,40 @@ Our project is an online tool designed to connect people who want to volunteer t
 9. **Error Handling:** 
     - Implement robust error handling to provide meaningful error messages to users and log errors for debugging.
 
-### 👉Humanitarian Impact:
+### Humanitarian Impact: 🕊
 
 This  Platform empowers individuals to actively contribute to humanitarian causes and community development. It strengthens the volunteer ecosystem by making volunteering more accessible, transparent, and efficient. By facilitating meaningful connections between volunteers and organizations, it amplifies the positive impact of volunteer initiatives in various sectors, including disaster relief, education, healthcare, and social welfare.
 
-### 👉Scalability:
+### Scalability: 🌍
 
 The platform is designed to accommodate a growing number of volunteers and organizations. It leverages AWS infrastructure and scalable database solutions to ensure smooth operation even as the user base expands.
 
-### 👉Security and Privacy:
+### Security and Privacy: 🔐
 
 Data security and privacy are paramount. The platform implements robust access controls, encryption, and regular security audits to safeguard sensitive user information.
 
-### 👉Continuous Delivery:
+### CI / CD: 💻
 
 Following best practices in continuous delivery, the platform remains up-to-date and reliable, ensuring a seamless experience for volunteers and organizations.
 
 **This Platform represents a powerful humanitarian project idea that can have a lasting positive impact on communities by promoting volunteerism and facilitating volunteer efforts. It brings people together to make a meaningful difference in the world.**
 
 
-## Technical information
-### 👉Development
-1. Entities:
+## Technical information 👩🏻‍💻
+### Development
+1. Entities: 🗃
 
    ![image](https://github.com/SarahAbuirmeileh/Serve-and-Shine/assets/127000629/d31ff035-c662-4454-868d-7cb7e37de76b)
 
-2. Documintation:
+2. Documintation: 📚
 
   click [here](http://localhost:3000/api-docs/) to see documintations.
 
-### 👉Deployment
+### Deployment pocess: 💻
+![Screenshot from 2023-10-31 08-25-42](https://github.com/SarahAbuirmeileh/test/assets/127017088/a7480af5-0190-468d-b979-6b0857f49931)
+
+### AWS services:🔥
+![Screenshot from 2023-10-31 08-27-43](https://github.com/SarahAbuirmeileh/test/assets/127017088/37fd9c79-485c-4c16-b0f5-d955ebdae43d)
+
+
    
-
-
