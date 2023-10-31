@@ -314,11 +314,7 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
             throw error;
         }
 
-        if (voluntaryWork.volunteerProfiles) {
-            voluntaryWork.volunteerProfiles.push(volunteerProfile);
-        } else {
-            voluntaryWork.volunteerProfiles = [volunteerProfile];
-        }
+        voluntaryWork.volunteerProfiles.push(volunteerProfile);
 
         if (volunteerProfile.voluntaryWorks) {
             volunteerProfile.voluntaryWorks.push(voluntaryWork);
