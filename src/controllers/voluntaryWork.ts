@@ -316,11 +316,7 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
 
         voluntaryWork.volunteerProfiles.push(volunteerProfile);
 
-        if (volunteerProfile.voluntaryWorks) {
-            volunteerProfile.voluntaryWorks.push(voluntaryWork);
-        } else {
-            volunteerProfile.voluntaryWorks = [voluntaryWork];
-        }
+        volunteerProfile.voluntaryWorks.push(voluntaryWork);
 
         await voluntaryWork.save();
         await volunteerProfile.save()
