@@ -1,4 +1,7 @@
 # ✨ Serve & Shine 🕊✨
+![photo_5334763846432312893_x](https://github.com/SarahAbuirmeileh/Serve-and-Shine/assets/127017088/704c3d0b-b725-48d2-80a0-d785ba13aa61)
+
+
 
 > **Team Members: 👩🏻‍💻**
 >
