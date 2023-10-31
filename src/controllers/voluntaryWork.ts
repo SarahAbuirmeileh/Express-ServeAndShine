@@ -281,7 +281,7 @@ const putFeedback = async (id: number, feedbackText: string, volunteerName: stri
 const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["volunteerProfile"]) => {
     try {
 
-        const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["skillTags"] });
+        const voluntaryWork = await VoluntaryWork.findOne({ where: { id: workId }, relations: ["skillTags","volunteerProfiles"] });
         if (!voluntaryWork) {
             error.status = 404;
             error.message = "voluntary work";
@@ -315,7 +315,6 @@ const registerByVolunteer = async (workId: number, volunteerProfile: Volunteer["
         }
 
         voluntaryWork.volunteerProfiles.push(volunteerProfile);
-
         volunteerProfile.voluntaryWorks.push(voluntaryWork);
 
         await voluntaryWork.save();
@@ -428,7 +427,7 @@ const generateCertificate = async (voluntaryWorkId: number, organizationName: st
             volunteerName: volunteer.name,
             date,
             voluntaryWorkName: voluntaryWork.name,
-            organizationName,
+            organizationName:"general",
             volunteerEmail: volunteer.email
         }
 
