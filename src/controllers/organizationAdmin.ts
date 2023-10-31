@@ -175,7 +175,7 @@ const forgetPassword = async (id: string, email: string) => {
 
     const token = jwt.sign(payload, secret, { expiresIn: '15m' });
 
-    const link = `serve-and-shine-lb-1409256843.eu-west-2.elb.amazonaws.com/organizationAdmin/reset-password/${id}/${token}`
+    const link = `http://serve-and-shine-lb-1409256843.eu-west-2.elb.amazonaws.com/organizationAdmin/reset-password/${id}/${token}`
     return sendEmail(email, organizationAdmin.name, "Reset the password", `Use this one time link ${link}`)
 }
 
