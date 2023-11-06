@@ -11,14 +11,6 @@ var router = express.Router();
 
 router.post('/', authorize("POST_role"), validateRole, (req, res, next) => {
     createRole(req.body).then((data) => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Create Role ' + req.body.name
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'role',
@@ -29,14 +21,6 @@ router.post('/', authorize("POST_role"), validateRole, (req, res, next) => {
 
         res.status(201).send({message:"Role created successfully!!",data})
     }).catch(err => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Create Role ' + req.body.name
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'role',
@@ -54,14 +38,6 @@ router.delete('/:id', validateRoleId, authorize("DELETE_role"), async (req, res,
 
     deleteRole(id)
         .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: 'root' as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Delete Role with id: ' + id
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'role',
@@ -73,14 +49,6 @@ router.delete('/:id', validateRoleId, authorize("DELETE_role"), async (req, res,
             res.send(data);
         })
         .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: 'root' as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Delete Role with id: ' + id
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'role',
@@ -95,14 +63,6 @@ router.delete('/:id', validateRoleId, authorize("DELETE_role"), async (req, res,
 
 router.put("/:id", authorize("PUT_role"), validateEditedRole, async (req, res, next) => {
     editRole({ ...req.body, id: req.params.id?.toString() }).then(() => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Edit Role with id: ' + req.params.id
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'role',
@@ -113,14 +73,6 @@ router.put("/:id", authorize("PUT_role"), validateEditedRole, async (req, res, n
 
         res.status(200).send("Role edited successfully!!")
     }).catch(err => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Edit Role with id: ' + req.params.id
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'role',
@@ -143,14 +95,6 @@ router.get('/', authorize("GET_roles"), async (req, res, next) => {
 
     getRoles(payload)
         .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: 'root' as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Get Role/s'
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'role',
@@ -162,14 +106,6 @@ router.get('/', authorize("GET_roles"), async (req, res, next) => {
             res.send(data);
         })
         .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: 'root' as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Get Role/s'
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'role',

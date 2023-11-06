@@ -13,14 +13,6 @@ const router = express.Router();
 
 router.post('/signup', authenticate, authorize("POST_organizationAdmin"), validateOrganizationAdmin, (req, res, next) => {
     createOrganizationAdmin(req.body).then(async (data) => {
-        log({
-            userId: data.id,
-            userName: req.body.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Create Organization Admin ' + data.name
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'organization admin',
@@ -31,14 +23,6 @@ router.post('/signup', authenticate, authorize("POST_organizationAdmin"), valida
         const { password, ...dataWithoutPassword } = data;
         res.status(201).send({ message: "Organization Admin created successfully!!", dataWithoutPassword })
     }).catch(async err => {
-        log({
-            userId: "",
-            userName: req.body.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Create Organization Admin ' + req.body.name
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'organization admin',
@@ -63,14 +47,6 @@ router.post('/login', validateLogin, (req, res, next) => {
                 sameSite: "lax"       // Protect against CSRF attacks
             });
 
-            log({
-                userId: id,
-                userName: name,
-                userType: (data.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Login ' + (name)
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'organization admin',
@@ -82,14 +58,6 @@ router.post('/login', validateLogin, (req, res, next) => {
             res.status(200).send("You logged in successfully !");
         })
         .catch(err => {
-            log({
-                userId: id,
-                userName: name,
-                userType: 'volunteer' as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Login ' + (name)
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'organization admin',
@@ -109,14 +77,6 @@ router.get("/logout", authenticate, (req, res, next) => {
     res.cookie("myApp", '', {
         maxAge: -1
     })
-    log({
-        userId: res.locals.organizationAdmin?.id,
-        userName: res.locals.organizationAdmin?.name,
-        userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-        type: 'success' as NSLogs.Type,
-        request: 'Logout ' + (res.locals.organizationAdmin?.name)
-    }).then().catch()
-
     logToCloudWatch(
         'success',
         'volunteer',
@@ -133,14 +93,6 @@ router.delete('/:id', authenticate, validateAdminId, authorize("DELETE_organizat
 
     deleteOrganizationAdmin(id)
         .then(async data => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Delete Organization Admin with id: ' + id
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'organization admin',
@@ -152,14 +104,6 @@ router.delete('/:id', authenticate, validateAdminId, authorize("DELETE_organizat
             res.send(data);
         })
         .catch(async err => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Delete Organization Admin with id: ' + id
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'organization admin',
@@ -174,14 +118,6 @@ router.delete('/:id', authenticate, validateAdminId, authorize("DELETE_organizat
 
 router.put("/:id", authenticate, authorize("PUT_organizationAdmin"), validateAdminEdited, async (req, res, next) => {
     editOrganizationAdmin({ ...req.body, id: req.params.id }).then(async () => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Edit Organization Admin with id: ' + req.params.id
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'organization admin',
@@ -192,14 +128,6 @@ router.put("/:id", authenticate, authorize("PUT_organizationAdmin"), validateAdm
 
         res.status(200).send("Organization Admin edited successfully!!")
     }).catch(async err => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Edit Organization Admin with id: ' + req.params.id
-        })
-
         logToCloudWatch(
             'failed',
             'organization admin',
@@ -224,14 +152,6 @@ router.get('/search', authenticate, authorize("GET_organizationAdmins"), async (
 
     getOrganizationAdmins(payload)
         .then(async data => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer?.type ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Get Organization Admin/s'
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'organization admin',
@@ -243,14 +163,6 @@ router.get('/search', authenticate, authorize("GET_organizationAdmins"), async (
             res.send(data);
         })
         .catch(async err => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer?.type ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Get Organization Admin/s'
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'organization admin',
@@ -265,14 +177,6 @@ router.get('/search', authenticate, authorize("GET_organizationAdmins"), async (
 
 router.get("/forget-password", authenticate, authorize("POST_voluntaryWork"), (req, res, next) => {
     forgetPassword(res.locals.organizationAdmin?.id, res.locals.organizationAdmin?.email).then(() => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Forget  password organization admin id ' + res.locals.organizationAdmin?.id
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'organization admin',
@@ -283,14 +187,6 @@ router.get("/forget-password", authenticate, authorize("POST_voluntaryWork"), (r
 
         res.send("Password reset link has been sent to your email")
     }).catch(err => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Forget  password organization admin id ' + res.locals.organizationAdmin?.id
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'organization admin',
@@ -313,14 +209,6 @@ router.get("/reset-password/:id/:token", authenticate, authorize("POST_voluntary
             maxAge: 15 * 60 * 1000,
             sameSite: "lax"
         });
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Validate token to reset password for organization admin id ' + res.locals.organizationAdmin?.id
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'organization admin',
@@ -330,14 +218,6 @@ router.get("/reset-password/:id/:token", authenticate, authorize("POST_voluntary
         ).then().catch()
         res.send("You can now set your new password by making a POST request to /reset-password/:id with your new password in the request body.");
     } catch (error) {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Validate token to reset password for organization admin id ' + res.locals.organizationAdmin?.id
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'organization admin',
@@ -356,14 +236,6 @@ router.post("/reset-password/:id", authenticate, authorize("POST_voluntaryWork")
     const password = req.body.password;
     //  if(!password || !isValidPassword(password) )next() bad request
     resetPassword(id, token, password).then(data => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Reset password for organization admin id ' + res.locals.organizationAdmin?.id
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'organization admin',
@@ -374,14 +246,6 @@ router.post("/reset-password/:id", authenticate, authorize("POST_voluntaryWork")
 
         res.status(200).send(data)
     }).catch(err => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Reset password for organization admin id ' + res.locals.organizationAdmin?.id
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'organization admin',

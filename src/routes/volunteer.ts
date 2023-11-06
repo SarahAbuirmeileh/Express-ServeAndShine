@@ -14,14 +14,6 @@ var router = express.Router();
 
 router.post('/signup', validateVolunteer, (req, res, next) => {
     createVolunteer({ ...req.body, type: "volunteer" }).then((data) => {
-        log({
-            userId: data.id,
-            userName: req.body.name,
-            userType: data.type as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Signup volunteer ' + req.body.name
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'volunteer',
@@ -43,14 +35,6 @@ router.post('/signup', validateVolunteer, (req, res, next) => {
             const data = await Volunteer.findOne({ where: { id: req.body.id } });
             if (data) {
 
-                log({
-                    userId: data.id,
-                    userName: req.body.name,
-                    userType: data.type as NSLogs.userType,
-                    type: 'success' as NSLogs.Type,
-                    request: 'Signup volunteer ' + req.body.name
-                }).then().catch()
-
                 logToCloudWatch(
                     'success',
                     'volunteer',
@@ -70,14 +54,6 @@ router.post('/signup', validateVolunteer, (req, res, next) => {
             }
 
         } else {
-            log({
-                userId: "",
-                userName: req.body.name,
-                userType: req.body.type as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Signup volunteer ' + req.body.name
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'volunteer',
@@ -102,14 +78,6 @@ router.post('/login', validateLogin, (req, res, next) => {
                 sameSite: "lax"       // Protect against CSRF attacks
             });
 
-            log({
-                userId: id,
-                userName: name,
-                userType: (data.volunteer?.type) as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Login ' + (name)
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'volunteer',
@@ -121,14 +89,6 @@ router.post('/login', validateLogin, (req, res, next) => {
             res.status(201).send("You logged in successfully !");
         })
         .catch(err => {
-            log({
-                userId: id,
-                userName: name,
-                userType: 'volunteer' as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Login ' + (name)
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'volunteer',
@@ -146,14 +106,6 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), validateVolun
 
     deleteVolunteer(id)
         .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Delete Volunteer with id: ' + id
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'volunteer',
@@ -165,14 +117,6 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), validateVolun
             res.send(data);
         })
         .catch(error => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Delete Volunteer with id: ' + id
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'volunteer',
@@ -187,14 +131,6 @@ router.delete('/:id', authenticate, authorize("DELETE_volunteer"), validateVolun
 
 router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolunteer, async (req, res, next) => {
     editVolunteer({ ...req.body, id: req.params.id?.toString() }).then(() => {
-        log({
-            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Edit Volunteer with id: ' + req.params.id?.toString()
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'volunteer',
@@ -205,14 +141,6 @@ router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolun
 
         res.status(201).send("Volunteer edited successfully!!")
     }).catch(err => {
-        log({
-            userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-            userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-            userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Edit Volunteer with id: ' + req.params.id?.toString()
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'volunteer',
@@ -242,14 +170,6 @@ router.get('/search', authenticate, authorize("GET_volunteers"), async (req, res
 
     getVolunteers(payload)
         .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'get Volunteer/s'
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'volunteer',
@@ -261,14 +181,6 @@ router.get('/search', authenticate, authorize("GET_volunteers"), async (req, res
             res.send(data);
         })
         .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Get Volunteer/s'
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'volunteer',
@@ -288,14 +200,6 @@ router.get("/logout", authenticate, (req, res, next) => {
     res.cookie("myApp", '', {
         maxAge: -1
     })
-    log({
-        userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-        userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-        userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-        type: 'success' as NSLogs.Type,
-        request: 'Logout ' + (res.locals.organizationAdmin?.name || res.locals.volunteer?.name)
-    }).then().catch()
-
     logToCloudWatch(
         'success',
         'volunteer',
@@ -309,14 +213,6 @@ router.get("/logout", authenticate, (req, res, next) => {
 
 router.get('/me', authenticate, async (req, res, next) => {
     if (res.locals.volunteer) {
-        log({
-            userId: res.locals.volunteer?.id,
-            userName: res.locals.volunteer?.name,
-            userType: (res.locals.volunteer?.type) as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Get my information'
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'volunteer',
@@ -327,14 +223,6 @@ router.get('/me', authenticate, async (req, res, next) => {
 
         res.send(res.locals.volunteer);
     } else if (res.locals.organizationAdmin) {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Get my information'
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'organization admin',
@@ -349,14 +237,6 @@ router.get('/me', authenticate, async (req, res, next) => {
 
 router.get("/forget-password", authenticate, authorize("PUT_rating"), (req, res, next) => {
     forgetPassword(res.locals.volunteer?.id, res.locals.volunteer?.email).then(() => {
-        log({
-            userId: res.locals.volunteer?.id,
-            userName: res.locals.volunteer?.name,
-            userType: (res.locals.volunteer?.type) as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Forget  password volunteer id ' + res.locals.volunteer?.id
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'volunteer',
@@ -367,14 +247,6 @@ router.get("/forget-password", authenticate, authorize("PUT_rating"), (req, res,
 
         res.send("Password reset link has been sent to your email")
     }).catch(err => {
-        log({
-            userId: res.locals.volunteer?.id,
-            userName: res.locals.volunteer?.name,
-            userType: (res.locals.volunteer?.type) as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Forget  password volunteer id ' + res.locals.volunteer?.id
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'volunteer',
@@ -397,14 +269,6 @@ router.get("/reset-password/:id/:token", authenticate, authorize("PUT_rating"), 
             maxAge: 15 * 60 * 1000,
             sameSite: "lax"
         });
-        log({
-            userId: res.locals.volunteer?.id,
-            userName: res.locals.volunteer?.name,
-            userType: (res.locals.volunteer?.type) as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Validate token to reset password for volunteer id ' + res.locals.volunteer?.id
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'volunteer',
@@ -414,14 +278,6 @@ router.get("/reset-password/:id/:token", authenticate, authorize("PUT_rating"), 
         ).then().catch()
         res.send("You can now set your new password by making a POST request to /reset-password/:id with your new password in the request body.");
     } catch (error) {
-        log({
-            userId: res.locals.volunteer?.id,
-            userName: res.locals.volunteer?.name,
-            userType: (res.locals.volunteer?.type) as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Validate token to reset password for volunteer id ' + res.locals.volunteer?.id
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'volunteer',
@@ -440,14 +296,6 @@ router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), valida
     const password = req.body.password;
     //  if(!password || !isValidPassword(password) )next() bad request
     resetPassword(id, token, password).then(data => {
-        log({
-            userId: res.locals.volunteer?.id,
-            userName: res.locals.volunteer?.name,
-            userType: (res.locals.volunteer?.type) as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Reset password for volunteer id ' + res.locals.volunteer?.id
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'volunteer',
@@ -458,14 +306,6 @@ router.post("/reset-password/:id", authenticate, authorize("PUT_rating"), valida
 
         res.status(200).send(data)
     }).catch(err => {
-        log({
-            userId: res.locals.volunteer?.id,
-            userName: res.locals.volunteer?.name,
-            userType: (res.locals.volunteer?.type) as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Reset password for volunteer id ' + res.locals.volunteer?.id
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'volunteer',

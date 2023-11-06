@@ -10,14 +10,6 @@ const router = express.Router();
 
 router.post('/', authorize("POST_organizationProfile"), validateOrganizationProfile, (req, res, next) => {
     createOrganizationProfile(req.body).then((data) => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Create Organization Profile ' + data.name
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'organization profile',
@@ -28,14 +20,6 @@ router.post('/', authorize("POST_organizationProfile"), validateOrganizationProf
 
         res.status(201).send({message:"Organization Profile created successfully!!" , data})
     }).catch(err => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Create Organization Profile ' + req.body.name
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'organization profile',
@@ -53,14 +37,6 @@ router.delete('/:id', validateOrgId, authorize("DELETE_organizationProfile"), as
 
     deleteOrganizationProfile(id)
         .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Delete Organization Profile with id: ' + id
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'organization profile',
@@ -72,14 +48,6 @@ router.delete('/:id', validateOrgId, authorize("DELETE_organizationProfile"), as
             res.send(data);
         })
         .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Delete Organization Profile with id: ' + id
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'organization profile',
@@ -94,14 +62,6 @@ router.delete('/:id', validateOrgId, authorize("DELETE_organizationProfile"), as
 
 router.put("/:id", validateOrgId, authorize("PUT_organizationProfile"), async (req, res, next) => {
     editOrganizationProfile(req.body).then(() => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Edit Organization Profile with id: ' + req.params.id
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'organization profile',
@@ -112,14 +72,6 @@ router.put("/:id", validateOrgId, authorize("PUT_organizationProfile"), async (r
 
         res.status(200).send("Organization Profile edited successfully!!")
     }).catch(err => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: (res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Edit Organization Profile with id: ' + req.params.id
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'organization profile',
@@ -143,14 +95,6 @@ router.get('/search', authorize("GET_organizationProfiles"), async (req, res, ne
 
     searchOrganizationProfile(payload)
         .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Search Organization Profiles'
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'organization profile',
@@ -162,14 +106,6 @@ router.get('/search', authorize("GET_organizationProfiles"), async (req, res, ne
             res.status(200).send(data);
         })
         .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer?.type ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Search Organization Profiles'
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'organization profile',
@@ -190,14 +126,6 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
 
     getOrganizationProfile(payload)
         .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Get Organization Profiles'
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'organization profile',
@@ -209,14 +137,6 @@ router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) =>
             res.send(data);
         })
         .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer?.type ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Get Organization Profiles'
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'organization profile',

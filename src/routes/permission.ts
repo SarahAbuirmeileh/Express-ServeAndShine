@@ -11,14 +11,6 @@ var router = express.Router();
 router.post('/', authorize("POST_permission"), validatePermission, (req, res, next) => {
     createPermission(req.body).then((data) => {
 
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Create Permission ' + req.body.name
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'permission',
@@ -29,14 +21,6 @@ router.post('/', authorize("POST_permission"), validatePermission, (req, res, ne
 
         res.status(201).send({ message: "Permission created successfully!!", data })
     }).catch(err => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Create Permission ' + req.body.name
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'permission',
@@ -54,14 +38,6 @@ router.delete('/:id', validatePermissionId, authorize("DELETE_permission"), asyn
 
     deletePermission(id)
         .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: 'root' as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Delete Permission with id: ' + id
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'permission',
@@ -73,14 +49,6 @@ router.delete('/:id', validatePermissionId, authorize("DELETE_permission"), asyn
             res.send(data);
         })
         .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: 'root' as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Delete Permission with id: ' + id
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'permission',
@@ -95,14 +63,6 @@ router.delete('/:id', validatePermissionId, authorize("DELETE_permission"), asyn
 
 router.put("/:id", authorize("PUT_permission"), validatePermissionId, async (req, res, next) => {
     editPermission({ ...req.body, id: req.params.id?.toString() }).then(() => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'success' as NSLogs.Type,
-            request: 'Edit Permission with id: ' + req.params.id
-        }).then().catch()
-
         logToCloudWatch(
             'success',
             'permission',
@@ -113,14 +73,6 @@ router.put("/:id", authorize("PUT_permission"), validatePermissionId, async (req
 
         res.status(200).send("Permission edited successfully!!")
     }).catch(err => {
-        log({
-            userId: res.locals.organizationAdmin?.id,
-            userName: res.locals.organizationAdmin?.name,
-            userType: 'root' as NSLogs.userType,
-            type: 'failed' as NSLogs.Type,
-            request: 'Edit Permission with id: ' + req.params.id
-        }).then().catch()
-
         logToCloudWatch(
             'failed',
             'permission',
@@ -143,14 +95,6 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
 
     getPermissions(payload)
         .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: 'root' as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Get Permission/s'
-            }).then().catch()
-
             logToCloudWatch(
                 'success',
                 'permission',
@@ -162,14 +106,6 @@ router.get('/', authorize("GET_permissions"), async (req, res, next) => {
             res.send(data);
         })
         .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id,
-                userName: res.locals.organizationAdmin?.name,
-                userType: 'root' as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Get Permission/s'
-            }).then().catch()
-
             logToCloudWatch(
                 'failed',
                 'permission',
