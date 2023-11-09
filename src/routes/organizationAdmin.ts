@@ -212,7 +212,7 @@ router.put("/:id", authenticate, authorize("PUT_organizationAdmin"), validateAdm
     });
 });
 
-router.get('/search', authenticate, authorize("GET_organizationAdmins"), async (req, res, next) => {
+router.get('/', authenticate, authorize("GET_organizationAdmins"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',
@@ -451,7 +451,7 @@ router.post("/reset-password/:id", authenticate, authorize("POST_voluntaryWork")
 
 /**
  * @swagger
- * /organizationAdmin/search:
+ * /organizationAdmin:
  *   get:
  *     summary: Get organization admin based on the provided query parameters
  *     tags: [OrganizationAdmin]

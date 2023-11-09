@@ -225,7 +225,7 @@ router.put("/:id", authenticate, authorize("PUT_volunteer"), validateEditedVolun
     });
 });
 
-router.get('/search', authenticate, authorize("GET_volunteers"), async (req, res, next) => {
+router.get('/', authenticate, authorize("GET_volunteers"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',
         pageSize: req.query.pageSize?.toString() || '10',

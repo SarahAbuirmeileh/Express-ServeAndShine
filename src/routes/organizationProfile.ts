@@ -132,56 +132,6 @@ router.put("/:id", validateOrgId, authorize("PUT_organizationProfile"), async (r
     });
 });
 
-router.get('/search', authorize("GET_organizationProfiles"), async (req, res, next) => {
-    const payload = {
-        page: req.query.page?.toString() || '1',
-        pageSize: req.query.pageSize?.toString() || '10',
-        id: req.query.id?.toString() || '',
-        name: req.query.name?.toString() || '',
-        adminName: req.query.adminName?.toString() || ''
-    };
-
-    searchOrganizationProfile(payload)
-        .then(data => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'success' as NSLogs.Type,
-                request: 'Search Organization Profiles'
-            }).then().catch()
-
-            logToCloudWatch(
-                'success',
-                'organization profile',
-                'Search Organization Profiles',
-                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-            ).then().catch()
-
-            res.status(200).send(data);
-        })
-        .catch(err => {
-            log({
-                userId: res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                userName: res.locals.organizationAdmin?.name || res.locals.volunteer?.name,
-                userType: (res.locals.volunteer?.type ? res.locals.volunteer?.type : res.locals.organizationAdmin?.name === "root" ? "root" : 'admin') as NSLogs.userType,
-                type: 'failed' as NSLogs.Type,
-                request: 'Search Organization Profiles'
-            }).then().catch()
-
-            logToCloudWatch(
-                'failed',
-                'organization profile',
-                'Search Organization Profiles',
-                res.locals.organizationAdmin?.id || res.locals.volunteer?.id,
-                res.locals.organizationAdmin?.name || res.locals.volunteer?.name
-            ).then().catch()
-
-            next(err);
-        });
-});
-
 router.get('/', authorize("GET_organizationProfiles"), async (req, res, next) => {
     const payload = {
         page: req.query.page?.toString() || '1',

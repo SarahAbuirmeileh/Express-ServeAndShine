@@ -518,7 +518,7 @@ router.delete("/feedback/:id", validateVoluntaryWorkId, authorize("PUT_rating"),
         });
 });
 
-router.get('/search', authorize("GET_voluntaryWorks"), async (req, res, next) => {
+router.get('/', authorize("GET_voluntaryWorks"), async (req, res, next) => {
 
     const payload = {
         page: req.query.page?.toString() || '1',
