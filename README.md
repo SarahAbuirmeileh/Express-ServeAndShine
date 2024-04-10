@@ -112,3 +112,7 @@ Following best practices in continuous delivery, the platform remains up-to-date
 ## Api Documentations: 📚
 You can learn more about Api for this project if you visit this (after cloning the project and do the previos steps)<br>
 `http://localhost:3000/api-docs/`
+
+
+## Note: 🚫
+After Nov 2024, all AWS services won't be available 
