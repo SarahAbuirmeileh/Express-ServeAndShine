@@ -66,9 +66,8 @@ Following best practices in continuous delivery, the platform remains up-to-date
 
    ![image](https://github.com/SarahAbuirmeileh/Serve-and-Shine/assets/127000629/d31ff035-c662-4454-868d-7cb7e37de76b)
 
-2. Documintation: 📚
+2. Documentation: 📚
 
-  click [here](http://serve-and-shine-lb-1409256843.eu-west-2.elb.amazonaws.com/api-docs/) to see documintations.
 
 ### Deployment pocess: 💻
 ![Screenshot from 2023-10-31 08-25-42](https://github.com/SarahAbuirmeileh/test/assets/127017088/a7480af5-0190-468d-b979-6b0857f49931)
@@ -77,4 +76,39 @@ Following best practices in continuous delivery, the platform remains up-to-date
 ![Screenshot from 2023-10-31 08-27-43](https://github.com/SarahAbuirmeileh/test/assets/127017088/37fd9c79-485c-4c16-b0f5-d955ebdae43d)
 
 
-   
+## Usage & Setup Instructions: 👩🏻‍💻📑
+
+1. Clone the repository using this command <br>
+    `git clone https://github.com/SarahAbuirmeileh/Serve-and-Shine`
+
+2. Install dependencies using this command<br>
+    `npm install`
+
+3. Create a database (Choose it's name and store it in .env)
+
+4. Set up environment variables:
+    4.1 Create .env file
+    4.2 Add to it these environment variables:
+    ```
+    PORT=          # Port to run the server, example 3000
+    SECRET_KEY=    # Choose one to encrypt the password
+    DB_HOST=       # The database host, if locally may be localhost
+    DB_PORT=       # Example 3306 
+    DB_USERNAME=   # According to your database connection
+    DB_PASSWORD=   # According to your database connection
+    DB_NAME=       # According to your database, example Serve-and-Shine
+    AWS_ACCESS_KEY_ID=  # From this to the end are data related to your AWS account
+    AWS_SECRET_ACCESS_KEY=
+    AWS_REGION=
+    AWS_BUCKET_NAME=
+    AWS_CERTIFICATES_BUCKET_NAME=
+    ```
+5. Build the application using this command:<br>
+`npm run dev`
+
+**🔥And finally you can access this incredible project, if you run it locally using port 3000, the requests basically should be sent to** <br>
+`http://localhost:3000/`  
+
+## Api Documentations: 📚
+You can learn more about Api for this project if you visit this (after cloning the project and do the previos steps)<br>
+`http://localhost:3000/api-docs/`
