@@ -87,8 +87,8 @@ Following best practices in continuous delivery, the platform remains up-to-date
 3. Create a database (Choose it's name and store it in .env)
 
 4. Set up environment variables:
-    4.1 Create .env file
-    4.2 Add to it these environment variables:
+    4.1 Create .env file <br>
+    4.2 Add to it these environment variables:  <br>
     ```
     PORT=          # Port to run the server, example 3000
     SECRET_KEY=    # Choose one to encrypt the password
@@ -115,4 +115,4 @@ You can learn more about Api for this project if you visit this (after cloning t
 
 
 ## Note: 🚫
-After Nov 2024, all AWS services won't be available 
+After Nov 2023, all AWS services won't be available 
