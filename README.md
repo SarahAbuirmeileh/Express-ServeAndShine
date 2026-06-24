@@ -13,7 +13,7 @@
 
 Our project is an online tool designed to connect people who want to volunteer their time and skills with organizations and projects that need help. It acts as a virtual bridge, making it simple for volunteers to find valuable opportunities and for organizations to efficiently manage their volunteers, and hence put the right person in the right place. This platform contributes to the humanitarian sector by improving the volunteer experience and increasing the impact of volunteer efforts.
 
-## General information 📑
+## General information 
 
 ### Key Features: 🔑🎯
 
